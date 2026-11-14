@@ -1,0 +1,530 @@
+{
+  "_comment": "Moon-C health manual: the single source of truth for indicators, ranges and protocols. Content in English ('en') with Spanish translation ('es'). No diagnostic language.",
+  "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+
+  "manual": {
+    "title": {"en": "Moon-C on-board health manual", "es": "Manual de salud a bordo de Moon-C"},
+    "version": "0.1.0",
+    "last_reviewed": "2026-11-14",
+    "review_status": "pending medical review",
+    "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+    "ranges_warning": "EXAMPLE VALUES – must be validated by medical experts",
+    "mission": {
+      "en": "Moon-C supports the crew on board so they can monitor their health and act in time, without waiting for Earth. Moon-C does not diagnose.",
+      "es": "Moon-C apoya a la tripulación a bordo para que pueda vigilar su salud y actuar a tiempo, sin esperar a la Tierra. Moon-C no diagnostica."
+    },
+    "disclaimer": {
+      "en": "Moon-C does not diagnose. The ranges in this manual are EXAMPLE VALUES and must be validated by medical experts. When in doubt, contact the on-board medical officer.",
+      "es": "Moon-C no diagnostica. Los rangos de este manual son VALORES DE EJEMPLO y deben ser validados por expertos médicos. Ante cualquier duda, contacta al oficial médico a bordo."
+    },
+    "gap_policy": {
+      "en": "Any value that is neither normal nor urgent is treated as attention, including values that fall between the example bands.",
+      "es": "Cualquier valor que no sea normal ni urgente se trata como atención, incluidos los valores que caen entre las bandas de ejemplo."
+    }
+  },
+
+  "indicators": {
+    "heart_rate": {
+      "unit": "bpm",
+      "unit_aliases": ["bpm", "beats/min", "beats per minute", "/min", "lpm", "latidos por minuto"],
+      "valid_range": {"min": 1, "max": 300},
+      "integer_only": false,
+      "name": {"en": "Heart rate", "es": "Frecuencia cardiaca"},
+      "explanation": {
+        "en": "The number of times your heart beats per minute (bpm), measured at rest.",
+        "es": "El número de veces que late tu corazón por minuto (bpm), medido en reposo."
+      },
+      "why_it_matters_in_space": {
+        "en": "In microgravity, body fluids shift toward the head and the heart and blood vessels adapt. Exercise, sleep loss and stress also change your heart rate, so regular resting readings help you notice changes early.",
+        "es": "En microgravedad, los líquidos del cuerpo se desplazan hacia la cabeza y el corazón y los vasos sanguíneos se adaptan. El ejercicio, la falta de sueño y el estrés también cambian la frecuencia cardiaca, así que las lecturas en reposo ayudan a notar cambios a tiempo."
+      },
+      "how_to_measure": {
+        "en": [
+          "Rest quietly for 5 minutes, secured in place.",
+          "Use the heart rate sensor or the pulse oximeter on a finger, or place two fingers on the inside of your wrist.",
+          "Count the beats for 30 seconds and multiply by 2, or read the value on the device.",
+          "Log the value in Moon-C in bpm."
+        ],
+        "es": [
+          "Descansa en calma 5 minutos, sujeto a tu lugar.",
+          "Usa el sensor de frecuencia cardiaca o el pulsioxímetro en un dedo, o coloca dos dedos en la cara interna de la muñeca.",
+          "Cuenta los latidos durante 30 segundos y multiplica por 2, o lee el valor en el dispositivo.",
+          "Registra el valor en Moon-C en bpm."
+        ]
+      },
+      "ranges": {
+        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+        "normal": [{"min": 60, "max": 100}],
+        "attention": [{"min": 50, "max": 59}, {"min": 101, "max": 120}],
+        "urgent": [{"lt": 50}, {"gt": 120}]
+      },
+      "what_to_do": {
+        "normal": {
+          "en": ["No action needed. Keep logging regular resting readings."],
+          "es": ["No hace falta hacer nada. Sigue registrando lecturas en reposo con regularidad."]
+        },
+        "attention": {
+          "en": [
+            "Rest for 10 minutes and measure again.",
+            "Note anything that could explain it, such as recent exercise, caffeine, stress or poor sleep.",
+            "If the next reading is still outside the normal range, tell the on-board medical officer."
+          ],
+          "es": [
+            "Descansa 10 minutos y vuelve a medir.",
+            "Anota lo que pueda explicarlo, como ejercicio reciente, cafeína, estrés o mal descanso.",
+            "Si la siguiente lectura sigue fuera del rango normal, avisa al oficial médico a bordo."
+          ]
+        },
+        "urgent": {
+          "en": [
+            "Stop what you are doing, stay still and secure yourself in place.",
+            "Alert the on-board medical officer now.",
+            "Measure again and record vital signs every 5 minutes.",
+            "If you notice chest pain, difficulty breathing or feel faint, say so: Moon-C will open the emergency protocol."
+          ],
+          "es": [
+            "Detén la actividad, mantente en reposo y sujétate en tu lugar.",
+            "Avisa ahora al oficial médico a bordo.",
+            "Vuelve a medir y registra los signos vitales cada 5 minutos.",
+            "Si notas dolor de pecho, dificultad para respirar o sensación de desmayo, dilo: Moon-C abrirá el protocolo de emergencia."
+          ]
+        }
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    },
+
+    "body_temperature": {
+      "unit": "°C",
+      "unit_aliases": ["°C", "ºC", "C", "deg C", "celsius", "grados", "grados celsius"],
+      "valid_range": {"min": 25, "max": 45},
+      "integer_only": false,
+      "name": {"en": "Body temperature", "es": "Temperatura corporal"},
+      "explanation": {
+        "en": "Your body temperature in degrees Celsius (°C).",
+        "es": "Tu temperatura corporal en grados Celsius (°C)."
+      },
+      "why_it_matters_in_space": {
+        "en": "The cabin is a closed environment with its own thermal conditions, and in microgravity the body releases heat differently, especially during exercise. Temperature is an early, easy-to-measure signal worth tracking.",
+        "es": "La cabina es un entorno cerrado con condiciones térmicas propias, y en microgravedad el cuerpo libera calor de otra forma, sobre todo durante el ejercicio. La temperatura es una señal temprana y fácil de medir que vale la pena seguir."
+      },
+      "how_to_measure": {
+        "en": [
+          "Wait at least 30 minutes after exercise, eating or drinking.",
+          "Use the on-board thermometer as described in its instructions (for example under the tongue or in the ear).",
+          "Keep it in place until it signals that the reading is complete.",
+          "Log the value in Moon-C in °C."
+        ],
+        "es": [
+          "Espera al menos 30 minutos después de hacer ejercicio, comer o beber.",
+          "Usa el termómetro de a bordo según sus instrucciones (por ejemplo, bajo la lengua o en el oído).",
+          "Mantenlo en su lugar hasta que indique que la lectura terminó.",
+          "Registra el valor en Moon-C en °C."
+        ]
+      },
+      "ranges": {
+        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+        "normal": [{"min": 36.1, "max": 37.2}],
+        "attention": [{"min": 37.3, "max": 37.9}, {"min": 35.5, "max": 36.0}],
+        "urgent": [{"gte": 38.0}, {"lt": 35.5}]
+      },
+      "what_to_do": {
+        "normal": {
+          "en": ["No action needed. Keep logging when you feel unwell or when the routine asks for it."],
+          "es": ["No hace falta hacer nada. Sigue registrando cuando te sientas mal o cuando la rutina lo pida."]
+        },
+        "attention": {
+          "en": [
+            "Rest, drink water and measure again in 30 minutes.",
+            "Check the cabin temperature and your clothing layers.",
+            "If it stays outside the normal range or you feel unwell, tell the on-board medical officer."
+          ],
+          "es": [
+            "Descansa, bebe agua y vuelve a medir en 30 minutos.",
+            "Revisa la temperatura de la cabina y tu ropa.",
+            "Si sigue fuera del rango normal o te sientes mal, avisa al oficial médico a bordo."
+          ]
+        },
+        "urgent": {
+          "en": [
+            "Stop your activity and rest in a safe place.",
+            "Alert the on-board medical officer now.",
+            "Measure again and record vital signs every 5 minutes.",
+            "Follow the medical officer's instructions; do not take medication on your own unless they tell you to."
+          ],
+          "es": [
+            "Detén tu actividad y descansa en un lugar seguro.",
+            "Avisa ahora al oficial médico a bordo.",
+            "Vuelve a medir y registra los signos vitales cada 5 minutos.",
+            "Sigue las indicaciones del oficial médico; no tomes medicamentos por tu cuenta salvo que te lo indique."
+          ]
+        }
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    },
+
+    "spo2": {
+      "unit": "%",
+      "unit_aliases": ["%", "percent", "pct", "porcentaje", "por ciento"],
+      "valid_range": {"min": 1, "max": 100},
+      "integer_only": false,
+      "name": {"en": "Oxygen saturation (SpO2)", "es": "Saturación de oxígeno (SpO2)"},
+      "explanation": {
+        "en": "The percentage of oxygen carried by your blood, measured with a pulse oximeter on a finger.",
+        "es": "El porcentaje de oxígeno que transporta tu sangre, medido con un pulsioxímetro en un dedo."
+      },
+      "why_it_matters_in_space": {
+        "en": "The cabin air is produced and controlled by life-support systems. Your oxygen saturation helps you and the crew notice early if your body or the cabin air needs attention.",
+        "es": "El aire de la cabina lo producen y controlan los sistemas de soporte vital. Tu saturación de oxígeno ayuda a notar a tiempo si tu cuerpo o el aire de la cabina necesitan atención."
+      },
+      "how_to_measure": {
+        "en": [
+          "Rest for 5 minutes and keep your hand warm and still.",
+          "Remove any nail polish or coating from the finger you will use.",
+          "Place the pulse oximeter on the finger and wait until the reading is stable (about 30 seconds).",
+          "Log the value in Moon-C in %."
+        ],
+        "es": [
+          "Descansa 5 minutos y mantén la mano tibia y quieta.",
+          "Retira el esmalte o cualquier cubierta del dedo que vas a usar.",
+          "Coloca el pulsioxímetro en el dedo y espera a que la lectura se estabilice (unos 30 segundos).",
+          "Registra el valor en Moon-C en %."
+        ]
+      },
+      "ranges": {
+        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+        "normal": [{"min": 95, "max": 100}],
+        "attention": [{"min": 91, "max": 94}],
+        "urgent": [{"lte": 90}]
+      },
+      "what_to_do": {
+        "normal": {
+          "en": ["No action needed. Keep logging when the routine asks for it."],
+          "es": ["No hace falta hacer nada. Sigue registrando cuando la rutina lo pida."]
+        },
+        "attention": {
+          "en": [
+            "Rest, breathe calmly and measure again in 5 minutes, checking that the sensor is placed well.",
+            "Check the cabin air-quality readings and alarms.",
+            "If it stays below the normal range, tell the on-board medical officer."
+          ],
+          "es": [
+            "Descansa, respira con calma y vuelve a medir en 5 minutos, comprobando que el sensor esté bien colocado.",
+            "Revisa las lecturas y alarmas de calidad del aire de la cabina.",
+            "Si sigue por debajo del rango normal, avisa al oficial médico a bordo."
+          ]
+        },
+        "urgent": {
+          "en": [
+            "Stop your activity and stay still in a safe place.",
+            "Alert the on-board medical officer now and check the cabin atmosphere alarms.",
+            "Follow the vehicle emergency procedure if the cabin air is affected.",
+            "Measure again and record vital signs every 5 minutes."
+          ],
+          "es": [
+            "Detén tu actividad y quédate en reposo en un lugar seguro.",
+            "Avisa ahora al oficial médico a bordo y revisa las alarmas de la atmósfera de la cabina.",
+            "Sigue el procedimiento de emergencia del vehículo si el aire de la cabina está afectado.",
+            "Vuelve a medir y registra los signos vitales cada 5 minutos."
+          ]
+        }
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    },
+
+    "sleep_hours": {
+      "unit": "h",
+      "unit_aliases": ["h", "hr", "hrs", "hour", "hours", "hora", "horas"],
+      "valid_range": {"min": 0, "max": 24},
+      "integer_only": false,
+      "name": {"en": "Sleep", "es": "Sueño"},
+      "explanation": {
+        "en": "How many hours you slept in your last main sleep period.",
+        "es": "Cuántas horas dormiste en tu último periodo principal de sueño."
+      },
+      "why_it_matters_in_space": {
+        "en": "Without a natural day and night, and with noise, light and busy schedules, sleep in space is often shorter and lighter. Too little sleep affects attention, mood and safety during critical tasks.",
+        "es": "Sin día y noche naturales, y con ruido, luz y agendas exigentes, el sueño en el espacio suele ser más corto y ligero. Dormir poco afecta la atención, el ánimo y la seguridad en tareas críticas."
+      },
+      "how_to_measure": {
+        "en": [
+          "Note the time you fell asleep and the time you woke up, or read the value from your sleep tracker.",
+          "Subtract any long periods awake during the night.",
+          "Log the total in Moon-C in hours (for example 6.5)."
+        ],
+        "es": [
+          "Anota la hora en que te dormiste y la hora en que despertaste, o lee el valor de tu registro de sueño.",
+          "Resta los periodos largos que pasaste despierto durante la noche.",
+          "Registra el total en Moon-C en horas (por ejemplo 6.5)."
+        ]
+      },
+      "ranges": {
+        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+        "normal": [{"min": 7, "max": 9}],
+        "attention": [{"min": 5, "max": 6.9}, {"min": 9.1, "max": 10}],
+        "urgent": [{"lt": 4}]
+      },
+      "what_to_do": {
+        "normal": {
+          "en": ["No action needed. Keep a regular sleep window."],
+          "es": ["No hace falta hacer nada. Mantén un horario de sueño regular."]
+        },
+        "attention": {
+          "en": [
+            "Plan a regular sleep window tonight and, if the schedule allows, a short rest today.",
+            "Reduce light and noise in your sleep station and avoid screens and caffeine before sleeping.",
+            "If it keeps happening for several days, talk to the on-board medical officer."
+          ],
+          "es": [
+            "Planifica un horario de sueño regular esta noche y, si la agenda lo permite, un descanso corto hoy.",
+            "Reduce la luz y el ruido en tu estación de descanso y evita pantallas y cafeína antes de dormir.",
+            "Si se repite varios días, habla con el oficial médico a bordo."
+          ]
+        },
+        "urgent": {
+          "en": [
+            "Avoid critical or hazardous tasks until you are rested, and tell the commander.",
+            "Tell the on-board medical officer today.",
+            "Plan rest as soon as the schedule allows."
+          ],
+          "es": [
+            "Evita tareas críticas o peligrosas hasta haber descansado y avisa al comandante.",
+            "Avisa hoy al oficial médico a bordo.",
+            "Planifica un descanso en cuanto la agenda lo permita."
+          ]
+        }
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    },
+
+    "mood": {
+      "unit": "/5",
+      "unit_aliases": ["/5", "1-5", "1–5", "score", "points", "scale", "puntos", "escala", "puntuacion", "puntuación"],
+      "valid_range": {"min": 1, "max": 5},
+      "integer_only": true,
+      "name": {"en": "Mood", "es": "Estado de ánimo"},
+      "explanation": {
+        "en": "A self-report of how you feel emotionally, from 1 (very low) to 5 (very good).",
+        "es": "Una autoevaluación de cómo te sientes emocionalmente, de 1 (muy bajo) a 5 (muy bien)."
+      },
+      "why_it_matters_in_space": {
+        "en": "Isolation, confinement, distance from family and long missions affect everyone. Noticing changes in your mood early makes it easier to ask for support.",
+        "es": "El aislamiento, el confinamiento, la distancia de la familia y las misiones largas afectan a todos. Notar a tiempo los cambios de ánimo facilita pedir apoyo."
+      },
+      "how_to_measure": {
+        "en": [
+          "Take a moment to think about how you have felt today.",
+          "Choose a number: 1 very low, 2 low, 3 okay, 4 good, 5 very good.",
+          "Log it in Moon-C. There are no wrong answers."
+        ],
+        "es": [
+          "Tómate un momento para pensar cómo te has sentido hoy.",
+          "Elige un número: 1 muy bajo, 2 bajo, 3 regular, 4 bien, 5 muy bien.",
+          "Regístralo en Moon-C. No hay respuestas incorrectas."
+        ]
+      },
+      "ranges": {
+        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+        "normal": [{"min": 3, "max": 5}],
+        "attention": [{"min": 2, "max": 2}],
+        "urgent": [{"lte": 1}]
+      },
+      "what_to_do": {
+        "normal": {
+          "en": ["Thanks for checking in. Keep doing what helps you feel well."],
+          "es": ["Gracias por registrarlo. Sigue haciendo lo que te ayuda a sentirte bien."]
+        },
+        "attention": {
+          "en": [
+            "Thank you for sharing this. Take a break doing something you enjoy.",
+            "Consider talking with a crewmate you trust.",
+            "If it continues, the on-board medical officer and the support team are there for you."
+          ],
+          "es": [
+            "Gracias por compartirlo. Tómate un descanso haciendo algo que disfrutes.",
+            "Considera hablar con un compañero de confianza.",
+            "Si continúa, el oficial médico a bordo y el equipo de apoyo están para ti."
+          ]
+        },
+        "urgent": {
+          "en": [
+            "Thank you for telling me. You are not alone.",
+            "Please talk to a crewmate or the on-board medical officer today; reaching out is a strong thing to do.",
+            "You can also ask the medical officer to schedule a private support call with Earth when a link is available."
+          ],
+          "es": [
+            "Gracias por decírmelo. No estás solo en esto.",
+            "Por favor, habla hoy con un compañero o con el oficial médico a bordo; pedir apoyo es una muestra de fortaleza.",
+            "También puedes pedir al oficial médico que programe una llamada privada de apoyo con la Tierra cuando haya enlace."
+          ]
+        }
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    }
+  },
+
+  "protocols": {
+    "chest_pain": {
+      "type": "emergency",
+      "title": {"en": "Chest pain: how to help", "es": "Dolor de pecho: cómo ayudar"},
+      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada."},
+      "steps": {
+        "en": [
+          "Make the person safe: stop their activity, help them stay still and secure them in a comfortable position.",
+          "Alert the on-board medical officer and the rest of the crew now.",
+          "Follow the vehicle emergency procedure and bring the medical kit.",
+          "Loosen tight clothing and keep the person calm; do not let them exert themselves.",
+          "Note when it started and what they were doing.",
+          "Record vital signs every 5 minutes (heart rate, SpO2, temperature, responsiveness) and log them in Moon-C."
+        ],
+        "es": [
+          "Pon a la persona a salvo: detén su actividad, ayúdala a quedarse quieta y sujétala en una posición cómoda.",
+          "Avisa ahora al oficial médico a bordo y al resto de la tripulación.",
+          "Sigue el procedimiento de emergencia del vehículo y trae el botiquín médico.",
+          "Afloja la ropa ajustada y mantén a la persona en calma; que no haga esfuerzos.",
+          "Anota cuándo empezó y qué estaba haciendo.",
+          "Toma los signos vitales cada 5 minutos (frecuencia cardiaca, SpO2, temperatura, respuesta) y regístralos en Moon-C."
+        ]
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    },
+
+    "breathing_difficulty": {
+      "type": "emergency",
+      "title": {"en": "Difficulty breathing: how to help", "es": "Dificultad para respirar: cómo ayudar"},
+      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada."},
+      "steps": {
+        "en": [
+          "Make the person safe: stop their activity and help them into an upright, comfortable position, secured in place.",
+          "Alert the on-board medical officer and the rest of the crew now.",
+          "Check the cabin atmosphere alarms (air quality, smoke, pressure) and follow the vehicle emergency procedure.",
+          "Loosen anything tight around the neck and chest and help them breathe slowly.",
+          "Record vital signs every 5 minutes (SpO2, heart rate, responsiveness) and log them in Moon-C."
+        ],
+        "es": [
+          "Pon a la persona a salvo: detén su actividad y ayúdala a quedar erguida y cómoda, sujeta en su lugar.",
+          "Avisa ahora al oficial médico a bordo y al resto de la tripulación.",
+          "Revisa las alarmas de la atmósfera de la cabina (calidad del aire, humo, presión) y sigue el procedimiento de emergencia del vehículo.",
+          "Afloja lo que apriete el cuello y el pecho y ayúdala a respirar despacio.",
+          "Toma los signos vitales cada 5 minutos (SpO2, frecuencia cardiaca, respuesta) y regístralos en Moon-C."
+        ]
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    },
+
+    "fainting_unresponsive": {
+      "type": "emergency",
+      "title": {"en": "Fainting or unresponsive: how to help", "es": "Desmayo o sin respuesta: cómo ayudar"},
+      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada."},
+      "steps": {
+        "en": [
+          "Make the person and yourself safe: secure them so they do not drift or hit equipment.",
+          "Check whether they respond to your voice and touch, and whether they are breathing.",
+          "Alert the on-board medical officer and the rest of the crew now, and say what you observed.",
+          "Follow the vehicle emergency procedure; it covers what to do if the person is not breathing.",
+          "Stay with them; when they respond, keep them resting and give no food or drink until the medical officer says so.",
+          "Record vital signs every 5 minutes (responsiveness, breathing, heart rate, SpO2) and log them in Moon-C."
+        ],
+        "es": [
+          "Pon a salvo a la persona y a ti: sujétala para que no flote ni golpee equipos.",
+          "Comprueba si responde a tu voz y al tacto, y si respira.",
+          "Avisa ahora al oficial médico a bordo y al resto de la tripulación, y di lo que observaste.",
+          "Sigue el procedimiento de emergencia del vehículo; incluye qué hacer si la persona no respira.",
+          "Quédate con ella; cuando responda, mantenla en reposo y no le des comida ni bebida hasta que el oficial médico lo indique.",
+          "Toma los signos vitales cada 5 minutos (respuesta, respiración, frecuencia cardiaca, SpO2) y regístralos en Moon-C."
+        ]
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    },
+
+    "bleeding": {
+      "type": "emergency",
+      "title": {"en": "Bleeding: how to help", "es": "Sangrado: cómo ayudar"},
+      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada."},
+      "steps": {
+        "en": [
+          "Make the person safe: stop their activity and secure them in place.",
+          "Put on gloves from the medical kit and apply firm, direct pressure on the wound with a clean dressing.",
+          "Alert the on-board medical officer and the rest of the crew now.",
+          "Keep the pressure on and contain floating droplets of blood with absorbent material.",
+          "Follow the vehicle emergency procedure.",
+          "Record vital signs every 5 minutes (heart rate, SpO2, responsiveness) and log them in Moon-C."
+        ],
+        "es": [
+          "Pon a la persona a salvo: detén su actividad y sujétala en su lugar.",
+          "Ponte guantes del botiquín y aplica presión firme y directa sobre la herida con un apósito limpio.",
+          "Avisa ahora al oficial médico a bordo y al resto de la tripulación.",
+          "Mantén la presión y contén las gotas de sangre que floten con material absorbente.",
+          "Sigue el procedimiento de emergencia del vehículo.",
+          "Toma los signos vitales cada 5 minutos (frecuencia cardiaca, SpO2, respuesta) y regístralos en Moon-C."
+        ]
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    },
+
+    "general_emergency": {
+      "type": "emergency",
+      "title": {"en": "Emergency: first steps", "es": "Emergencia: primeros pasos"},
+      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada."},
+      "steps": {
+        "en": [
+          "Make the person and yourself safe.",
+          "Alert the on-board medical officer and the rest of the crew now.",
+          "Follow the vehicle emergency procedure.",
+          "Record vital signs every 5 minutes and log them in Moon-C.",
+          "Tell me what is happening (chest pain, difficulty breathing, fainting or bleeding) and I will open the specific protocol."
+        ],
+        "es": [
+          "Pon a salvo a la persona y a ti.",
+          "Avisa ahora al oficial médico a bordo y al resto de la tripulación.",
+          "Sigue el procedimiento de emergencia del vehículo.",
+          "Toma los signos vitales cada 5 minutos y regístralos en Moon-C.",
+          "Dime qué está pasando (dolor de pecho, dificultad para respirar, desmayo o sangrado) y abriré el protocolo específico."
+        ]
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    },
+
+    "feeling_unwell": {
+      "type": "guidance",
+      "title": {"en": "Feeling unwell: what to do", "es": "Si te sientes mal: qué hacer"},
+      "audience": {"en": "For the crew member who feels unwell.", "es": "Para el tripulante que se siente mal."},
+      "steps": {
+        "en": [
+          "Pause what you are doing and move to a safe, comfortable place.",
+          "Measure your heart rate, body temperature and SpO2 and log them in Moon-C.",
+          "Tell the on-board medical officer how you feel, especially if it gets worse or does not improve.",
+          "If you notice chest pain, difficulty breathing, fainting or bleeding, say so right away: Moon-C will open the emergency protocol."
+        ],
+        "es": [
+          "Pausa lo que estás haciendo y ve a un lugar seguro y cómodo.",
+          "Mide tu frecuencia cardiaca, temperatura corporal y SpO2 y regístralas en Moon-C.",
+          "Cuéntale al oficial médico a bordo cómo te sientes, sobre todo si empeora o no mejora.",
+          "Si notas dolor de pecho, dificultad para respirar, desmayo o sangrado, dilo enseguida: Moon-C abrirá el protocolo de emergencia."
+        ]
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Python virtual environments
+venv/
+.venv/
+env/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Moon-C local data (measurements). Never commit crew data.
+# Both spellings so it works on case-sensitive file systems too.
+[Bb]ackend/storage/
+
+# Editors and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

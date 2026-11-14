@@ -1,0 +1,89 @@
+{
+  "_comment": "Keyword lists for Moon-C's intent router. Edit freely: no code changes needed (restart the backend to reload).",
+  "_matching": "Text and keywords are normalized the same way before matching: lowercase, accents removed, apostrophes removed (can't -> cant), other punctuation replaced by spaces. A keyword matches only as whole words. Categories are checked in strict order: emergency, health, ambiguous, small_talk, then fallback. Keywords of every language are checked for every category, so emergency phrases always work in both languages regardless of the active language.",
+  "version": "0.1.0",
+
+  "emergency": {
+    "chest_pain": {
+      "en": ["chest pain", "chest pains", "pain in my chest", "pain in the chest", "my chest hurts", "chest hurts", "chest is hurting", "chest pressure", "pressure in my chest", "tight chest", "chest tightness", "chest feels tight", "crushing chest"],
+      "es": ["dolor de pecho", "dolor en el pecho", "dolor toracico", "me duele el pecho", "le duele el pecho", "duele el pecho", "presion en el pecho", "opresion en el pecho", "pecho apretado"]
+    },
+    "breathing_difficulty": {
+      "en": ["cant breathe", "cannot breathe", "can not breathe", "unable to breathe", "hard to breathe", "difficulty breathing", "trouble breathing", "struggling to breathe", "short of breath", "shortness of breath", "not breathing", "isnt breathing", "stopped breathing", "choking", "suffocating", "cant get air"],
+      "es": ["no puedo respirar", "no puede respirar", "no respira", "me cuesta respirar", "le cuesta respirar", "dificultad para respirar", "falta de aire", "me falta el aire", "le falta el aire", "me ahogo", "se ahoga", "se esta ahogando", "asfixia", "me asfixio"]
+    },
+    "fainting_unresponsive": {
+      "en": ["passed out", "pass out", "fainted", "fainting", "about to faint", "going to faint", "unconscious", "unresponsive", "not responding", "wont wake up", "cant wake", "collapsed", "blacked out", "lost consciousness", "knocked out"],
+      "es": ["me desmaye", "me desmayo", "se desmayo", "desmayo", "desmayado", "desmayada", "desmayarse", "voy a desmayar", "inconsciente", "no responde", "no reacciona", "perdio el conocimiento", "perdi el conocimiento", "perdio la conciencia", "se desplomo", "no despierta"]
+    },
+    "bleeding": {
+      "en": ["bleeding", "bleed", "bleeds", "blood loss", "losing blood", "lot of blood", "lots of blood", "blood everywhere", "hemorrhage", "haemorrhage", "hemorrhaging"],
+      "es": ["sangrado", "sangrando", "sangra", "sangrar", "hemorragia", "pierdo sangre", "perdiendo sangre", "mucha sangre"]
+    },
+    "general_emergency": {
+      "_comment": "Used only when no specific emergency protocol matches.",
+      "fallback": true,
+      "en": ["emergency", "medical emergency", "mayday", "call the medical officer", "need help now"],
+      "es": ["emergencia", "emergencia medica", "socorro", "auxilio", "ayuda urgente", "llama al oficial medico"]
+    }
+  },
+
+  "health": {
+    "indicators": {
+      "heart_rate": {
+        "en": ["pulse", "heart rate", "heartrate", "heartbeat", "heartbeats", "heart beat", "bpm", "heart is racing", "heart racing", "racing heart", "palpitations", "my heart"],
+        "es": ["pulso", "frecuencia cardiaca", "ritmo cardiaco", "latidos", "latido", "pulsaciones", "palpitaciones", "corazon"]
+      },
+      "body_temperature": {
+        "en": ["temperature", "body temperature", "temp", "fever", "feverish", "chills", "shivering", "thermometer"],
+        "es": ["temperatura", "temperatura corporal", "fiebre", "calentura", "escalofrios", "termometro"]
+      },
+      "spo2": {
+        "en": ["oxygen", "oxygen saturation", "oxygen level", "blood oxygen", "spo2", "sp o2", "o2", "saturation", "oximeter", "pulse oximeter", "pulse ox"],
+        "es": ["oxigeno", "saturacion", "saturacion de oxigeno", "oxigenacion", "oximetro", "pulsioximetro", "spo2"]
+      },
+      "sleep_hours": {
+        "en": ["sleep", "slept", "sleeping", "asleep", "sleepy", "insomnia", "cant sleep", "tired", "exhausted", "fatigue", "fatigued", "nap"],
+        "es": ["sueno", "dormir", "dormi", "duermo", "dormido", "dormida", "no puedo dormir", "insomnio", "cansado", "cansada", "cansancio", "agotado", "agotada", "fatiga", "siesta"]
+      },
+      "mood": {
+        "en": ["mood", "my mood", "sad", "stressed", "stress", "anxious", "anxiety", "lonely", "loneliness", "depressed", "homesick", "worried", "upset", "overwhelmed", "feeling down", "feel down", "unhappy", "angry"],
+        "es": ["estado de animo", "mi animo", "bajo de animo", "sin animo", "humor", "triste", "tristeza", "estres", "estresado", "estresada", "ansioso", "ansiosa", "ansiedad", "me siento solo", "me siento sola", "soledad", "deprimido", "deprimida", "nostalgia", "extrano a mi familia", "preocupado", "preocupada", "agobiado", "agobiada", "enojado", "enojada"]
+      }
+    },
+    "symptoms": {
+      "en": ["i feel sick", "feel sick", "feeling sick", "sick", "unwell", "i dont feel well", "dont feel well", "not feeling well", "feel bad", "feeling bad", "it hurts", "hurts", "hurt", "pain", "painful", "ache", "aches", "headache", "stomachache", "stomach ache", "nausea", "nauseous", "vomit", "vomiting", "threw up", "dizzy", "dizziness", "lightheaded", "injury", "injured", "cough", "coughing", "symptom", "symptoms", "medicine", "medication", "space sickness", "motion sickness"],
+      "es": ["me siento mal", "me siento enfermo", "me siento enferma", "no me siento bien", "estoy enfermo", "estoy enferma", "enfermo", "enferma", "me duele", "duele", "dolor", "dolor de cabeza", "dolor de estomago", "nauseas", "vomito", "vomitar", "vomite", "mareo", "mareado", "mareada", "lesion", "herida", "me lastime", "tos", "sintoma", "sintomas", "medicina", "medicamento"]
+    }
+  },
+
+  "ambiguous": {
+    "en": ["i feel weird", "feel weird", "feeling weird", "i feel strange", "feel strange", "feeling strange", "feel off", "feeling off", "i feel funny", "something is wrong", "something wrong", "something feels wrong", "something is off", "im not okay", "not okay", "im not ok", "not ok", "not fine", "not good", "not so good", "not too good", "not great", "not well", "dont feel right", "dont feel like myself"],
+    "es": ["me siento raro", "me siento rara", "me siento extrano", "me siento extrana", "estoy raro", "estoy rara", "no estoy bien", "no muy bien", "algo anda mal", "algo no esta bien", "algo no va bien", "no me siento yo", "no se que me pasa"]
+  },
+
+  "small_talk": {
+    "greeting": {
+      "en": ["hello", "hi", "hey", "good morning", "good afternoon", "good evening", "good night", "morning", "howdy", "greetings"],
+      "es": ["hola", "buenos dias", "buen dia", "buenas tardes", "buenas noches", "buenas", "que tal", "saludos"]
+    },
+    "thanks": {
+      "en": ["thanks", "thank you", "thx", "appreciate it", "cheers"],
+      "es": ["gracias", "muchas gracias", "mil gracias", "te lo agradezco"]
+    },
+    "farewell": {
+      "en": ["bye", "goodbye", "good bye", "see you", "see you later", "talk later"],
+      "es": ["adios", "hasta luego", "hasta manana", "nos vemos", "chao", "chau"]
+    },
+    "casual": {
+      "en": ["how are you", "how are you doing", "whats up", "how is it going", "hows it going", "who are you", "what is your name", "whats your name", "what can you do", "tell me a joke", "a joke", "fun fact", "tell me something", "im bored", "bored", "im fine", "im ok", "im okay", "im good", "im great", "all good", "nice", "cool", "awesome", "good job", "well done", "you are great", "i love you"],
+      "es": ["como estas", "como te va", "que haces", "que onda", "quien eres", "como te llamas", "que puedes hacer", "cuentame un chiste", "un chiste", "dato curioso", "cuentame algo", "estoy aburrido", "estoy aburrida", "aburrido", "aburrida", "estoy bien", "todo bien", "muy bien", "genial", "buen trabajo", "te quiero"]
+    }
+  },
+
+  "post_filter_allow": {
+    "_comment": "Everyday pleasantries removed from an AI reply before it is checked for health or emergency keywords, so 'Good night, sleep well!' is not discarded.",
+    "en": ["sleep well", "sleep tight", "sweet dreams", "good night", "good mood", "great mood", "in a good mood"],
+    "es": ["duerme bien", "que duermas bien", "que descanses", "dulces suenos", "buen animo", "buen humor", "de buen humor"]
+  }
+}

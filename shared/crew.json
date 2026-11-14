@@ -1,0 +1,34 @@
+{
+  "_comment": "Simulated crew profiles for development. Identity and language preference only: no biometric data of any kind.",
+  "version": "0.1.0",
+  "crew": [
+    {
+      "crew_id": "moises",
+      "name": "Moisés",
+      "bracelet_id": "BR-001",
+      "preferredLanguage": "es",
+      "role": "flight_engineer"
+    },
+    {
+      "crew_id": "ana",
+      "name": "Ana",
+      "bracelet_id": "BR-002",
+      "preferredLanguage": "en",
+      "role": "medical_officer"
+    },
+    {
+      "crew_id": "kenji",
+      "name": "Kenji",
+      "bracelet_id": "BR-003",
+      "preferredLanguage": "en",
+      "role": "commander"
+    },
+    {
+      "crew_id": "valentina",
+      "name": "Valentina",
+      "bracelet_id": "BR-004",
+      "preferredLanguage": "es",
+      "role": "mission_specialist"
+    }
+  ]
+}
