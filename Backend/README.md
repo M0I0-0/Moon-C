@@ -107,6 +107,10 @@ Every setting is optional. Use environment variables or copy `.env.example` to `
 | `MOON_C_SESSION_MAX_TURNS` | `10` | Chat turns kept per session |
 | `MOON_C_EARTH_LINK` | `offline` | Simulated link. With `online`, pending data syncs in the background |
 | `MOON_C_SYNC_INTERVAL_S` | `60` | Background sync interval while the link is online |
+| `MOON_C_SIMULATION` | `true` | Simulated bracelets produce live vital signs. `false` turns them off |
+| `MOON_C_SIM_TICK_S` | `2.5` | Seconds between simulated readings |
+| `MOON_C_SNAPSHOT_INTERVAL_S` | `900` | Seconds between stored snapshots of the live signs. Status changes are always stored |
+| `MOON_C_SIM_SEED` | random | Fixed seed for reproducible demos |
 | `MOON_C_CORS_ORIGINS` | localhost on ports 5173 and 3000 | Comma-separated frontend origins |
 | `MOON_C_CORS_ORIGIN_REGEX` | any `localhost` or `127.0.0.1` port | Extra origin pattern. Set it empty to disable |
 
@@ -125,8 +129,12 @@ The full contract, with schemas and examples, is at `/docs`. Responses use the l
 | POST | `/measurements` | `{crew_id?, indicator, value, unit, timestamp?, language?}` → measurement with `status`. Urgent creates an alert. Without `crew_id`: unassigned and `needs_confirmation: true` |
 | GET | `/measurements` | Filters: `crew_id`, `indicator`, `since`, `unassigned` |
 | POST | `/measurements/{id}/assign` | `{crew_id}`. Only for unassigned readings (otherwise 409) |
-| GET | `/alerts` | Active alerts, for example `"Alert: Moisés, body temperature 38.2 °C"` |
-| POST | `/alerts/{id}/ack` | Acknowledge an alert |
+| GET | `/alerts` | Open alerts, for example `"Alert: Moisés, body temperature 38.2 °C"`. Kinds: `vital` (urgent reading), `report` (emergency detected in the chat), `maneuver` (guided maneuver started). Filters: `include_acknowledged`, `include_resolved` |
+| POST | `/alerts/{id}/ack` | Acknowledge an alert (it stays open) |
+| POST | `/alerts/{id}/resolve`, `/alerts/resolve` | Close one alert, or every open alert of a crew member (`{crew_id}`, omit it for all) |
+| GET | `/vitals`, `/vitals/{crew_id}` | Live vital signs from the simulated bracelets: value, status and recent history of each indicator |
+| GET | `/simulation/scenarios` | Simulated emergencies available for demos |
+| POST | `/simulation/emergency`, `/simulation/reset` | Start a simulated emergency (`{crew_id, scenario}`) or end it |
 | POST | `/sync/simulate` | Simulated contact with Earth: marks pending measurements as synced |
 | GET | `/sync/status` | Pending count, readings awaiting assignment, last sync time |
 | GET | `/export.json`, `/export.csv` | Download measurements (optional `crew_id`) |

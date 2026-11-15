@@ -4,42 +4,13 @@ import crewFile from '@shared/crew.json'
 
 export { protocols, keywords }
 
-// Indicadores que el manual del backend todavía no tiene. Rangos de ejemplo solo para la demo.
-const EXTRA_INDICATORS = {
-  blood_pressure: {
-    name: { es: 'Presión arterial (sistólica)' },
-    ranges: { normal: [{ min: 90, max: 129 }], urgent: [{ gte: 180 }, { lt: 80 }] },
-    what_to_do: {
-      attention: {
-        es: ['Siéntate 5 minutos en calma y vuelve a medir.', 'Evita cafeína y esfuerzo antes de la siguiente lectura.'],
-      },
-      urgent: {
-        es: ['Deja lo que estés haciendo y siéntate o recuéstate.', 'Avisa ahora al oficial médico a bordo.'],
-      },
-    },
-  },
-  respiratory_rate: {
-    name: { es: 'Frecuencia respiratoria' },
-    ranges: { normal: [{ min: 12, max: 20 }], urgent: [{ lt: 8 }, { gt: 30 }] },
-    what_to_do: {
-      attention: { es: ['Respira lento por la nariz durante un minuto y vuelve a medir.'] },
-      urgent: { es: ['Revisa el nivel de oxígeno de la cabina.', 'Avisa ahora al oficial médico a bordo.'] },
-    },
-  },
-  radiation: {
-    name: { es: 'Radiación (dosímetro personal)' },
-    ranges: { normal: [{ min: 0, max: 50 }], urgent: [{ gt: 100 }] },
-    what_to_do: {
-      attention: { es: ['Reduce el tiempo en módulos poco blindados.', 'Revisa la dosis acumulada al final del turno.'] },
-      urgent: {
-        es: ['Ve al refugio de tormenta o al módulo más blindado.', 'Avisa a la cuenta General y espera instrucciones.'],
-      },
-    },
-  },
-}
+// Todos los indicadores salen del manual (shared/protocols.json). En el front la presión
+// arterial se muestra como un solo indicador: su estado es el de la sistólica.
+export const MANUAL_KEY = { blood_pressure: 'blood_pressure_systolic' }
+export const toManualKey = (indicator) => MANUAL_KEY[indicator] ?? indicator
 
-const indicatorInfo = (indicator) => protocols.indicators[indicator] ?? EXTRA_INDICATORS[indicator]
-export const fromManual = (indicator) => Boolean(protocols.indicators[indicator])
+const indicatorInfo = (indicator) => protocols.indicators[toManualKey(indicator)]
+export const fromManual = (indicator) => Boolean(indicatorInfo(indicator))
 
 export const INDICATORS = [
   'heart_rate',
@@ -130,16 +101,10 @@ export function protocolView(name, lang = 'es') {
   return { name, type: p.type, title: t(p.title), audience: t(p.audience), steps: t(p.steps), source: p.source }
 }
 
-export const PROTOCOL_FOR_INDICATOR = {
-  heart_rate: 'general_emergency',
-  blood_pressure: 'general_emergency',
-  spo2: 'breathing_difficulty',
-  respiratory_rate: 'breathing_difficulty',
-  radiation: 'general_emergency',
-  body_temperature: 'feeling_unwell',
-  sleep_hours: 'feeling_unwell',
-  mood: 'feeling_unwell',
-}
+// Protocolo que se muestra cuando un indicador está en rango urgente (urgent_protocol del manual).
+export const PROTOCOL_FOR_INDICATOR = Object.fromEntries(
+  INDICATORS.map((indicator) => [indicator, indicatorInfo(indicator)?.urgent_protocol ?? 'general_emergency']),
+)
 
 export function worstStatus(statuses) {
   if (statuses.includes('urgent')) return 'urgent'

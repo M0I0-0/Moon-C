@@ -58,6 +58,12 @@ class Settings(BaseSettings):
     earth_link: Literal["offline", "online"] = "offline"
     sync_interval_s: float = Field(60.0, gt=0)
 
+    # Simulated bracelets (there are no real sensors yet).
+    simulation: bool = True
+    sim_tick_s: float = Field(2.5, gt=0, description="Seconds between simulated readings")
+    snapshot_interval_s: float = Field(900.0, gt=0, description="Seconds between stored snapshots of live signs")
+    sim_seed: int | None = Field(None, description="Fixed random seed, for reproducible demos")
+
     # CORS.
     cors_origins: str = DEFAULT_CORS_ORIGINS
     cors_origin_regex: str | None = DEFAULT_CORS_ORIGIN_REGEX

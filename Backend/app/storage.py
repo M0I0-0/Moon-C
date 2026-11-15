@@ -117,6 +117,16 @@ class MeasurementStore:
             self._save()
             return measurement
 
+    def add_many(self, measurements: list[Measurement]) -> None:
+        """Add a batch with a single file write (used by the simulated bracelets)."""
+        if not measurements:
+            return
+        with self._lock:
+            for measurement in measurements:
+                self._items[measurement.id] = measurement
+            self._prune()
+            self._save()
+
     def get(self, measurement_id: str) -> Measurement | None:
         with self._lock:
             return self._items.get(measurement_id)

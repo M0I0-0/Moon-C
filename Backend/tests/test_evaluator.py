@@ -9,7 +9,17 @@ import pytest
 from app.evaluator import MeasurementValueError, evaluate
 from app.schemas import INDICATORS
 
-UNITS = {"heart_rate": "bpm", "body_temperature": "°C", "spo2": "%", "sleep_hours": "h", "mood": "/5"}
+UNITS = {
+    "heart_rate": "bpm",
+    "body_temperature": "°C",
+    "spo2": "%",
+    "sleep_hours": "h",
+    "mood": "/5",
+    "blood_pressure_systolic": "mmHg",
+    "blood_pressure_diastolic": "mmHg",
+    "respiratory_rate": "breaths/min",
+    "radiation": "µSv/h",
+}
 
 BOUNDARIES = [
     # heart_rate: normal 60–100; attention 50–59 or 101–120; urgent <50 or >120
@@ -64,6 +74,39 @@ BOUNDARIES = [
     ("mood", 2, "attention"),
     ("mood", 3, "normal"),
     ("mood", 5, "normal"),
+    # blood_pressure_systolic: normal 90–129; attention 80–89 or 130–179; urgent >=180 or <80
+    ("blood_pressure_systolic", 79, "urgent"),
+    ("blood_pressure_systolic", 80, "attention"),
+    ("blood_pressure_systolic", 89, "attention"),
+    ("blood_pressure_systolic", 90, "normal"),
+    ("blood_pressure_systolic", 129, "normal"),
+    ("blood_pressure_systolic", 130, "attention"),
+    ("blood_pressure_systolic", 179, "attention"),
+    ("blood_pressure_systolic", 180, "urgent"),
+    # blood_pressure_diastolic: normal 60–84; attention 40–59 or 85–119; urgent >=120 or <40
+    ("blood_pressure_diastolic", 39, "urgent"),
+    ("blood_pressure_diastolic", 40, "attention"),
+    ("blood_pressure_diastolic", 59, "attention"),
+    ("blood_pressure_diastolic", 60, "normal"),
+    ("blood_pressure_diastolic", 84, "normal"),
+    ("blood_pressure_diastolic", 85, "attention"),
+    ("blood_pressure_diastolic", 119, "attention"),
+    ("blood_pressure_diastolic", 120, "urgent"),
+    # respiratory_rate: normal 12–20; attention 8–11 or 21–30; urgent <8 or >30
+    ("respiratory_rate", 7, "urgent"),
+    ("respiratory_rate", 8, "attention"),
+    ("respiratory_rate", 11, "attention"),
+    ("respiratory_rate", 12, "normal"),
+    ("respiratory_rate", 20, "normal"),
+    ("respiratory_rate", 21, "attention"),
+    ("respiratory_rate", 30, "attention"),
+    ("respiratory_rate", 31, "urgent"),
+    # radiation: normal 0–50; attention >50; urgent >100 (µSv/h)
+    ("radiation", 0, "normal"),
+    ("radiation", 50, "normal"),
+    ("radiation", 50.5, "attention"),
+    ("radiation", 100, "attention"),
+    ("radiation", 100.5, "urgent"),
 ]
 
 
@@ -104,10 +147,23 @@ def test_manual_bands_agree_with_evaluator(manual, indicator):
         ("sleep_hours", "hours", "h"),
         ("sleep_hours", "horas", "h"),
         ("mood", "1-5", "/5"),
+        ("blood_pressure_systolic", "mm Hg", "mmHg"),
+        ("respiratory_rate", "rpm", "breaths/min"),
+        ("radiation", "uSv/h", "µSv/h"),
+        ("radiation", "μSv/h", "µSv/h"),  # Greek mu is accepted too
     ],
 )
 def test_unit_aliases(manual, indicator, unit, canonical):
-    value = {"body_temperature": 36.6, "heart_rate": 70, "spo2": 98, "sleep_hours": 8, "mood": 4}[indicator]
+    value = {
+        "body_temperature": 36.6,
+        "heart_rate": 70,
+        "spo2": 98,
+        "sleep_hours": 8,
+        "mood": 4,
+        "blood_pressure_systolic": 118,
+        "respiratory_rate": 15,
+        "radiation": 25,
+    }[indicator]
     assert evaluate(manual, indicator, value, unit).unit == canonical
 
 

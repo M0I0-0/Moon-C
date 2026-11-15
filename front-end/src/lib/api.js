@@ -43,4 +43,25 @@ export const api = {
   resetSession: (sessionId) => request('/session/reset', { method: 'POST', body: { session_id: sessionId } }),
   identify: ({ braceletId, sessionId }) =>
     request('/identify', { method: 'POST', body: { bracelet_id: braceletId, session_id: sessionId } }),
+
+  // Pulseras simuladas: signos en vivo y emergencias de demostración.
+  vitals: () => request('/vitals', { ms: 5000 }),
+  simulateEmergency: (crewId, scenario) =>
+    request('/simulation/emergency', { method: 'POST', body: { crew_id: crewId, scenario } }),
+  simulationReset: (crewId = null) => request('/simulation/reset', { method: 'POST', body: { crew_id: crewId } }),
+
+  // Alertas a bordo. Por defecto: abiertas (vistas o no), en el idioma pedido.
+  alerts: ({ language = 'es', includeAcknowledged = true, includeResolved = false } = {}) =>
+    request(
+      `/alerts?${new URLSearchParams({
+        language,
+        include_acknowledged: includeAcknowledged,
+        include_resolved: includeResolved,
+      })}`,
+      { ms: 5000 },
+    ),
+  ackAlert: (id, language = 'es') => request(`/alerts/${encodeURIComponent(id)}/ack?language=${language}`, { method: 'POST' }),
+  resolveAlert: (id, language = 'es') =>
+    request(`/alerts/${encodeURIComponent(id)}/resolve?language=${language}`, { method: 'POST' }),
+  resolveCrewAlerts: (crewId = null) => request('/alerts/resolve', { method: 'POST', body: { crew_id: crewId } }),
 }

@@ -10,11 +10,12 @@ const BASELINE = {
   valentina: { heart_rate: 79, blood_pressure: 126, spo2: 97, respiratory_rate: 17, body_temperature: 36.9, radiation: 26, sleep_hours: 8.1, mood: 3 },
 }
 
+// Mismos escenarios (y claves) que Backend/app/bracelets.py. Nombres neutros: Moon-C no diagnostica.
 export const EMERGENCY_TYPES = {
-  hypoxia: { label: 'Baja saturación de oxígeno', target: { spo2: 86, heart_rate: 118, respiratory_rate: 32 } },
-  tachycardia: { label: 'Frecuencia cardiaca muy alta', target: { heart_rate: 138, blood_pressure: 150 } },
-  fever: { label: 'Fiebre', target: { body_temperature: 38.7, heart_rate: 104, respiratory_rate: 22 } },
-  hypertension: { label: 'Presión arterial muy alta', target: { blood_pressure: 188, heart_rate: 96 } },
+  low_oxygen: { label: 'Baja saturación de oxígeno', target: { spo2: 86, heart_rate: 118, respiratory_rate: 32 } },
+  high_heart_rate: { label: 'Frecuencia cardiaca muy alta', target: { heart_rate: 138, blood_pressure: 150 } },
+  high_temperature: { label: 'Temperatura alta', target: { body_temperature: 38.7, heart_rate: 104, respiratory_rate: 22 } },
+  high_blood_pressure: { label: 'Presión arterial muy alta', target: { blood_pressure: 188, heart_rate: 96 } },
   solar_storm: { label: 'Tormenta solar (radiación)', target: { radiation: 180 } },
 }
 

@@ -11,13 +11,34 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 Language = Literal["en", "es"]
-IndicatorName = Literal["heart_rate", "body_temperature", "spo2", "sleep_hours", "mood"]
+IndicatorName = Literal[
+    "heart_rate",
+    "body_temperature",
+    "spo2",
+    "sleep_hours",
+    "mood",
+    "blood_pressure_systolic",
+    "blood_pressure_diastolic",
+    "respiratory_rate",
+    "radiation",
+]
 Status = Literal["normal", "attention", "urgent"]
 Category = Literal["emergency", "health", "ambiguous", "small_talk", "fallback"]
 EarthLink = Literal["offline", "online"]
 ProtocolType = Literal["emergency", "guidance"]
+AlertKind = Literal["vital", "report", "maneuver"]
 
-INDICATORS: tuple[str, ...] = ("heart_rate", "body_temperature", "spo2", "sleep_hours", "mood")
+INDICATORS: tuple[str, ...] = (
+    "heart_rate",
+    "body_temperature",
+    "spo2",
+    "sleep_hours",
+    "mood",
+    "blood_pressure_systolic",
+    "blood_pressure_diastolic",
+    "respiratory_rate",
+    "radiation",
+)
 LANGUAGES: tuple[str, ...] = ("en", "es")
 
 SESSION_ID = Field(min_length=1, max_length=128, examples=["tablet-galley-1"])
@@ -81,6 +102,7 @@ class IndicatorView(BaseModel):
     how_to_measure: list[str]
     ranges: RangeView
     what_to_do: WhatToDo
+    urgent_protocol: str | None = Field(None, description="Protocol to show when this indicator is urgent.")
     source: str
     version: str
     last_reviewed: str
@@ -196,17 +218,59 @@ class Measurement(BaseModel):
 
 class AlertView(BaseModel):
     id: str
-    measurement_id: str
+    kind: AlertKind = Field(
+        "vital",
+        description="vital = urgent reading; report = emergency detected in the chat; maneuver = guided maneuver started.",
+    )
+    measurement_id: str | None = Field(None, description="Set for vital alerts.")
     crew_id: str | None
     crew_name: str | None
-    indicator: IndicatorName
-    value: float
-    unit: str
+    indicator: IndicatorName | None = Field(None, description="Set for vital alerts.")
+    value: float | None = None
+    unit: str | None = None
+    protocol: str | None = Field(None, description="Report alerts: protocol name. Maneuver alerts: maneuver id.")
     status: Literal["urgent"] = "urgent"
     message: str = Field(examples=["Alert: Moisés, body temperature 38.2 °C"])
     created_at: datetime
     acknowledged: bool
     acknowledged_at: datetime | None
+    resolved: bool = False
+    resolved_at: datetime | None = None
+
+
+class AlertResolveRequest(BaseModel):
+    crew_id: str | None = Field(None, description="Resolve every open alert of this crew member. Omit for all.")
+
+
+# --------------------------------------------------------------------------- live vitals (simulated bracelets)
+class LiveIndicator(BaseModel):
+    value: float
+    unit: str
+    status: Status
+    history: list[float] = Field(description="Oldest first. Live signs: last readings. Sleep and mood: last days.")
+
+
+class CrewVitals(BaseModel):
+    crew_id: str
+    name: str
+    updated_at: datetime
+    scenario: str | None = Field(None, description="Simulated emergency in progress, if any.")
+    overall_status: Status
+    indicators: dict[str, LiveIndicator]
+
+
+class Scenario(BaseModel):
+    id: str = Field(examples=["low_oxygen"])
+    label: str
+
+
+class SimulationEmergencyRequest(BaseModel):
+    crew_id: str = Field(min_length=1, max_length=64, examples=["moises"])
+    scenario: str = Field(min_length=1, max_length=64, examples=["high_temperature"])
+
+
+class SimulationResetRequest(BaseModel):
+    crew_id: str | None = Field(None, description="Omit to end every simulated emergency.")
 
 
 class MeasurementResult(Measurement):

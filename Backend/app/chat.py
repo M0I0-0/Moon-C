@@ -12,6 +12,7 @@ Language: the request's language, then the crew member's preferredLanguage, then
 from __future__ import annotations
 
 from .ai import SmallTalk, is_safe_small_talk
+from .alerts import AlertBoard
 from .crew import CrewMember, CrewRegistry
 from .intent import Intent, KeywordRouter
 from .manual import Manual
@@ -79,12 +80,14 @@ class ChatService:
         crew: CrewRegistry,
         sessions: SessionStore,
         small_talk: SmallTalk,
+        alerts: AlertBoard | None = None,
     ):
         self.manual = manual
         self.router = router
         self.crew = crew
         self.sessions = sessions
         self.small_talk = small_talk
+        self.alerts = alerts
 
     async def handle(self, req: ChatRequest) -> ChatResponse:
         # An unknown crew_id never blocks a reply (an emergency must always be answered).
@@ -96,6 +99,9 @@ class ChatService:
         intent = self.router.classify(req.message)
         if intent.category == "emergency":
             response = self._emergency(intent, lang)
+            if self.alerts is not None and crew is not None:
+                # Priority 2: alert the crew and the medical officer. Only the protocol name is kept.
+                self.alerts.report(crew.crew_id, crew.name, intent.protocol)
         elif intent.category == "health":
             response = self._health(intent, lang)
         elif intent.category == "ambiguous":

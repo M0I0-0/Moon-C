@@ -17,6 +17,7 @@ import { SEED_ANNOUNCEMENTS } from './data/announcements'
 import { INDICATORS, STATUS_LABEL, classify, crewById, worstStatus } from './data/manual'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useCrewSimulation } from './hooks/useCrewSimulation'
+import { useRemoteCrew } from './hooks/useRemoteCrew'
 import { useSpeechInput, useSpeechOutput } from './hooks/useSpeech'
 import { useBackendStatus } from './hooks/useBackendStatus'
 import { askBackend, askLocal } from './lib/assistant'
@@ -67,9 +68,12 @@ export default function App() {
   const lang = account?.preferredLanguage ?? 'es'
   const speechLang = speechLangFor(lang)
 
-  const sim = useCrewSimulation()
   const tts = useSpeechOutput(speechLang)
   const backend = useBackendStatus()
+  // Signos y alertas: del backend (una sola fuente para todas las pantallas) o, sin enlace, simulados aquí.
+  const localCrew = useCrewSimulation()
+  const remoteCrew = useRemoteCrew(backend.online, lang)
+  const sim = backend.online && remoteCrew.ready ? remoteCrew : localCrew
 
   const env = ENVIRONMENTS.home // la app usa siempre la sala (modo hogar)
   const envId = env.id

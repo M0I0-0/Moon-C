@@ -94,6 +94,7 @@ def settings(storage_path) -> Settings:
         storage_path=storage_path,
         ollama_warmup=False,
         earth_link="offline",
+        simulation=False,  # tests that need the bracelets turn them on and advance them by hand
     )
 
 

@@ -14,6 +14,7 @@ import contextlib
 import csv
 import io
 import logging
+import random
 import uuid
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
@@ -28,6 +29,7 @@ from fastapi.responses import JSONResponse
 from . import __version__
 from .ai import OllamaClient, SmallTalk
 from .alerts import AlertBoard, AlertNotFound
+from .bracelets import SimulatedBracelets, UnknownCrew, UnknownScenario
 from .chat import ChatService
 from .config import Settings, get_settings
 from .crew import CrewRegistry
@@ -35,10 +37,12 @@ from .evaluator import MeasurementValueError, describe, evaluate
 from .intent import KeywordRouter
 from .manual import Manual
 from .schemas import (
+    AlertResolveRequest,
     AlertView,
     AssignRequest,
     ChatRequest,
     ChatResponse,
+    CrewVitals,
     DeleteDataResponse,
     ErrorResponse,
     ExportJSON,
@@ -52,8 +56,11 @@ from .schemas import (
     MeasurementIn,
     MeasurementResult,
     ProtocolView,
+    Scenario,
     SessionResetRequest,
     SessionResetResponse,
+    SimulationEmergencyRequest,
+    SimulationResetRequest,
     StatusResponse,
     SyncResult,
     SyncStatus,
@@ -84,7 +91,9 @@ TAGS = [
     {"name": "crew", "description": "Simulated bracelet identification."},
     {"name": "manual", "description": "Health manual: indicators, ranges and protocols."},
     {"name": "measurements", "description": "Readings, compared with the manual's example ranges."},
-    {"name": "alerts", "description": "On-board alerts for urgent readings."},
+    {"name": "alerts", "description": "On-board alerts: urgent readings, emergencies reported in the chat, maneuvers."},
+    {"name": "vitals", "description": "Live vital signs from the simulated bracelets."},
+    {"name": "simulation", "description": "Demo controls: simulated emergencies."},
     {"name": "sync", "description": "Simulated Earth sync queue."},
     {"name": "data", "description": "Export and privacy wipe."},
 ]
@@ -104,6 +113,7 @@ class Services:
     ai_client: OllamaClient
     chat: ChatService
     sync: EarthSync
+    bracelets: SimulatedBracelets | None = None
     tasks: list[asyncio.Task] = field(default_factory=list)
 
     @classmethod
@@ -113,19 +123,33 @@ class Services:
         crew = CrewRegistry.load(settings.shared_dir / "crew.json")
         store = MeasurementStore(settings.storage_path, settings.retention_days)
         store.load()
+        alerts = AlertBoard(manual)
         sessions = SessionStore(max_turns=settings.session_max_turns, ttl_s=settings.session_ttl_s)
         ai_client = OllamaClient(settings, transport=ollama_transport)
+        bracelets = (
+            SimulatedBracelets(
+                manual,
+                crew,
+                store,
+                alerts,
+                rng=random.Random(settings.sim_seed),
+                snapshot_interval_s=settings.snapshot_interval_s,
+            )
+            if settings.simulation
+            else None
+        )
         return cls(
             settings=settings,
             manual=manual,
             router=router,
             crew=crew,
             store=store,
-            alerts=AlertBoard(manual),
+            alerts=alerts,
             sessions=sessions,
             ai_client=ai_client,
-            chat=ChatService(manual, router, crew, sessions, SmallTalk(ai_client)),
+            chat=ChatService(manual, router, crew, sessions, SmallTalk(ai_client), alerts=alerts),
             sync=EarthSync(store, link=settings.earth_link),
+            bracelets=bracelets,
         )
 
 
@@ -304,13 +328,21 @@ def assign_measurement(measurement_id: str, body: AssignRequest, services: Servi
 
 
 # =========================================================================== alerts
-@api.get("/alerts", response_model=list[AlertView], tags=["alerts"], summary="Active on-board alerts")
+@api.get(
+    "/alerts",
+    response_model=list[AlertView],
+    tags=["alerts"],
+    summary="On-board alerts",
+    description="By default only open alerts nobody has acknowledged yet. Newest first.",
+)
 def list_alerts(
     services: ServicesDep,
     language: LanguageQuery = "en",
     include_acknowledged: bool = False,
+    include_resolved: bool = False,
 ) -> list[AlertView]:
-    return [services.alerts.view(a, language) for a in services.alerts.list(include_acknowledged)]
+    alerts = services.alerts.list(include_acknowledged=include_acknowledged, include_resolved=include_resolved)
+    return [services.alerts.view(a, language) for a in alerts]
 
 
 @api.post(
@@ -322,6 +354,97 @@ def acknowledge_alert(alert_id: str, services: ServicesDep, language: LanguageQu
     except AlertNotFound as exc:
         raise HTTPException(status_code=404, detail="Alert not found.") from exc
     return services.alerts.view(alert, language)
+
+
+@api.post(
+    "/alerts/{alert_id}/resolve", response_model=AlertView, responses=NOT_FOUND, tags=["alerts"], summary="Resolve"
+)
+def resolve_alert(alert_id: str, services: ServicesDep, language: LanguageQuery = "en") -> AlertView:
+    try:
+        alert = services.alerts.resolve(alert_id)
+    except AlertNotFound as exc:
+        raise HTTPException(status_code=404, detail="Alert not found.") from exc
+    return services.alerts.view(alert, language)
+
+
+@api.post(
+    "/alerts/resolve",
+    response_model=list[AlertView],
+    tags=["alerts"],
+    summary="Resolve every open alert of a crew member",
+    description="Omit crew_id to resolve every open alert. Returns the alerts that were closed.",
+)
+def resolve_crew_alerts(
+    body: AlertResolveRequest, services: ServicesDep, language: LanguageQuery = "en"
+) -> list[AlertView]:
+    return [services.alerts.view(a, language) for a in services.alerts.resolve_crew(body.crew_id)]
+
+
+# =========================================================================== vitals and simulation
+def _bracelets(services: Services) -> SimulatedBracelets:
+    if services.bracelets is None:
+        raise HTTPException(status_code=409, detail="The bracelet simulation is disabled (MOON_C_SIMULATION=false).")
+    return services.bracelets
+
+
+@api.get(
+    "/vitals",
+    response_model=list[CrewVitals],
+    tags=["vitals"],
+    summary="Live vital signs of every crew member",
+    description="Current value, status and recent history of each indicator. Empty when the simulation is off.",
+)
+def list_vitals(services: ServicesDep) -> list[CrewVitals]:
+    return services.bracelets.vitals() if services.bracelets else []
+
+
+@api.get("/vitals/{crew_id}", response_model=CrewVitals, responses=NOT_FOUND, tags=["vitals"], summary="One crew member")
+def crew_vitals(crew_id: str, services: ServicesDep) -> CrewVitals:
+    try:
+        return _bracelets(services).vitals_for(crew_id)
+    except UnknownCrew as exc:
+        raise HTTPException(status_code=404, detail=f"Unknown crew_id '{crew_id}'.") from exc
+
+
+@api.get("/simulation/scenarios", response_model=list[Scenario], tags=["simulation"], summary="Simulated emergencies")
+def list_scenarios(services: ServicesDep, language: LanguageQuery = "en") -> list[Scenario]:
+    return _bracelets(services).scenarios(language)
+
+
+@api.post(
+    "/simulation/emergency",
+    response_model=CrewVitals,
+    responses={**NOT_FOUND, 409: {"model": ErrorResponse}, 422: {"model": ErrorResponse}},
+    tags=["simulation"],
+    summary="Start a simulated emergency (demo)",
+    description="The crew member's signs drift toward the scenario values over the next readings.",
+)
+def start_simulated_emergency(body: SimulationEmergencyRequest, services: ServicesDep) -> CrewVitals:
+    bracelets = _bracelets(services)
+    try:
+        bracelets.start_scenario(body.crew_id, body.scenario)
+    except UnknownCrew as exc:
+        raise HTTPException(status_code=404, detail=f"Unknown crew_id '{body.crew_id}'.") from exc
+    except UnknownScenario as exc:
+        raise HTTPException(status_code=422, detail=f"Unknown scenario '{body.scenario}'.") from exc
+    return bracelets.vitals_for(body.crew_id)
+
+
+@api.post(
+    "/simulation/reset",
+    response_model=list[CrewVitals],
+    responses=NOT_FOUND,
+    tags=["simulation"],
+    summary="End simulated emergencies",
+    description="Signs drift back to each crew member's baseline. Omit crew_id to reset everyone.",
+)
+def reset_simulation(body: SimulationResetRequest, services: ServicesDep) -> list[CrewVitals]:
+    bracelets = _bracelets(services)
+    try:
+        bracelets.reset(body.crew_id)
+    except UnknownCrew as exc:
+        raise HTTPException(status_code=404, detail=f"Unknown crew_id '{body.crew_id}'.") from exc
+    return bracelets.vitals()
 
 
 # =========================================================================== sync
@@ -440,6 +563,8 @@ def create_app(
             services.tasks.append(asyncio.create_task(services.ai_client.warm_up()))
         services.tasks.append(asyncio.create_task(_sweep_sessions(services)))
         services.tasks.append(asyncio.create_task(services.sync.run(settings.sync_interval_s)))
+        if services.bracelets is not None:
+            services.tasks.append(asyncio.create_task(services.bracelets.run(settings.sim_tick_s)))
         log.info("Moon-C %s ready (manual %s, model %s).", __version__, services.manual.version, settings.ollama_model)
         try:
             yield

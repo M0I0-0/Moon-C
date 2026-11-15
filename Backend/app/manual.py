@@ -124,6 +124,9 @@ class Manual:
                 bands = ind["ranges"].get(status)
                 if not isinstance(bands, list) or not bands:
                     raise ManualError(f"Manual needs at least one band in {where}.ranges.{status}")
+            urgent_protocol = ind.get("urgent_protocol")
+            if urgent_protocol is not None and urgent_protocol not in data["protocols"]:
+                raise ManualError(f"{where}.urgent_protocol '{urgent_protocol}' is not a protocol in the manual")
 
         for name, proto in data["protocols"].items():
             where = f"protocols.{name}"
@@ -224,6 +227,7 @@ class Manual:
                 bands=spec.bands,
             ),
             what_to_do=WhatToDo(**{s: self.what_to_do(key, s, lang) for s in STATUSES}),
+            urgent_protocol=ind.get("urgent_protocol"),
             source=ind["source"],
             version=ind["version"],
             last_reviewed=ind["last_reviewed"],

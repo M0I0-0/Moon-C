@@ -26,6 +26,7 @@
   "indicators": {
     "heart_rate": {
       "unit": "bpm",
+      "urgent_protocol": "general_emergency",
       "unit_aliases": ["bpm", "beats/min", "beats per minute", "/min", "lpm", "latidos por minuto"],
       "valid_range": {"min": 1, "max": 300},
       "integer_only": false,
@@ -97,6 +98,7 @@
 
     "body_temperature": {
       "unit": "°C",
+      "urgent_protocol": "feeling_unwell",
       "unit_aliases": ["°C", "ºC", "C", "deg C", "celsius", "grados", "grados celsius"],
       "valid_range": {"min": 25, "max": 45},
       "integer_only": false,
@@ -168,6 +170,7 @@
 
     "spo2": {
       "unit": "%",
+      "urgent_protocol": "breathing_difficulty",
       "unit_aliases": ["%", "percent", "pct", "porcentaje", "por ciento"],
       "valid_range": {"min": 1, "max": 100},
       "integer_only": false,
@@ -239,6 +242,7 @@
 
     "sleep_hours": {
       "unit": "h",
+      "urgent_protocol": "feeling_unwell",
       "unit_aliases": ["h", "hr", "hrs", "hour", "hours", "hora", "horas"],
       "valid_range": {"min": 0, "max": 24},
       "integer_only": false,
@@ -306,6 +310,7 @@
 
     "mood": {
       "unit": "/5",
+      "urgent_protocol": "feeling_unwell",
       "unit_aliases": ["/5", "1-5", "1–5", "score", "points", "scale", "puntos", "escala", "puntuacion", "puntuación"],
       "valid_range": {"min": 1, "max": 5},
       "integer_only": true,
@@ -363,6 +368,284 @@
             "Gracias por decírmelo. No estás solo en esto.",
             "Por favor, habla hoy con un compañero o con el oficial médico a bordo; pedir apoyo es una muestra de fortaleza.",
             "También puedes pedir al oficial médico que programe una llamada privada de apoyo con la Tierra cuando haya enlace."
+          ]
+        }
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    },
+
+    "blood_pressure_systolic": {
+      "unit": "mmHg",
+      "urgent_protocol": "general_emergency",
+      "unit_aliases": ["mmHg", "mm Hg"],
+      "valid_range": {"min": 40, "max": 300},
+      "integer_only": false,
+      "name": {"en": "Blood pressure (systolic)", "es": "Presión arterial (sistólica)"},
+      "explanation": {
+        "en": "The higher number of a blood pressure reading: the pressure in your arteries each time the heart beats, in millimetres of mercury (mmHg).",
+        "es": "El número más alto de una lectura de presión arterial: la presión en tus arterias cada vez que late el corazón, en milímetros de mercurio (mmHg)."
+      },
+      "why_it_matters_in_space": {
+        "en": "In microgravity, body fluids shift toward the head and the heart and blood vessels adapt. Tracking blood pressure helps you notice changes, especially around exercise and before returning to gravity.",
+        "es": "En microgravedad, los líquidos del cuerpo se desplazan hacia la cabeza y el corazón y los vasos sanguíneos se adaptan. Seguir la presión arterial ayuda a notar cambios, sobre todo alrededor del ejercicio y antes de volver a la gravedad."
+      },
+      "how_to_measure": {
+        "en": [
+          "Rest for 5 minutes, secured in place, with your arm supported at heart level.",
+          "Place the cuff on your bare upper arm, 2–3 cm above the elbow.",
+          "Stay still and silent while the monitor measures.",
+          "Log the higher number (systolic) and the lower number (diastolic) in Moon-C in mmHg."
+        ],
+        "es": [
+          "Descansa 5 minutos, sujeto a tu lugar, con el brazo apoyado a la altura del corazón.",
+          "Coloca el brazalete sobre la piel del brazo, 2–3 cm por encima del codo.",
+          "Quédate quieto y en silencio mientras el monitor mide.",
+          "Registra en Moon-C el número más alto (sistólica) y el más bajo (diastólica) en mmHg."
+        ]
+      },
+      "ranges": {
+        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+        "normal": [{"min": 90, "max": 129}],
+        "attention": [{"min": 80, "max": 89}, {"min": 130, "max": 179}],
+        "urgent": [{"gte": 180}, {"lt": 80}]
+      },
+      "what_to_do": {
+        "normal": {
+          "en": ["No action needed. Keep logging when the routine asks for it."],
+          "es": ["No hace falta hacer nada. Sigue registrando cuando la rutina lo pida."]
+        },
+        "attention": {
+          "en": [
+            "Rest for 5 minutes in calm and measure again.",
+            "Avoid caffeine and exertion before the next reading.",
+            "If it stays outside the normal range, tell the on-board medical officer."
+          ],
+          "es": [
+            "Descansa 5 minutos en calma y vuelve a medir.",
+            "Evita cafeína y esfuerzo antes de la siguiente lectura.",
+            "Si sigue fuera del rango normal, avisa al oficial médico a bordo."
+          ]
+        },
+        "urgent": {
+          "en": [
+            "Stop what you are doing and rest, secured in place.",
+            "Alert the on-board medical officer now.",
+            "Measure again and record vital signs every 5 minutes.",
+            "If you notice chest pain or difficulty breathing, say so: Moon-C will open the emergency protocol."
+          ],
+          "es": [
+            "Detén lo que estás haciendo y descansa, sujeto a tu lugar.",
+            "Avisa ahora al oficial médico a bordo.",
+            "Vuelve a medir y registra los signos vitales cada 5 minutos.",
+            "Si notas dolor de pecho o dificultad para respirar, dilo: Moon-C abrirá el protocolo de emergencia."
+          ]
+        }
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    },
+
+    "blood_pressure_diastolic": {
+      "unit": "mmHg",
+      "urgent_protocol": "general_emergency",
+      "unit_aliases": ["mmHg", "mm Hg"],
+      "valid_range": {"min": 20, "max": 200},
+      "integer_only": false,
+      "name": {"en": "Blood pressure (diastolic)", "es": "Presión arterial (diastólica)"},
+      "explanation": {
+        "en": "The lower number of a blood pressure reading: the pressure in your arteries between heartbeats, in mmHg.",
+        "es": "El número más bajo de una lectura de presión arterial: la presión en tus arterias entre un latido y otro, en mmHg."
+      },
+      "why_it_matters_in_space": {
+        "en": "It is measured together with the systolic value. Both numbers describe how your circulation is adapting to microgravity.",
+        "es": "Se mide junto con la sistólica. Los dos números describen cómo se adapta tu circulación a la microgravedad."
+      },
+      "how_to_measure": {
+        "en": [
+          "Rest for 5 minutes, secured in place, with your arm supported at heart level.",
+          "Place the cuff on your bare upper arm, 2–3 cm above the elbow.",
+          "Stay still and silent while the monitor measures.",
+          "Log the lower number (diastolic) in Moon-C in mmHg."
+        ],
+        "es": [
+          "Descansa 5 minutos, sujeto a tu lugar, con el brazo apoyado a la altura del corazón.",
+          "Coloca el brazalete sobre la piel del brazo, 2–3 cm por encima del codo.",
+          "Quédate quieto y en silencio mientras el monitor mide.",
+          "Registra en Moon-C el número más bajo (diastólica) en mmHg."
+        ]
+      },
+      "ranges": {
+        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+        "normal": [{"min": 60, "max": 84}],
+        "attention": [{"min": 40, "max": 59}, {"min": 85, "max": 119}],
+        "urgent": [{"gte": 120}, {"lt": 40}]
+      },
+      "what_to_do": {
+        "normal": {
+          "en": ["No action needed. Keep logging when the routine asks for it."],
+          "es": ["No hace falta hacer nada. Sigue registrando cuando la rutina lo pida."]
+        },
+        "attention": {
+          "en": [
+            "Rest for 5 minutes in calm and measure again.",
+            "Avoid caffeine and exertion before the next reading.",
+            "If it stays outside the normal range, tell the on-board medical officer."
+          ],
+          "es": [
+            "Descansa 5 minutos en calma y vuelve a medir.",
+            "Evita cafeína y esfuerzo antes de la siguiente lectura.",
+            "Si sigue fuera del rango normal, avisa al oficial médico a bordo."
+          ]
+        },
+        "urgent": {
+          "en": [
+            "Stop what you are doing and rest, secured in place.",
+            "Alert the on-board medical officer now.",
+            "Measure again and record vital signs every 5 minutes.",
+            "If you notice chest pain or difficulty breathing, say so: Moon-C will open the emergency protocol."
+          ],
+          "es": [
+            "Detén lo que estás haciendo y descansa, sujeto a tu lugar.",
+            "Avisa ahora al oficial médico a bordo.",
+            "Vuelve a medir y registra los signos vitales cada 5 minutos.",
+            "Si notas dolor de pecho o dificultad para respirar, dilo: Moon-C abrirá el protocolo de emergencia."
+          ]
+        }
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    },
+
+    "respiratory_rate": {
+      "unit": "breaths/min",
+      "urgent_protocol": "breathing_difficulty",
+      "unit_aliases": ["breaths/min", "breaths per minute", "rpm", "resp/min", "/min", "respiraciones por minuto"],
+      "valid_range": {"min": 1, "max": 80},
+      "integer_only": false,
+      "name": {"en": "Respiratory rate", "es": "Frecuencia respiratoria"},
+      "explanation": {
+        "en": "How many breaths you take per minute, counted at rest.",
+        "es": "Cuántas veces respiras por minuto, contado en reposo."
+      },
+      "why_it_matters_in_space": {
+        "en": "Your breathing rate changes with exertion, stress and the quality of the cabin air, so a resting count is an early, simple signal.",
+        "es": "La frecuencia respiratoria cambia con el esfuerzo, el estrés y la calidad del aire de la cabina, así que contarla en reposo es una señal temprana y sencilla."
+      },
+      "how_to_measure": {
+        "en": [
+          "Rest for 5 minutes, secured in place.",
+          "Count how many times the chest rises in 30 seconds and multiply by 2. It is more accurate if a crewmate counts.",
+          "Log the value in Moon-C in breaths per minute."
+        ],
+        "es": [
+          "Descansa 5 minutos, sujeto a tu lugar.",
+          "Cuenta cuántas veces sube el pecho en 30 segundos y multiplica por 2. Es más preciso si cuenta un compañero.",
+          "Registra el valor en Moon-C en respiraciones por minuto."
+        ]
+      },
+      "ranges": {
+        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+        "normal": [{"min": 12, "max": 20}],
+        "attention": [{"min": 8, "max": 11}, {"min": 21, "max": 30}],
+        "urgent": [{"lt": 8}, {"gt": 30}]
+      },
+      "what_to_do": {
+        "normal": {
+          "en": ["No action needed. Keep logging when the routine asks for it."],
+          "es": ["No hace falta hacer nada. Sigue registrando cuando la rutina lo pida."]
+        },
+        "attention": {
+          "en": [
+            "Breathe slowly through your nose for a minute and count again.",
+            "Check the cabin air-quality readings.",
+            "If it stays outside the normal range, tell the on-board medical officer."
+          ],
+          "es": [
+            "Respira lento por la nariz durante un minuto y vuelve a contar.",
+            "Revisa las lecturas de calidad del aire de la cabina.",
+            "Si sigue fuera del rango normal, avisa al oficial médico a bordo."
+          ]
+        },
+        "urgent": {
+          "en": [
+            "Stop your activity and stay still in a safe place.",
+            "Alert the on-board medical officer now and check the cabin atmosphere alarms.",
+            "Measure SpO2 and record vital signs every 5 minutes."
+          ],
+          "es": [
+            "Detén tu actividad y quédate en reposo en un lugar seguro.",
+            "Avisa ahora al oficial médico a bordo y revisa las alarmas de la atmósfera de la cabina.",
+            "Mide la SpO2 y registra los signos vitales cada 5 minutos."
+          ]
+        }
+      },
+      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
+      "version": "0.1.0",
+      "last_reviewed": "2026-11-14"
+    },
+
+    "radiation": {
+      "unit": "µSv/h",
+      "urgent_protocol": "general_emergency",
+      "unit_aliases": ["µSv/h", "μSv/h", "uSv/h", "microsievert/h", "microsieverts per hour", "microsieverts por hora"],
+      "valid_range": {"min": 0, "max": 100000},
+      "integer_only": false,
+      "name": {"en": "Radiation (personal dosimeter)", "es": "Radiación (dosímetro personal)"},
+      "explanation": {
+        "en": "The radiation dose rate measured by your personal dosimeter, in microsieverts per hour (µSv/h).",
+        "es": "La tasa de dosis de radiación que mide tu dosímetro personal, en microsieverts por hora (µSv/h)."
+      },
+      "why_it_matters_in_space": {
+        "en": "Outside Earth's magnetic field and atmosphere, crews receive more radiation, and solar particle events can raise it quickly. The dose adds up over the whole mission.",
+        "es": "Fuera del campo magnético y la atmósfera de la Tierra, la tripulación recibe más radiación, y los eventos de partículas solares pueden subirla rápido. La dosis se acumula durante toda la misión."
+      },
+      "how_to_measure": {
+        "en": [
+          "Wear your personal dosimeter as instructed, usually at chest height.",
+          "Read the current dose rate on the dosimeter or on the station display.",
+          "Log the value in Moon-C in µSv/h."
+        ],
+        "es": [
+          "Lleva tu dosímetro personal como se indica, normalmente a la altura del pecho.",
+          "Lee la tasa de dosis actual en el dosímetro o en la pantalla de la estación.",
+          "Registra el valor en Moon-C en µSv/h."
+        ]
+      },
+      "ranges": {
+        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+        "normal": [{"min": 0, "max": 50}],
+        "attention": [{"gt": 50}],
+        "urgent": [{"gt": 100}]
+      },
+      "what_to_do": {
+        "normal": {
+          "en": ["No action needed. Keep wearing your dosimeter."],
+          "es": ["No hace falta hacer nada. Sigue llevando tu dosímetro."]
+        },
+        "attention": {
+          "en": [
+            "Reduce the time you spend in less-shielded modules.",
+            "Check your accumulated dose at the end of the shift."
+          ],
+          "es": [
+            "Reduce el tiempo en módulos poco blindados.",
+            "Revisa tu dosis acumulada al final del turno."
+          ]
+        },
+        "urgent": {
+          "en": [
+            "Go to the storm shelter or the most shielded module now.",
+            "Alert the commander and the on-board medical officer and wait for instructions.",
+            "Keep your dosimeter on and follow the vehicle radiation procedure."
+          ],
+          "es": [
+            "Ve ahora al refugio de tormenta o al módulo más blindado.",
+            "Avisa al comandante y al oficial médico a bordo y espera instrucciones.",
+            "Mantén puesto tu dosímetro y sigue el procedimiento de radiación del vehículo."
           ]
         }
       },

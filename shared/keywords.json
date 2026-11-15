@@ -49,6 +49,22 @@
       "mood": {
         "en": ["mood", "my mood", "sad", "stressed", "stress", "anxious", "anxiety", "lonely", "loneliness", "depressed", "homesick", "worried", "upset", "overwhelmed", "feeling down", "feel down", "unhappy", "angry"],
         "es": ["estado de animo", "mi animo", "bajo de animo", "sin animo", "humor", "triste", "tristeza", "estres", "estresado", "estresada", "ansioso", "ansiosa", "ansiedad", "me siento solo", "me siento sola", "soledad", "deprimido", "deprimida", "nostalgia", "extrano a mi familia", "preocupado", "preocupada", "agobiado", "agobiada", "enojado", "enojada"]
+      },
+      "blood_pressure_systolic": {
+        "en": ["blood pressure", "my pressure", "bp", "systolic"],
+        "es": ["presion arterial", "tension arterial", "mi presion", "presion", "sistolica"]
+      },
+      "blood_pressure_diastolic": {
+        "en": ["diastolic"],
+        "es": ["diastolica"]
+      },
+      "respiratory_rate": {
+        "en": ["respiratory rate", "breathing rate", "breaths per minute", "breathing"],
+        "es": ["frecuencia respiratoria", "respiraciones por minuto", "respiracion"]
+      },
+      "radiation": {
+        "en": ["radiation", "radiation dose", "dosimeter", "solar storm", "sievert", "sieverts"],
+        "es": ["radiacion", "dosis de radiacion", "dosimetro", "tormenta solar"]
       }
     },
     "symptoms": {

@@ -8,7 +8,18 @@ def test_manual_endpoint(client):
     es = client.get("/manual", params={"language": "es"}).json()
     assert en["language"] == "en" and es["language"] == "es"
     assert "does not diagnose" in en["mission"]
-    assert [i["indicator"] for i in en["indicators"]] == ["heart_rate", "body_temperature", "spo2", "sleep_hours", "mood"]
+    assert [i["indicator"] for i in en["indicators"]] == [
+        "heart_rate",
+        "body_temperature",
+        "spo2",
+        "sleep_hours",
+        "mood",
+        "blood_pressure_systolic",
+        "blood_pressure_diastolic",
+        "respiratory_rate",
+        "radiation",
+    ]
+    assert {i["indicator"]: i["urgent_protocol"] for i in en["indicators"]}["spo2"] == "breathing_difficulty"
     assert {p["name"] for p in en["protocols"]} >= {"chest_pain", "breathing_difficulty", "fainting_unresponsive", "bleeding"}
     assert en["ranges_warning"] == "EXAMPLE VALUES – must be validated by medical experts"
 
