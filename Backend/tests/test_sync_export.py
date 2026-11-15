@@ -75,13 +75,13 @@ def test_export_json(client):
     assert "attachment" in res.headers["content-disposition"]
     data = res.json()
     assert data["count"] == 2
-    assert data["ranges_warning"] == "EXAMPLE VALUES – must be validated by medical experts"
+    assert data["ranges_warning"] == "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts"
     assert set(data["measurements"][0]) == set(CSV_FIELDS)
     assert client.get("/export.json", params={"crew_id": "kenji"}).json()["count"] == 1
 
 
 def test_export_csv(client):
-    add(client, crew_id="moises", indicator="body_temperature", value=38.2, unit="°C")
+    add(client, crew_id="moises", indicator="body_temperature", value=39.4, unit="°C")
     add(client, indicator="mood", value=3, unit="/5")
     res = client.get("/export.csv")
     assert res.status_code == 200

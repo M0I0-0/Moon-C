@@ -1,25 +1,25 @@
 {
   "_comment": "Moon-C health manual: the single source of truth for indicators, ranges and protocols. Content in English ('en') with Spanish translation ('es'). No diagnostic language.",
-  "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+  "_warning": "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts",
 
   "manual": {
     "title": {"en": "Moon-C on-board health manual", "es": "Manual de salud a bordo de Moon-C"},
-    "version": "0.1.0",
-    "last_reviewed": "2026-11-14",
-    "review_status": "pending medical review",
-    "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
-    "ranges_warning": "EXAMPLE VALUES – must be validated by medical experts",
+    "version": "0.2.0",
+    "last_reviewed": "2026-11-15",
+    "review_status": "sourced from published guidelines and NASA standards; pending medical review",
+    "source": "Moon-C on-board manual v0.2 – ranges from NEWS2 (RCP 2017), ACC/AHA, WHO, AASM/SRS and NASA-STD-3001; see shared/REFERENCES.md. Not yet validated by the mission's medical team.",
+    "ranges_warning": "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts",
     "mission": {
       "en": "Moon-C supports the crew on board so they can monitor their health and act in time, without waiting for Earth. Moon-C does not diagnose.",
       "es": "Moon-C apoya a la tripulación a bordo para que pueda vigilar su salud y actuar a tiempo, sin esperar a la Tierra. Moon-C no diagnostica."
     },
     "disclaimer": {
-      "en": "Moon-C does not diagnose. The ranges in this manual are EXAMPLE VALUES and must be validated by medical experts. When in doubt, contact the on-board medical officer.",
-      "es": "Moon-C no diagnostica. Los rangos de este manual son VALORES DE EJEMPLO y deben ser validados por expertos médicos. Ante cualquier duda, contacta al oficial médico a bordo."
+      "en": "Moon-C does not diagnose. The ranges in this manual come from published clinical guidelines and NASA standards, are meant for healthy adults at rest and must still be validated by medical experts for this crew. When in doubt, contact the on-board medical officer.",
+      "es": "Moon-C no diagnostica. Los rangos de este manual vienen de guías clínicas publicadas y estándares de la NASA, son para adultos sanos en reposo y aún deben ser validados por expertos médicos para esta tripulación. Ante cualquier duda, contacta al oficial médico a bordo."
     },
     "gap_policy": {
-      "en": "Any value that is neither normal nor urgent is treated as attention, including values that fall between the example bands.",
-      "es": "Cualquier valor que no sea normal ni urgente se trata como atención, incluidos los valores que caen entre las bandas de ejemplo."
+      "en": "Any value that is neither normal nor urgent is treated as attention, including values that fall between the bands.",
+      "es": "Cualquier valor que no sea normal ni urgente se trata como atención, incluidos los valores que caen entre las bandas."
     }
   },
 
@@ -36,8 +36,8 @@
         "es": "El número de veces que late tu corazón por minuto (bpm), medido en reposo."
       },
       "why_it_matters_in_space": {
-        "en": "In microgravity, body fluids shift toward the head and the heart and blood vessels adapt. Exercise, sleep loss and stress also change your heart rate, so regular resting readings help you notice changes early.",
-        "es": "En microgravedad, los líquidos del cuerpo se desplazan hacia la cabeza y el corazón y los vasos sanguíneos se adaptan. El ejercicio, la falta de sueño y el estrés también cambian la frecuencia cardiaca, así que las lecturas en reposo ayudan a notar cambios a tiempo."
+        "en": "In orbit, resting heart rate stays close to its value on Earth, but body fluids shift toward the head, blood pressure drops by about 8–10 mmHg and the heart pumps more blood with each beat. The bigger change comes when gravity returns (landing on Earth, the Moon or Mars): standing up can make the heart race and cause dizziness. Exercise, stress and poor sleep also raise it, so compare resting readings with your own usual values.",
+        "es": "En órbita, la frecuencia cardiaca en reposo se mantiene cerca de su valor en la Tierra, pero los líquidos del cuerpo se desplazan hacia la cabeza, la presión baja unos 8–10 mmHg y el corazón bombea más sangre en cada latido. El cambio más grande llega al volver a la gravedad (al aterrizar en la Tierra, la Luna o Marte): al ponerse de pie el corazón puede acelerarse y causar mareo. El ejercicio, el estrés y el mal descanso también la suben, así que compara tus lecturas en reposo con tus valores habituales."
       },
       "how_to_measure": {
         "en": [
@@ -54,10 +54,10 @@
         ]
       },
       "ranges": {
-        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
-        "normal": [{"min": 60, "max": 100}],
-        "attention": [{"min": 50, "max": 59}, {"min": 101, "max": 120}],
-        "urgent": [{"lt": 50}, {"gt": 120}]
+        "_warning": "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts",
+        "normal": [{"min": 50, "max": 100}],
+        "attention": [{"min": 41, "max": 49}, {"min": 101, "max": 130}],
+        "urgent": [{"lte": 40}, {"gte": 131}]
       },
       "what_to_do": {
         "normal": {
@@ -91,9 +91,9 @@
           ]
         }
       },
-      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
-      "version": "0.1.0",
-      "last_reviewed": "2026-11-14"
+      "source": "Normal 50–100 bpm: ACC/AHA/HRS 2018 guideline on slow heart rate and conduction (Kusumoto et al., 2019). Urgent ≤ 40 or ≥ 131 bpm: NEWS2 single-parameter red score (Royal College of Physicians, 2017). Spaceflight: Norsk et al. 2015; Lee et al. 2015. Details and full references: shared/REFERENCES.md.",
+      "version": "0.2.0",
+      "last_reviewed": "2026-11-15"
     },
 
     "body_temperature": {
@@ -108,8 +108,8 @@
         "es": "Tu temperatura corporal en grados Celsius (°C)."
       },
       "why_it_matters_in_space": {
-        "en": "The cabin is a closed environment with its own thermal conditions, and in microgravity the body releases heat differently, especially during exercise. Temperature is an early, easy-to-measure signal worth tracking.",
-        "es": "La cabina es un entorno cerrado con condiciones térmicas propias, y en microgravedad el cuerpo libera calor de otra forma, sobre todo durante el ejercicio. La temperatura es una señal temprana y fácil de medir que vale la pena seguir."
+        "en": "On long missions, the resting core temperature of ISS crews rose by about 1 °C over the first 2–3 months and stayed there, and during exercise it rose faster and higher than on Earth, sometimes above 40 °C. The normal range in this manual already allows for that rise. A reading above it deserves attention, especially during or after exercise, when the body sheds heat less easily in microgravity.",
+        "es": "En misiones largas, la temperatura central en reposo de las tripulaciones de la ISS subió cerca de 1 °C en los primeros 2–3 meses y se quedó ahí, y durante el ejercicio subió más rápido y más alto que en la Tierra, a veces por encima de 40 °C. El rango normal de este manual ya contempla esa subida. Una lectura por encima merece atención, sobre todo durante o después del ejercicio, cuando en microgravedad el cuerpo libera peor el calor."
       },
       "how_to_measure": {
         "en": [
@@ -126,10 +126,10 @@
         ]
       },
       "ranges": {
-        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
-        "normal": [{"min": 36.1, "max": 37.2}],
-        "attention": [{"min": 37.3, "max": 37.9}, {"min": 35.5, "max": 36.0}],
-        "urgent": [{"gte": 38.0}, {"lt": 35.5}]
+        "_warning": "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts",
+        "normal": [{"min": 36.1, "max": 38.0}],
+        "attention": [{"min": 35.1, "max": 36.0}, {"min": 38.1, "max": 39.0}],
+        "urgent": [{"lte": 35.0}, {"gte": 39.1}]
       },
       "what_to_do": {
         "normal": {
@@ -163,9 +163,9 @@
           ]
         }
       },
-      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
-      "version": "0.1.0",
-      "last_reviewed": "2026-11-14"
+      "source": "Bands: NEWS2 temperature scoring (Royal College of Physicians, 2017). ≥ 39.1 °C is escalated to urgent because the CDC lists 103 °F (39.4 °C) or more as a warning sign of heat illness and the body heats up faster in space (Stahn et al. 2017). Details and full references: shared/REFERENCES.md.",
+      "version": "0.2.0",
+      "last_reviewed": "2026-11-15"
     },
 
     "spo2": {
@@ -180,8 +180,8 @@
         "es": "El porcentaje de oxígeno que transporta tu sangre, medido con un pulsioxímetro en un dedo."
       },
       "why_it_matters_in_space": {
-        "en": "The cabin air is produced and controlled by life-support systems. Your oxygen saturation helps you and the crew notice early if your body or the cabin air needs attention.",
-        "es": "El aire de la cabina lo producen y controlan los sistemas de soporte vital. Tu saturación de oxígeno ayuda a notar a tiempo si tu cuerpo o el aire de la cabina necesitan atención."
+        "en": "On the ISS the cabin air is like sea level, so normal values are the same as on Earth. Lunar and Mars habitats will likely use a lower-pressure, oxygen-richer atmosphere (NASA's exploration atmosphere: 8.2 psi with 34% oxygen), which the body feels like being at about 1,200 m of altitude; saturation should still stay in the normal range. A low reading can come from your body, the sensor or the cabin air, so check all three.",
+        "es": "En la ISS el aire de la cabina es como a nivel del mar, así que los valores normales son los mismos que en la Tierra. Los hábitats en la Luna y Marte probablemente usarán una atmósfera con menos presión y más oxígeno (la atmósfera de exploración de la NASA: 8.2 psi con 34% de oxígeno), que el cuerpo siente como estar a unos 1,200 m de altura; la saturación debería seguir en el rango normal. Una lectura baja puede venir de tu cuerpo, del sensor o del aire de la cabina, así que revisa los tres."
       },
       "how_to_measure": {
         "en": [
@@ -198,10 +198,10 @@
         ]
       },
       "ranges": {
-        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+        "_warning": "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts",
         "normal": [{"min": 95, "max": 100}],
-        "attention": [{"min": 91, "max": 94}],
-        "urgent": [{"lte": 90}]
+        "attention": [{"min": 92, "max": 94}],
+        "urgent": [{"lte": 91}]
       },
       "what_to_do": {
         "normal": {
@@ -235,9 +235,9 @@
           ]
         }
       },
-      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
-      "version": "0.1.0",
-      "last_reviewed": "2026-11-14"
+      "source": "Urgent ≤ 91%: NEWS2 SpO2 scale 1 (Royal College of Physicians, 2017). Normal ≥ 95%, action at ≤ 94%: WHO Pulse Oximetry Training Manual (2011) and BTS target range 94–98% (2017). Exploration atmosphere: Conkin et al. 2015 (NASA). Details and full references: shared/REFERENCES.md.",
+      "version": "0.2.0",
+      "last_reviewed": "2026-11-15"
     },
 
     "sleep_hours": {
@@ -252,8 +252,8 @@
         "es": "Cuántas horas dormiste en tu último periodo principal de sueño."
       },
       "why_it_matters_in_space": {
-        "en": "Without a natural day and night, and with noise, light and busy schedules, sleep in space is often shorter and lighter. Too little sleep affects attention, mood and safety during critical tasks.",
-        "es": "Sin día y noche naturales, y con ruido, luz y agendas exigentes, el sueño en el espacio suele ser más corto y ligero. Dormir poco afecta la atención, el ánimo y la seguridad en tareas críticas."
+        "en": "Astronauts sleep about 6 hours a night on average, even with 8.5 hours scheduled, and many use sleep medication. Without a natural day and night (the ISS sees about 16 sunrises a day and daylight on the Moon lasts about two weeks), with noise, light and busy schedules, sleep gets shorter and lighter. A week of 6-hour nights can affect performance as much as a full night without sleep, which matters in critical tasks.",
+        "es": "Los astronautas duermen en promedio unas 6 horas por noche, aunque tengan 8.5 horas programadas, y muchos usan medicamentos para dormir. Sin día y noche naturales (la ISS ve unos 16 amaneceres al día y en la Luna la luz del día dura unas dos semanas), con ruido, luz y agendas exigentes, el sueño se vuelve más corto y ligero. Una semana durmiendo 6 horas puede afectar el desempeño tanto como una noche entera sin dormir, y eso importa en tareas críticas."
       },
       "how_to_measure": {
         "en": [
@@ -268,10 +268,10 @@
         ]
       },
       "ranges": {
-        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+        "_warning": "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts",
         "normal": [{"min": 7, "max": 9}],
-        "attention": [{"min": 5, "max": 6.9}, {"min": 9.1, "max": 10}],
-        "urgent": [{"lt": 4}]
+        "attention": [{"min": 5, "max": 6.9}, {"gt": 9}],
+        "urgent": [{"lt": 5}]
       },
       "what_to_do": {
         "normal": {
@@ -303,9 +303,9 @@
           ]
         }
       },
-      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
-      "version": "0.1.0",
-      "last_reviewed": "2026-11-14"
+      "source": "Normal 7–9 h: AASM/SRS consensus (Watson et al. 2015) and National Sleep Foundation, as cited in the NASA OCHMO sleep technical brief. Urgent < 5 h: prior sleep-wake rule for safety-critical work (Dawson & McCulloch 2005). Spaceflight: Barger et al. 2014. Details and full references: shared/REFERENCES.md.",
+      "version": "0.2.0",
+      "last_reviewed": "2026-11-15"
     },
 
     "mood": {
@@ -320,8 +320,8 @@
         "es": "Una autoevaluación de cómo te sientes emocionalmente, de 1 (muy bajo) a 5 (muy bien)."
       },
       "why_it_matters_in_space": {
-        "en": "Isolation, confinement, distance from family and long missions affect everyone. Noticing changes in your mood early makes it easier to ask for support.",
-        "es": "El aislamiento, el confinamiento, la distancia de la familia y las misiones largas afectan a todos. Notar a tiempo los cambios de ánimo facilita pedir apoyo."
+        "en": "Isolation, confinement, a small crew, delays to talk with Earth (seconds from the Moon, up to about 20 minutes each way from Mars) and distance from family affect everyone. In the 520-day Mars-500 simulation, sleep and activity changed for most of the crew and one member reported low mood in most weeks. Noticing changes early makes it easier to ask for support.",
+        "es": "El aislamiento, el confinamiento, una tripulación pequeña, la demora para hablar con la Tierra (segundos desde la Luna, hasta unos 20 minutos de ida desde Marte) y la distancia de la familia afectan a todos. En la simulación Mars-500, de 520 días, el sueño y la actividad cambiaron en casi toda la tripulación y una persona reportó ánimo bajo la mayoría de las semanas. Notar los cambios a tiempo facilita pedir apoyo."
       },
       "how_to_measure": {
         "en": [
@@ -336,7 +336,7 @@
         ]
       },
       "ranges": {
-        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+        "_warning": "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts",
         "normal": [{"min": 3, "max": 5}],
         "attention": [{"min": 2, "max": 2}],
         "urgent": [{"lte": 1}]
@@ -371,9 +371,9 @@
           ]
         }
       },
-      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
-      "version": "0.1.0",
-      "last_reviewed": "2026-11-14"
+      "source": "Single-item check-in designed for Moon-C, not a validated scale; a validated alternative is the WHO-5 Well-Being Index (Topp et al. 2015). Isolation and confinement: NASA Human Research Program; Mars-500 (Basner et al. 2013, 2014). Details and full references: shared/REFERENCES.md.",
+      "version": "0.2.0",
+      "last_reviewed": "2026-11-15"
     },
 
     "blood_pressure_systolic": {
@@ -388,8 +388,8 @@
         "es": "El número más alto de una lectura de presión arterial: la presión en tus arterias cada vez que late el corazón, en milímetros de mercurio (mmHg)."
       },
       "why_it_matters_in_space": {
-        "en": "In microgravity, body fluids shift toward the head and the heart and blood vessels adapt. Tracking blood pressure helps you notice changes, especially around exercise and before returning to gravity.",
-        "es": "En microgravedad, los líquidos del cuerpo se desplazan hacia la cabeza y el corazón y los vasos sanguíneos se adaptan. Seguir la presión arterial ayuda a notar cambios, sobre todo alrededor del ejercicio y antes de volver a la gravedad."
+        "en": "In microgravity, fluids shift toward the head and blood vessels relax: in ISS crews, 24-hour blood pressure fell by about 8–10 mmHg while the heart pumped more blood per beat, so values a little lower than on Earth are expected. The risk comes when gravity returns: on landing day, 4 of 6 long-mission crew members in a NASA study could not complete 10 minutes of upright tilt. Measure before and after standing up.",
+        "es": "En microgravedad los líquidos se desplazan hacia la cabeza y los vasos sanguíneos se relajan: en tripulaciones de la ISS, la presión de 24 horas bajó unos 8–10 mmHg mientras el corazón bombeaba más sangre por latido, así que es esperable que sea un poco más baja que en la Tierra. El riesgo llega al volver a la gravedad: el día del aterrizaje, 4 de 6 tripulantes de misiones largas en un estudio de la NASA no completaron 10 minutos de inclinación de pie. Mide antes y después de ponerte de pie."
       },
       "how_to_measure": {
         "en": [
@@ -406,10 +406,10 @@
         ]
       },
       "ranges": {
-        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
-        "normal": [{"min": 90, "max": 129}],
-        "attention": [{"min": 80, "max": 89}, {"min": 130, "max": 179}],
-        "urgent": [{"gte": 180}, {"lt": 80}]
+        "_warning": "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts",
+        "normal": [{"min": 101, "max": 129}],
+        "attention": [{"min": 91, "max": 100}, {"min": 130, "max": 180}],
+        "urgent": [{"lte": 90}, {"gt": 180}]
       },
       "what_to_do": {
         "normal": {
@@ -419,11 +419,13 @@
         "attention": {
           "en": [
             "Rest for 5 minutes in calm and measure again.",
+            "If you feel dizzy, especially after standing up or after landing, sit or lie down and secure yourself before measuring again.",
             "Avoid caffeine and exertion before the next reading.",
             "If it stays outside the normal range, tell the on-board medical officer."
           ],
           "es": [
             "Descansa 5 minutos en calma y vuelve a medir.",
+            "Si sientes mareo, sobre todo al ponerte de pie o después de aterrizar, siéntate o recuéstate y sujétate antes de volver a medir.",
             "Evita cafeína y esfuerzo antes de la siguiente lectura.",
             "Si sigue fuera del rango normal, avisa al oficial médico a bordo."
           ]
@@ -443,9 +445,9 @@
           ]
         }
       },
-      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
-      "version": "0.1.0",
-      "last_reviewed": "2026-11-14"
+      "source": "High side: 2025 AHA/ACC blood pressure guideline (from 130 mmHg needs attention; above 180 mmHg is the 'consult your doctor immediately' category). Low side: NEWS2 (≤ 90 urgent, 91–100 attention; Royal College of Physicians, 2017). Spaceflight: Norsk et al. 2015; Lee et al. 2015. Details and full references: shared/REFERENCES.md.",
+      "version": "0.2.0",
+      "last_reviewed": "2026-11-15"
     },
 
     "blood_pressure_diastolic": {
@@ -460,8 +462,8 @@
         "es": "El número más bajo de una lectura de presión arterial: la presión en tus arterias entre un latido y otro, en mmHg."
       },
       "why_it_matters_in_space": {
-        "en": "It is measured together with the systolic value. Both numbers describe how your circulation is adapting to microgravity.",
-        "es": "Se mide junto con la sistólica. Los dos números describen cómo se adapta tu circulación a la microgravedad."
+        "en": "It is measured together with the systolic value; in ISS crews it fell by about 9 mmHg in flight. After landing, a drop of 10 mmHg or more within 3 minutes of standing up (or 20 mmHg in the systolic) is the standard sign that circulation is not keeping up with gravity.",
+        "es": "Se mide junto con la sistólica; en tripulaciones de la ISS bajó unos 9 mmHg durante el vuelo. Después de aterrizar, una caída de 10 mmHg o más en los 3 minutos siguientes a ponerse de pie (o de 20 mmHg en la sistólica) es la señal estándar de que la circulación no está compensando la gravedad."
       },
       "how_to_measure": {
         "en": [
@@ -478,10 +480,10 @@
         ]
       },
       "ranges": {
-        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
-        "normal": [{"min": 60, "max": 84}],
-        "attention": [{"min": 40, "max": 59}, {"min": 85, "max": 119}],
-        "urgent": [{"gte": 120}, {"lt": 40}]
+        "_warning": "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts",
+        "normal": [{"min": 60, "max": 79}],
+        "attention": [{"lt": 60}, {"min": 80, "max": 120}],
+        "urgent": [{"gt": 120}]
       },
       "what_to_do": {
         "normal": {
@@ -515,9 +517,9 @@
           ]
         }
       },
-      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
-      "version": "0.1.0",
-      "last_reviewed": "2026-11-14"
+      "source": "2025 AHA/ACC blood pressure guideline: normal below 80 mmHg, above 120 mmHg in the 'consult your doctor immediately' category. Low side: below 60 mmHg, the usual lower limit (NHS: below 90/60). Standing test: consensus statement (Freeman et al. 2011). Spaceflight: Norsk et al. 2015. Details and full references: shared/REFERENCES.md.",
+      "version": "0.2.0",
+      "last_reviewed": "2026-11-15"
     },
 
     "respiratory_rate": {
@@ -532,8 +534,8 @@
         "es": "Cuántas veces respiras por minuto, contado en reposo."
       },
       "why_it_matters_in_space": {
-        "en": "Your breathing rate changes with exertion, stress and the quality of the cabin air, so a resting count is an early, simple signal.",
-        "es": "La frecuencia respiratoria cambia con el esfuerzo, el estrés y la calidad del aire de la cabina, así que contarla en reposo es una señal temprana y sencilla."
+        "en": "In microgravity, breaths become a little smaller and slightly faster (about 9% faster in Spacelab crews), still within the normal range. Cabin CO2 matters too: NASA limits it to 3 mmHg as a 1-hour average because higher levels are linked to headaches. If several crew members breathe faster or get headaches at the same time, check the cabin air.",
+        "es": "En microgravedad las respiraciones se vuelven un poco más pequeñas y algo más rápidas (cerca de 9% más rápidas en tripulaciones del Spacelab), todavía dentro del rango normal. El CO2 de la cabina también importa: la NASA lo limita a 3 mmHg en promedio por hora porque niveles más altos se asocian con dolor de cabeza. Si varios tripulantes respiran más rápido o les duele la cabeza al mismo tiempo, revisa el aire de la cabina."
       },
       "how_to_measure": {
         "en": [
@@ -548,10 +550,10 @@
         ]
       },
       "ranges": {
-        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
+        "_warning": "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts",
         "normal": [{"min": 12, "max": 20}],
-        "attention": [{"min": 8, "max": 11}, {"min": 21, "max": 30}],
-        "urgent": [{"lt": 8}, {"gt": 30}]
+        "attention": [{"min": 9, "max": 11}, {"min": 21, "max": 24}],
+        "urgent": [{"lte": 8}, {"gte": 25}]
       },
       "what_to_do": {
         "normal": {
@@ -583,9 +585,9 @@
           ]
         }
       },
-      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
-      "version": "0.1.0",
-      "last_reviewed": "2026-11-14"
+      "source": "NEWS2 respiration rate bands (Royal College of Physicians, 2017). Spaceflight: Prisk et al. 1995. Cabin CO2: NASA-STD-3001 Vol. 2 [V2 6004], 3 mmHg 1-hour average (OCHMO-TB-004). Details and full references: shared/REFERENCES.md.",
+      "version": "0.2.0",
+      "last_reviewed": "2026-11-15"
     },
 
     "radiation": {
@@ -600,8 +602,8 @@
         "es": "La tasa de dosis de radiación que mide tu dosímetro personal, en microsieverts por hora (µSv/h)."
       },
       "why_it_matters_in_space": {
-        "en": "Outside Earth's magnetic field and atmosphere, crews receive more radiation, and solar particle events can raise it quickly. The dose adds up over the whole mission.",
-        "es": "Fuera del campo magnético y la atmósfera de la Tierra, la tripulación recibe más radiación, y los eventos de partículas solares pueden subirla rápido. La dosis se acumula durante toda la misión."
+        "en": "Typical background dose rates: about 0.3 µSv/h on Earth, 8–21 µSv/h on the ISS, 28 µSv/h on the surface of Mars, 57 µSv/h on the Moon and about 75 µSv/h in deep space. Solar particle events can multiply them within hours, and shielding or a storm shelter cuts that dose a lot. NASA limits a whole career to 600 mSv, so the dose adds up over every mission.",
+        "es": "Tasas de dosis de fondo típicas: unos 0.3 µSv/h en la Tierra, 8–21 µSv/h en la ISS, 28 µSv/h en la superficie de Marte, 57 µSv/h en la Luna y unos 75 µSv/h en el espacio profundo. Los eventos de partículas solares pueden multiplicarlas en horas, y el blindaje o un refugio contra tormentas reduce mucho esa dosis. La NASA limita toda la carrera a 600 mSv, así que la dosis se acumula en cada misión."
       },
       "how_to_measure": {
         "en": [
@@ -616,10 +618,10 @@
         ]
       },
       "ranges": {
-        "_warning": "EXAMPLE VALUES – must be validated by medical experts",
-        "normal": [{"min": 0, "max": 50}],
-        "attention": [{"gt": 50}],
-        "urgent": [{"gt": 100}]
+        "_warning": "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts",
+        "normal": [{"min": 0, "max": 100}],
+        "attention": [{"min": 101, "max": 999}],
+        "urgent": [{"gte": 1000}]
       },
       "what_to_do": {
         "normal": {
@@ -629,10 +631,12 @@
         "attention": {
           "en": [
             "Reduce the time you spend in less-shielded modules.",
+            "Check the habitat's radiation and space-weather alerts.",
             "Check your accumulated dose at the end of the shift."
           ],
           "es": [
             "Reduce el tiempo en módulos poco blindados.",
+            "Revisa las alertas de radiación y de clima espacial del hábitat.",
             "Revisa tu dosis acumulada al final del turno."
           ]
         },
@@ -649,9 +653,9 @@
           ]
         }
       },
-      "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
-      "version": "0.1.0",
-      "last_reviewed": "2026-11-14"
+      "source": "Limits: NASA-STD-3001 Vol. 1 [V1 4030] career below 600 mSv and [V1 4031] below 250 mSv per solar particle event (OCHMO-TB-020). Backgrounds: Chang'e-4 LND (Zhang et al. 2020), MSL RAD (Hassler et al. 2014; Zeitlin et al. 2013), NASA (ISS). The 100 and 1000 µSv/h alert levels are a Moon-C design choice until the habitat's own radiation flight rules apply. Details and full references: shared/REFERENCES.md.",
+      "version": "0.2.0",
+      "last_reviewed": "2026-11-15"
     }
   },
 

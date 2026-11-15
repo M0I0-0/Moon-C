@@ -1,14 +1,15 @@
 """Compares a measurement with the ranges in the health manual.
 
-EXAMPLE VALUES – must be validated by medical experts. The ranges live in
-shared/protocols.json; this module only applies them. The same rule is used
-for every indicator:
+The ranges live in shared/protocols.json (reference values from published
+guidelines and NASA standards, see shared/REFERENCES.md – must be validated by
+medical experts); this module only applies them. The same rule is used for
+every indicator:
 
 1. ``urgent``    if the value falls in any urgent band;
 2. ``normal``    if it falls in any normal band;
 3. ``attention`` otherwise. This covers the explicit attention bands and any
-   gap the example ranges leave open (for example 35.5–36.0 °C or 4–4.9 h of
-   sleep), so a value is never silently treated as normal.
+   gap between bands (for example 38.05 °C or 100.5 bpm), so a value is never
+   silently treated as normal.
 
 Moon-C does not diagnose: a status only says how a value compares with the
 manual and which manual steps apply.
@@ -84,14 +85,14 @@ def evaluate(manual: Manual, indicator: str, value: float, unit: str) -> Evaluat
 
 _MESSAGES = {
     "en": {
-        "normal": "{name} {value}: within the normal range (example values).",
-        "attention": "{name} {value}: needs attention. The normal example range is {normal}.",
+        "normal": "{name} {value}: within the normal range (reference values).",
+        "attention": "{name} {value}: needs attention. The normal reference range is {normal}.",
         "urgent": "{name} {value}: urgent range. An on-board alert was created for the medical officer.",
         "confirm": "Who is this reading for? Please confirm the crew member.",
     },
     "es": {
-        "normal": "{name} {value}: dentro del rango normal (valores de ejemplo).",
-        "attention": "{name} {value}: requiere atención. El rango normal de ejemplo es {normal}.",
+        "normal": "{name} {value}: dentro del rango normal (valores de referencia).",
+        "attention": "{name} {value}: requiere atención. El rango normal de referencia es {normal}.",
         "urgent": "{name} {value}: rango urgente. Se creó una alerta a bordo para el oficial médico.",
         "confirm": "¿De quién es esta lectura? Confirma el tripulante.",
     },

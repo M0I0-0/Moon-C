@@ -9,7 +9,8 @@
   it can fire again only after the value has settled outside the urgent range.
 * Sleep and mood are daily self-reports: their simulated history covers the last 14 days.
 
-EXAMPLE VALUES – must be validated by medical experts.
+Statuses come from the manual's reference ranges (shared/protocols.json, sources in
+shared/REFERENCES.md) – must be validated by medical experts.
 """
 
 from __future__ import annotations
@@ -56,7 +57,7 @@ SIGNALS = {
     "spo2": (0.6, 70, 100, 0),
     "respiratory_rate": (0.8, 5, 45, 0),
     "body_temperature": (0.06, 34, 42, 1),
-    "radiation": (2.5, 5, 400, 0),
+    "radiation": (2.5, 5, 5000, 0),
     "sleep_hours": (0.9, 3, 10, 1),
     "mood": (0.8, 1, 5, 0),
 }
@@ -85,7 +86,7 @@ SCENARIOS = {
     ),
     "high_temperature": (
         {"en": "High temperature", "es": "Temperatura alta"},
-        {"body_temperature": 38.7, "heart_rate": 104, "respiratory_rate": 22},
+        {"body_temperature": 39.6, "heart_rate": 104, "respiratory_rate": 22},
     ),
     "high_blood_pressure": (
         {"en": "Very high blood pressure", "es": "Presión arterial muy alta"},
@@ -93,7 +94,7 @@ SCENARIOS = {
     ),
     "solar_storm": (
         {"en": "Solar storm (radiation)", "es": "Tormenta solar (radiación)"},
-        {"radiation": 180},
+        {"radiation": 1500},
     ),
 }
 
@@ -160,7 +161,7 @@ class SimulatedBracelets:
         return round(value, decimals) if decimals else float(round(value))
 
     def _diastolic(self, systolic: float) -> float:
-        return float(round(systolic * 0.63 + self._rng.uniform(-1.5, 1.5)))
+        return float(round(systolic * 0.6 + self._rng.uniform(-1.5, 1.5)))
 
     def _signal(self, indicator: str, history: list[float]) -> _Signal:
         status = self._status(indicator, history[-1])

@@ -88,10 +88,10 @@ class RangeBands(BaseModel):
 
 
 class RangeView(BaseModel):
-    normal: str = Field(examples=["60–100 bpm"])
-    attention: str = Field(examples=["50–59 or 101–120 bpm"])
-    urgent: str = Field(examples=["< 50 or > 120 bpm"])
-    warning: str = Field(description="EXAMPLE VALUES – must be validated by medical experts")
+    normal: str = Field(examples=["50–100 bpm"])
+    attention: str = Field(examples=["41–49 or 101–130 bpm"])
+    urgent: str = Field(examples=["≤ 40 or ≥ 131 bpm"])
+    warning: str = Field(description="Reference values from published guidelines – must be validated by medical experts")
     bands: RangeBands
 
 

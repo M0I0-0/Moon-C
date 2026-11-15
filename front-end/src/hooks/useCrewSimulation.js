@@ -14,9 +14,9 @@ const BASELINE = {
 export const EMERGENCY_TYPES = {
   low_oxygen: { label: 'Baja saturación de oxígeno', target: { spo2: 86, heart_rate: 118, respiratory_rate: 32 } },
   high_heart_rate: { label: 'Frecuencia cardiaca muy alta', target: { heart_rate: 138, blood_pressure: 150 } },
-  high_temperature: { label: 'Temperatura alta', target: { body_temperature: 38.7, heart_rate: 104, respiratory_rate: 22 } },
+  high_temperature: { label: 'Temperatura alta', target: { body_temperature: 39.6, heart_rate: 104, respiratory_rate: 22 } },
   high_blood_pressure: { label: 'Presión arterial muy alta', target: { blood_pressure: 188, heart_rate: 96 } },
-  solar_storm: { label: 'Tormenta solar (radiación)', target: { radiation: 180 } },
+  solar_storm: { label: 'Tormenta solar (radiación)', target: { radiation: 1500 } },
 }
 
 // Ruido por lectura, límites físicos y decimales de cada indicador en vivo.
@@ -26,7 +26,7 @@ const SIM = {
   spo2: { noise: 0.6, min: 70, max: 100, dp: 0 },
   respiratory_rate: { noise: 0.8, min: 5, max: 45, dp: 0 },
   body_temperature: { noise: 0.06, min: 34, max: 42, dp: 1 },
-  radiation: { noise: 2.5, min: 5, max: 400, dp: 0 },
+  radiation: { noise: 2.5, min: 5, max: 5000, dp: 0 },
 }
 const DAILY = { sleep_hours: { noise: 0.9, min: 3, max: 10, dp: 1 }, mood: { noise: 0.8, min: 1, max: 5, dp: 0 } }
 const HISTORY = 40
@@ -41,7 +41,7 @@ function jitter(cfg, current, target, pull) {
 }
 
 const step = (indicator, current, target) => jitter(SIM[indicator], current, target, 0.22)
-const diastolic = (sys) => Math.round(sys * 0.63 + (Math.random() - 0.5) * 3)
+const diastolic = (sys) => Math.round(sys * 0.6 + (Math.random() - 0.5) * 3)
 
 function initialState() {
   const members = {}

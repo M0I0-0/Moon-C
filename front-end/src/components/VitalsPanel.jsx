@@ -28,7 +28,7 @@ export default function VitalsPanel({ member, title = 'Mis signos', subtitle, on
           </li>
         ))}
       </ul>
-      <p className="fineprint">Toca un dato para ver su detalle. Rangos de ejemplo.</p>
+      <p className="fineprint">Toca un dato para ver su detalle. Rangos de referencia (guías clínicas y NASA).</p>
     </div>
   )
 }

@@ -23,7 +23,7 @@ TEXTS = {
     "en": {
         "emergency_intro": "This may be an emergency. Call a crewmate and the on-board medical officer now.",
         "indicator": (
-            "{name}: {explanation} Normal range (example values): {normal}. How to measure: {steps} "
+            "{name}: {explanation} Normal range (reference values): {normal}. How to measure: {steps} "
             "If you log a reading, I will compare it with the manual."
         ),
         "health_generic": (
@@ -39,7 +39,7 @@ TEXTS = {
     "es": {
         "emergency_intro": "Esto puede ser una emergencia. Llama ahora a un compañero y al oficial médico a bordo.",
         "indicator": (
-            "{name}: {explanation} Rango normal (valores de ejemplo): {normal}. Cómo medir: {steps} "
+            "{name}: {explanation} Rango normal (valores de referencia): {normal}. Cómo medir: {steps} "
             "Si registras una lectura, la comparo con el manual."
         ),
         "health_generic": (

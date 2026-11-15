@@ -43,7 +43,7 @@ La URL se cambia con `VITE_API_URL` en `.env.local` (ver `.env.example`).
   idioma o la voz está apagada.
 - **Idioma**: chat y voz en el idioma de cada tripulante (`preferredLanguage` de `shared/crew.json`).
 
-Todos los datos de signos vitales son simulados y los rangos son de ejemplo, pendientes de validación médica.
+Todos los datos de signos vitales son simulados. Los rangos vienen de guías clínicas (NEWS2, AHA/ACC, OMS, AASM/SRS) y estándares de la NASA, ajustados al espacio (fuentes en `../shared/REFERENCES.md`), y siguen pendientes de validación médica.
 
 ## Estructura
 

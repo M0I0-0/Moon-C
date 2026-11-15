@@ -21,7 +21,7 @@ def test_manual_endpoint(client):
     ]
     assert {i["indicator"]: i["urgent_protocol"] for i in en["indicators"]}["spo2"] == "breathing_difficulty"
     assert {p["name"] for p in en["protocols"]} >= {"chest_pain", "breathing_difficulty", "fainting_unresponsive", "bleeding"}
-    assert en["ranges_warning"] == "EXAMPLE VALUES – must be validated by medical experts"
+    assert en["ranges_warning"] == "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts"
 
 
 def test_indicator_endpoint(client):
@@ -29,7 +29,8 @@ def test_indicator_endpoint(client):
     assert res.status_code == 200
     data = res.json()
     assert data["name"] == "Temperatura corporal"
-    assert data["ranges"]["urgent"] == "≥ 38 o < 35.5 °C"
+    assert data["ranges"]["urgent"] == "≤ 35 o ≥ 39.1 °C"
+    assert "shared/REFERENCES.md" in data["source"]
     assert data["what_to_do"]["urgent"]
     assert client.get("/manual/blood_sugar").status_code == 404
     assert client.get("/manual/spo2", params={"language": "fr"}).status_code == 422

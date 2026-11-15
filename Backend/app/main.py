@@ -91,7 +91,8 @@ medical officer, 3) send data to Earth in the background when a link is availabl
 
 * Runs fully offline. The local AI model (Ollama) is used for small talk only.
 * Health and emergency answers come only from the manual (`shared/protocols.json`).
-* Ranges are **EXAMPLE VALUES – must be validated by medical experts**.
+* Ranges are **reference values from published guidelines and NASA standards
+  (`shared/REFERENCES.md`) – must be validated by medical experts**.
 * Only measurements are stored. Chat messages are never persisted or logged.
 """
 
@@ -100,7 +101,7 @@ TAGS = [
     {"name": "chat", "description": "Conversation with Moon-C (keyword router + manual; AI for small talk only)."},
     {"name": "crew", "description": "Simulated bracelet identification."},
     {"name": "manual", "description": "Health manual: indicators, ranges and protocols."},
-    {"name": "measurements", "description": "Readings, compared with the manual's example ranges."},
+    {"name": "measurements", "description": "Readings, compared with the manual's reference ranges."},
     {"name": "alerts", "description": "On-board alerts: urgent readings, emergencies reported in the chat, maneuvers."},
     {"name": "vitals", "description": "Live vital signs from the simulated bracelets."},
     {"name": "simulation", "description": "Demo controls: simulated emergencies."},

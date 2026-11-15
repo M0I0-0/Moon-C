@@ -75,8 +75,11 @@ describe('manual compartido', () => {
     expect(indicatorName('blood_pressure')).toBe('Presión arterial (sistólica)')
     expect(classify('blood_pressure', 188)).toBe('urgent')
     expect(classify('blood_pressure', 118)).toBe('normal')
-    expect(classify('radiation', 75)).toBe('attention')
+    expect(classify('radiation', 75)).toBe('normal') // fondo del espacio profundo
+    expect(classify('radiation', 250)).toBe('attention')
+    expect(classify('radiation', 1500)).toBe('urgent')
     expect(classify('respiratory_rate', 31)).toBe('urgent')
+    expect(classify('body_temperature', 37.8)).toBe('normal') // la temperatura sube ~1 °C en misiones largas
   })
 
   it('el protocolo de cada signo urgente sale del manual', () => {
@@ -97,5 +100,13 @@ describe('escenarios de simulación', () => {
       'high_blood_pressure',
       'solar_storm',
     ])
+  })
+
+  it('cada escenario lleva al menos un signo a rango urgente', async () => {
+    const { EMERGENCY_TYPES } = await import('../hooks/useCrewSimulation')
+    for (const [id, { target }] of Object.entries(EMERGENCY_TYPES)) {
+      const statuses = Object.entries(target).map(([indicator, value]) => classify(indicator, value))
+      expect(statuses, id).toContain('urgent')
+    }
   })
 })

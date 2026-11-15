@@ -47,17 +47,17 @@ def test_assign_errors(client):
 
 
 def test_urgent_reading_creates_alert(client):
-    res = post(client, crew_id="moises", indicator="body_temperature", value=38.2, unit="°C")
+    res = post(client, crew_id="moises", indicator="body_temperature", value=39.4, unit="°C")
     assert res.status_code == 201
     data = res.json()
     assert data["status"] == "urgent"
     assert data["needs_confirmation"] is False
     assert data["language"] == "es"  # Moisés prefers Spanish
-    assert data["alert"]["message"] == "Alerta: Moisés, temperatura corporal 38.2 °C"
+    assert data["alert"]["message"] == "Alerta: Moisés, temperatura corporal 39.4 °C"
     assert data["guidance"] and "oficial médico" in " ".join(data["guidance"])
 
     alerts = client.get("/alerts").json()
-    assert [a["message"] for a in alerts] == ["Alert: Moisés, body temperature 38.2 °C"]
+    assert [a["message"] for a in alerts] == ["Alert: Moisés, body temperature 39.4 °C"]
     assert alerts[0]["measurement_id"] == data["id"]
 
 

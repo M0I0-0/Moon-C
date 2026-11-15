@@ -9,7 +9,7 @@ import pytest
 from app.alerts import AlertBoard
 from app.bracelets import DAILY, LIVE, SimulatedBracelets, UnknownCrew, UnknownScenario
 from app.crew import CrewRegistry
-from app.evaluator import evaluate
+from app.evaluator import classify, evaluate
 from app.storage import MeasurementStore
 
 
@@ -221,3 +221,25 @@ def test_scenario_ids_match_the_front_end():
     from app.bracelets import SCENARIOS
 
     assert list(SCENARIOS) == ["low_oxygen", "high_heart_rate", "high_temperature", "high_blood_pressure", "solar_storm"]
+
+
+def test_every_scenario_reaches_the_urgent_range(manual):
+    """A demo emergency must drive at least one sign into the manual's urgent range."""
+    from app.bracelets import SCENARIOS
+
+    for scenario, (_, targets) in SCENARIOS.items():
+        statuses = {classify(manual.spec(indicator).bands, value) for indicator, value in targets.items()}
+        assert "urgent" in statuses, scenario
+
+
+def test_crew_baselines_sit_in_the_normal_range(manual):
+    """Quiet crew members start inside the reference ranges (Moisés's short sleep is the deliberate exception)."""
+    from app.bracelets import BASELINES
+
+    for crew_id, baseline in BASELINES.items():
+        for indicator, value in baseline.items():
+            status = classify(manual.spec(indicator).bands, value)
+            expected = "attention" if (crew_id, indicator) == ("moises", "sleep_hours") else "normal"
+            assert status == expected, (crew_id, indicator, value)
+        diastolic = round(baseline["blood_pressure_systolic"] * 0.6)
+        assert classify(manual.spec("blood_pressure_diastolic").bands, diastolic) == "normal", crew_id

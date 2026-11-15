@@ -12,7 +12,7 @@ from app.manual import Manual, ManualError
 from app.schemas import INDICATORS
 
 EMERGENCIES = ("chest_pain", "breathing_difficulty", "fainting_unresponsive", "bleeding")
-WARNING = "EXAMPLE VALUES – must be validated by medical experts"
+WARNING = "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts"
 
 # Words that would turn guidance into a diagnosis. The manual must never use them.
 DIAGNOSTIC_TERMS = [
@@ -57,20 +57,27 @@ def test_indicator_views_are_localized(manual, indicator):
 
 def test_range_texts(manual):
     view = manual.indicator_view("heart_rate", "en")
-    assert view.ranges.normal == "60–100 bpm"
-    assert view.ranges.attention == "50–59 or 101–120 bpm"
-    assert view.ranges.urgent == "< 50 or > 120 bpm"
+    assert view.ranges.normal == "50–100 bpm"
+    assert view.ranges.attention == "41–49 or 101–130 bpm"
+    assert view.ranges.urgent == "≤ 40 or ≥ 131 bpm"
     temp = manual.indicator_view("body_temperature", "es")
-    assert temp.ranges.urgent == "≥ 38 o < 35.5 °C"
+    assert temp.ranges.normal == "36.1–38 °C"
+    assert temp.ranges.urgent == "≤ 35 o ≥ 39.1 °C"
+    assert manual.indicator_view("blood_pressure_diastolic", "en").ranges.attention == "< 60 or 80–120 mmHg"
+    assert manual.indicator_view("radiation", "en").ranges.urgent == "≥ 1000 µSv/h"
     assert manual.indicator_view("mood", "en").ranges.normal == "3–5"
 
 
-def test_example_values_are_marked(shared_dir):
+def test_reference_values_are_marked_and_sourced(shared_dir):
     raw = (shared_dir / "protocols.json").read_text(encoding="utf-8")
     data = json.loads(raw)
     assert data["_warning"] == WARNING
+    assert data["manual"]["ranges_warning"] == WARNING
     for key in INDICATORS:
-        assert data["indicators"][key]["ranges"]["_warning"] == WARNING
+        indicator = data["indicators"][key]
+        assert indicator["ranges"]["_warning"] == WARNING
+        assert "shared/REFERENCES.md" in indicator["source"], key
+    assert (shared_dir / "REFERENCES.md").is_file()
 
 
 @pytest.mark.parametrize("name", EMERGENCIES)

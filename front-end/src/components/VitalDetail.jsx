@@ -107,7 +107,7 @@ export default function VitalDetail({ crew, member, indicator, onClose, onNav })
 
         <p className="fineprint">
           {fromManual(indicator)
-            ? 'Rango del manual de Moon-C (shared/protocols.json). Valores de ejemplo, pendientes de validación médica.'
+            ? 'Rango del manual de Moon-C (shared/protocols.json), tomado de guías clínicas y estándares de la NASA (shared/REFERENCES.md). Pendiente de validación médica.'
             : 'Dato simulado solo en el front-end; todavía no está en el manual del backend.'}
           {indicator === 'blood_pressure' && ' El estado se calcula con la sistólica.'}
         </p>

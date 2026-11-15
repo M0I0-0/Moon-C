@@ -10,7 +10,7 @@ Priorities:
 
 Moon-C is a FastAPI service that runs fully offline on a local machine. Health and emergency answers come only from the health manual (`shared/protocols.json`). The local AI model (Ollama) is used for small talk only, and Moon-C works without it.
 
-> ⚠️ All ranges are **EXAMPLE VALUES – must be validated by medical experts.**
+> ⚠️ The ranges are **reference values from published clinical guidelines and NASA standards – they must still be validated by medical experts.** Sources, deviations and space context: [shared/REFERENCES.md](../shared/REFERENCES.md).
 
 ## Repository layout
 
@@ -211,7 +211,7 @@ Without it, `/status` reports `voice: "unavailable"` and the front-end uses a vo
 
 ## Limitations
 
-- **Example values only.** The ranges and protocol steps are illustrative and must be validated by medical experts before any real use.
+- **Not medically validated.** The ranges come from published guidelines (NEWS2, AHA/ACC, WHO, AASM/SRS) and NASA standards, but they are for healthy adults at rest, they are not personal baselines, and some thresholds (mood, radiation alerts) are Moon-C design choices. The protocol steps are illustrative. All of it must be validated by medical experts before any real use; see [shared/REFERENCES.md](../shared/REFERENCES.md).
 - **Keyword routing, not understanding.** The router can't read negation: "I don't have chest pain" still opens the emergency protocol, which is the safe side by design. It doesn't handle typos and supports English and Spanish only.
 - **The post-filter is keyword-based.** It can discard a harmless AI reply. In that case the user gets the manual-based answer instead.
 - **Alerts, chat context and live signs live in memory.** They are lost on restart; measurements and safety records are not. Run a single process (no multiple Uvicorn workers).

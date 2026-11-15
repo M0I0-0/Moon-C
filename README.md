@@ -4,7 +4,7 @@
 
 Priorities: 1) support and guide the crew member, 2) alert the crew and the on-board medical officer, 3) send data to Earth in the background when a link is available, never blocking anything.
 
-Everything runs offline on one machine. Ranges and protocols are **EXAMPLE VALUES – must be validated by medical experts.**
+Everything runs offline on one machine. The ranges come from published clinical guidelines (NEWS2, AHA/ACC, WHO, AASM/SRS) and NASA standards, adjusted for spaceflight; sources and space context are in [shared/REFERENCES.md](shared/REFERENCES.md). They **must still be validated by medical experts**, and the protocol steps are illustrative.
 
 ## Repository
 
@@ -14,7 +14,7 @@ Everything runs offline on one machine. Ranges and protocols are **EXAMPLE VALUE
 | `front-end/` | React + Vite + react-three-fiber app with the 3D Moon-C assistant | [front-end/README.md](front-end/README.md) |
 | `Model3D/` | Moon-C character (rigged GLB, face shader) and the guided maneuvers | — |
 | `moonc_voz/` | Moon-C's own offline voice: Piper `es_MX-claude-high` + Praat. The model is stored with Git LFS | [moonc_voz/LEEME.md](moonc_voz/LEEME.md) |
-| `shared/` | Single source of truth read by backend and front-end: `protocols.json` (manual), `keywords.json`, `crew.json`, `router_cases.json` (test cases both sides must agree on) | — |
+| `shared/` | Single source of truth read by backend and front-end: `protocols.json` (manual), `keywords.json`, `crew.json`, `router_cases.json` (test cases both sides must agree on) | [shared/REFERENCES.md](shared/REFERENCES.md) (where every range comes from) |
 
 ## Run everything
 

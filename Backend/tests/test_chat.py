@@ -56,7 +56,7 @@ def test_health_never_calls_ai(live, ollama, message):
 def test_indicator_answer_comes_from_manual(live):
     data = chat(live, "What is a normal pulse?")
     assert data["indicator"] == "heart_rate"
-    assert "60–100 bpm" in data["reply"] and "example values" in data["reply"]
+    assert "50–100 bpm" in data["reply"] and "reference values" in data["reply"]
     es = chat(live, "¿Cuál es mi pulso?", language="es")
     assert es["reply"].startswith("Frecuencia cardiaca:")
 

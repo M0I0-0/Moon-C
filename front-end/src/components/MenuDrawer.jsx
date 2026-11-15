@@ -175,7 +175,7 @@ export default function MenuDrawer({
           </section>
         )}
 
-        <p className="drawer-foot">Datos simulados · rangos de ejemplo pendientes de validación médica.</p>
+        <p className="drawer-foot">Datos simulados · rangos de guías clínicas y de la NASA, pendientes de validación médica.</p>
       </aside>
     </>
   )
