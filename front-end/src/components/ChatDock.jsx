@@ -86,7 +86,11 @@ export default function ChatDock({ log, suggestions, busy, onSend, onManeuver, m
           disabled={!mic.supported}
           aria-pressed={mic.listening}
           aria-label={mic.listening ? 'Detener micrófono' : 'Hablar'}
-          title={mic.supported ? 'Hablar' : 'Este navegador no permite dictado. Usa Chrome o Edge, o escribe.'}
+          title={
+            mic.supported
+              ? 'Hablar (el dictado del navegador usa internet y envía el audio a ese servicio)'
+              : 'Este navegador no permite dictado. Usa Chrome o Edge, o escribe.'
+          }
         >
           <MicIcon />
         </button>

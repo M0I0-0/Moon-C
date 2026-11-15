@@ -135,10 +135,14 @@ The full contract, with schemas and examples, is at `/docs`. Responses use the l
 | GET | `/vitals`, `/vitals/{crew_id}` | Live vital signs from the simulated bracelets: value, status and recent history of each indicator |
 | GET | `/simulation/scenarios` | Simulated emergencies available for demos |
 | POST | `/simulation/emergency`, `/simulation/reset` | Start a simulated emergency (`{crew_id, scenario}`) or end it |
-| POST | `/sync/simulate` | Simulated contact with Earth: marks pending measurements as synced |
-| GET | `/sync/status` | Pending count, readings awaiting assignment, last sync time |
+| POST | `/maneuvers/start` | A guided maneuver (CPR, tourniquet, choking) was opened: raises a `maneuver` alert |
+| POST, GET | `/maneuvers/reports` | Store the guide's summary for Earth (queued for sync) and list the reports |
+| GET, POST | `/announcements` | Messages from the General account to the crew |
+| POST, GET | `/access-log` | Record and list who opened a crew member's data during an emergency |
+| POST | `/sync/simulate` | Simulated contact with Earth: marks pending measurements and maneuver reports as synced |
+| GET | `/sync/status` | Pending measurements and reports, readings awaiting assignment, last sync time |
 | GET | `/export.json`, `/export.csv` | Download measurements (optional `crew_id`) |
-| DELETE | `/data?confirm=true` | Privacy wipe: deletes all measurements and clears alerts and chat contexts |
+| DELETE | `/data?confirm=true` | Privacy wipe: deletes measurements, maneuver reports and the access log, and clears alerts and chat contexts. Announcements are kept |
 
 Indicators and units: `heart_rate` (bpm), `body_temperature` (°C), `spo2` (%), `sleep_hours` (h), `mood` (/5, whole numbers 1–5). Common unit spellings are accepted (`C`, `celsius`, `hours`, `1-5`…). Other units, such as °F, are rejected with 422 instead of being converted.
 
@@ -177,8 +181,10 @@ To change keywords, edit `shared/keywords.json` and restart the backend. To chan
 
 ## Privacy
 
-- **Only measurements are stored**, in `Backend/storage/measurements.json` (gitignored). Each record has id, crew_id (null = unassigned), indicator, value, unit, status, timestamp and synced. Writes are atomic (temp file, then rename) and guarded by a lock.
-- **Chat messages, transcripts and audio are never stored**, and message content is never logged.
+- **Measurements** are stored in `Backend/storage/measurements.json` (gitignored). Each record has id, crew_id (null = unassigned), indicator, value, unit, status, timestamp and synced. The simulated bracelets store a reading only when a status changes and in a periodic snapshot, never every second.
+- **Safety records** are stored next to them: `maneuver_reports.json` (the guide's summary: times, counts and step names), `access_log.json` (who opened whose data and when) and `announcements.json`. None of them contains chat text.
+- All writes are atomic (temp file, then rename) and guarded by a lock. `MOON_C_RETENTION_DAYS` applies to every file.
+- **Chat messages, transcripts and audio are never stored**, and message content is never logged. An alert raised from the chat keeps only the protocol name.
 - Chat context lives only in memory, keyed by `session_id`. It keeps at most 10 turns and is cleared after 10 minutes of inactivity, on a crew switch, on `/identify` and on `POST /session/reset`.
 - No biometric data of any kind. Crew profiles hold only an id, a name, a bracelet id, a language and a role.
 - ⚠️ **This repository is inside a OneDrive folder.** OneDrive uploads `Backend/storage/measurements.json` to the cloud like any other file there. For real use, set `MOON_C_STORAGE_PATH` to a folder that is not synced.
@@ -192,7 +198,8 @@ Speech-to-text and text-to-speech are handled by the frontend for now. Replies a
 - **Example values only.** The ranges and protocol steps are illustrative and must be validated by medical experts before any real use.
 - **Keyword routing, not understanding.** The router can't read negation: "I don't have chest pain" still opens the emergency protocol, which is the safe side by design. It doesn't handle typos and supports English and Spanish only.
 - **The post-filter is keyword-based.** It can discard a harmless AI reply. In that case the user gets the manual-based answer instead.
-- **Alerts and chat context live in memory.** They are lost on restart, and measurements are not. Run a single process (no multiple Uvicorn workers).
+- **Alerts, chat context and live signs live in memory.** They are lost on restart; measurements and safety records are not. Run a single process (no multiple Uvicorn workers).
+- **Simulated bracelets.** Live signs come from a simulation (`MOON_C_SIMULATION`) until real sensors exist; its readings are stored like real ones.
 - **Earth sync is simulated.** Nothing is transmitted or encrypted. Only confirmed (assigned) readings are queued.
 - **No authentication.** The backend assumes a trusted on-board network. CORS is limited to localhost by default.
 - **The bracelet is simulated** through `POST /identify` and `shared/crew.json`.

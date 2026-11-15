@@ -109,8 +109,8 @@ export default function MenuDrawer({
                   : audio.hasSpeakers === false
                     ? 'No se detectaron bocinas.'
                     : !audio.hasVoices
-                      ? 'No hay voces instaladas.'
-                      : 'Usa la voz del sistema.'}
+                      ? 'No hay una voz instalada en el equipo para este idioma.'
+                      : 'Usa una voz instalada en el equipo (sin internet).'}
               </small>
             </span>
             <input type="checkbox" checked={voiceOn} onChange={(e) => setVoiceOn(e.target.checked)} />
@@ -133,6 +133,10 @@ export default function MenuDrawer({
             ))}
           </div>
           <p className="fineprint">Automático: aparecen cuando no hay bocinas o la voz está apagada.</p>
+          <p className="fineprint">
+            <strong>Micrófono:</strong> el dictado de Chrome y Edge usa un servicio en internet (Google o Microsoft), así
+            que el audio sale del equipo y sin conexión no funciona. Escribir siempre funciona sin internet.
+          </p>
         </section>
 
         <section className="drawer-section">

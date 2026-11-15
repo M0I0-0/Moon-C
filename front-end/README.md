@@ -8,10 +8,17 @@ Interfaz web (React + Vite + react-three-fiber) para el asistente de salud Moon-
 cd front-end
 npm install
 npm run dev        # http://localhost:5173
+npm test           # pruebas (Vitest)
+npm run lint
 ```
 
-Si el backend (`Backend/`) está corriendo en `http://localhost:8000`, el chat usa `POST /chat`.
-Si no, responde un simulador local que usa el mismo manual (`shared/protocols.json` y `shared/keywords.json`).
+Con el backend (`Backend/`) corriendo en `http://localhost:8000`, todo pasa por él: chat (`/chat`),
+signos en vivo de las pulseras simuladas (`/vitals`), alertas (`/alerts`), maniobras y su resumen para
+Tierra (`/maneuvers/*`), anuncios, registro de accesos, lecturas a mano (`/measurements`) y enlace con la
+Tierra (`/sync/*`). Así todas las pantallas ven lo mismo.
+
+Sin backend, la app sigue funcionando: el chat solo atiende emergencias (con las mismas palabras clave y
+el mismo manual que el backend, `shared/`) y los signos se simulan en el navegador.
 La URL se cambia con `VITE_API_URL` en `.env.local` (ver `.env.example`).
 
 ## Qué incluye
@@ -26,9 +33,11 @@ La URL se cambia con `VITE_API_URL` en `.env.local` (ver `.env.example`).
 - **Cuenta General**: publica anuncios y ve el estado de la tripulación. Los signos de cada
   tripulante están bloqueados y solo se abren cuando hay una alerta activa (el acceso queda registrado).
 - **Cuenta individual**: signos vitales simulados en vivo, qué hacer según el manual y chat propio.
-- **Entrada** por texto o micrófono (Web Speech API; funciona en Chrome y Edge).
-- **Salida** por voz (`speechSynthesis`) y subtítulos. En modo automático los subtítulos aparecen
-  si no hay bocinas, no hay voces instaladas o la voz está apagada.
+- **Entrada** por texto o micrófono (Web Speech API; funciona en Chrome y Edge). Ojo: el dictado del
+  navegador usa un servicio en internet y envía el audio a ese servicio; escribir funciona sin conexión.
+- **Salida** por voz (`speechSynthesis`, solo voces instaladas en el equipo) y subtítulos. En modo
+  automático los subtítulos aparecen si no hay bocinas, no hay voz local para el idioma o la voz está apagada.
+- **Idioma**: chat y voz en el idioma de cada tripulante (`preferredLanguage` de `shared/crew.json`).
 
 Todos los datos de signos vitales son simulados y los rangos son de ejemplo, pendientes de validación médica.
 
@@ -38,7 +47,10 @@ Todos los datos de signos vitales son simulados y los rangos son de ejemplo, pen
 src/
   App.jsx               composición y estado principal
   components/           escena 3D, paneles, chat, menú
-  hooks/                simulación de tripulación, voz, estado del backend
-  lib/assistant.js      cliente de /chat + simulador local
+  hooks/                signos y alertas del backend (useRemoteCrew) o locales (useCrewSimulation),
+                        anuncios, enlace con la Tierra, voz, estado del backend
+  lib/api.js            cliente del backend (todas las llamadas pasan por aquí)
+  lib/assistant.js      chat: backend o, sin enlace, solo emergencias
+  lib/vitals.js         convierte /vitals y /alerts a la forma de los componentes
   data/                 manual (lee ../shared), ambientes, anuncios de ejemplo
 ```

@@ -4,12 +4,17 @@ const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined
 const Recognition =
   typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : undefined
 
-function pickVoice(voices, lang) {
+/**
+ * Solo voces instaladas en el equipo (localService). Las voces de red (por ejemplo "Google español")
+ * mandan el texto a un servidor externo y no funcionan sin internet. Sin voz local: null (subtítulos).
+ */
+export function pickVoice(voices, lang) {
+  const local = voices.filter((v) => v.localService)
   const base = lang.slice(0, 2)
   return (
-    voices.find((v) => v.lang === lang) ||
-    voices.find((v) => v.lang?.startsWith(`${base}-`) && v.localService) ||
-    voices.find((v) => v.lang?.startsWith(base)) ||
+    local.find((v) => v.lang === lang) ||
+    local.find((v) => v.lang?.startsWith(`${base}-`)) ||
+    local.find((v) => v.lang?.startsWith(base)) ||
     null
   )
 }
@@ -58,11 +63,16 @@ export function useSpeechOutput(lang) {
         onEnd?.()
         return
       }
+      const voice = pickVoice(voices, lang)
+      if (!voice) {
+        // Sin voz local para este idioma no se habla (el navegador elegiría una voz de red).
+        onEnd?.()
+        return
+      }
       synth.cancel()
       const u = new SpeechSynthesisUtterance(text)
-      const voice = pickVoice(voices, lang)
-      if (voice) u.voice = voice
-      u.lang = voice?.lang ?? lang
+      u.voice = voice
+      u.lang = voice.lang
       u.rate = 1.02
       u.onstart = () => setSpeaking(true)
       u.onend = u.onerror = () => {
@@ -81,7 +91,8 @@ export function useSpeechOutput(lang) {
 
   return {
     supported: Boolean(synth),
-    hasVoices: voices.length > 0,
+    // Hay voz local para el idioma actual; si no, la app muestra subtítulos.
+    hasVoices: Boolean(pickVoice(voices, lang)),
     hasSpeakers,
     speaking,
     speak,
