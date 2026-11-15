@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { MegaphoneIcon } from './Icons'
+import { useI18n } from '../i18n'
 
-const time = (iso) => new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
-
+// Los anuncios se muestran tal como se escribieron; solo cambia el texto de la interfaz.
 export default function Announcements({ items, canPost, onPost, limit }) {
+  const { t, time } = useI18n()
   const [text, setText] = useState('')
   const [important, setImportant] = useState(false)
   const [readAloud, setReadAloud] = useState(true)
@@ -20,35 +21,35 @@ export default function Announcements({ items, canPost, onPost, limit }) {
   return (
     <div className="announcements">
       <div className="panel-head">
-        <h2>Anuncios</h2>
-        <span className="panel-sub">{canPost ? 'Visibles para toda la tripulación' : 'De la cuenta General'}</span>
+        <h2>{t('announce.title')}</h2>
+        <span className="panel-sub">{t(canPost ? 'announce.canPost' : 'announce.fromGeneral')}</span>
       </div>
       {canPost && (
         <form className="announce-form" onSubmit={submit}>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Escribe un anuncio para la tripulación…"
+            placeholder={t('announce.placeholder')}
             rows={3}
             maxLength={280}
           />
           <div className="announce-opts">
             <label className="check">
               <input type="checkbox" checked={important} onChange={(e) => setImportant(e.target.checked)} />
-              Importante
+              {t('announce.important')}
             </label>
             <label className="check">
               <input type="checkbox" checked={readAloud} onChange={(e) => setReadAloud(e.target.checked)} />
-              Leer en voz alta
+              {t('announce.readAloud')}
             </label>
             <button className="btn btn-primary btn-sm" type="submit" disabled={!text.trim()}>
-              <MegaphoneIcon width={16} height={16} /> Publicar
+              <MegaphoneIcon width={16} height={16} /> {t('announce.post')}
             </button>
           </div>
         </form>
       )}
       <ul className="announce-list">
-        {shown.length === 0 && <li className="empty">Sin anuncios por ahora.</li>}
+        {shown.length === 0 && <li className="empty">{t('announce.empty')}</li>}
         {shown.map((a) => (
           <li key={a.id} className={a.priority === 'important' ? 'announce announce--important' : 'announce'}>
             <div className="announce-meta">

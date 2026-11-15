@@ -7,7 +7,8 @@ a private support profile its notes are added to the system prompt so the
 conversation is personal. If Ollama is down, slow or returns an
 error, Moon-C answers with a canned reply and ``ai_used`` is false. Every AI
 reply goes through a post-filter; if it mentions health or emergency keywords
-it is discarded and the message is answered from the manual instead.
+it is discarded and the message is answered from the manual instead. A reply
+in a language other than the one asked for is replaced by a canned reply.
 
 Nothing sent to or received from the model is logged or stored.
 """
@@ -28,8 +29,7 @@ from .sessions import Turn
 log = logging.getLogger("moon_c.ai")
 
 SYSTEM_PROMPT = (
-    "You are Moon-C, a warm companion on board a space mission. "
-    "Reply in the same language the crew member uses. "
+    "You are Moon-C, a warm companion on board a space mission. You are female. "
     "Keep every reply to 1–2 short sentences, warm and natural; never write lists. "
     "You may greet, encourage and chat, and you can listen when someone is having a hard time: "
     "acknowledge their feelings, never judge, and if things feel very heavy, encourage them to talk "
@@ -39,10 +39,13 @@ SYSTEM_PROMPT = (
     "Never diagnose and never use labels or names of conditions for how someone feels."
 )
 
-# Moon-C is female: in Spanish she speaks about herself in the feminine.
+# The reply language is decided before the AI is called (the crew member's language, or the
+# message's on the General account), so the model must never switch: the response's `language`
+# tells the front-end which voice reads it. Moon-C is female: in Spanish she speaks about
+# herself in the feminine.
 _LANGUAGE_LINE = {
-    "en": "Always reply in English.",
-    "es": "Responde siempre en español y usa el femenino al hablar de ti misma.",
+    "en": "Always reply in English, even if the crew member writes in another language.",
+    "es": "Responde siempre en español, aunque te escriban en otro idioma, y usa el femenino al hablar de ti misma.",
 }
 
 CANNED_REPLIES: dict[str, dict[str, list[str]]] = {

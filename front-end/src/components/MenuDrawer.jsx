@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { CREW } from '../data/manual'
+import { CREW, crewById, roleLabel } from '../data/manual'
 import { EMERGENCY_TYPES } from '../hooks/useCrewSimulation'
 import { CloseIcon } from './Icons'
 import { MANEUVER_LIST } from '../lib/maneuvers'
 import MeasurementEntry from './MeasurementEntry'
 import DataSection from './DataSection'
+import { LanguageSwitch } from './TopBar'
+import { useI18n } from '../i18n'
 
 export default function MenuDrawer({
   open,
@@ -21,12 +23,14 @@ export default function MenuDrawer({
   onReset,
   onManeuver,
   online,
-  language,
+  onLanguage,
   sync,
   onDataChanged,
 }) {
+  const { lang, t } = useI18n()
   const [simCrew, setSimCrew] = useState(CREW[3]?.crew_id ?? CREW[0].crew_id)
   const [simKind, setSimKind] = useState(Object.keys(EMERGENCY_TYPES)[0])
+  const account = crewById(accountId)
 
   useEffect(() => {
     if (!open) return
@@ -40,39 +44,49 @@ export default function MenuDrawer({
     onClose()
   }
 
+  const audioNote = !audio.supported
+    ? 'menu.noVoice'
+    : audio.hasSpeakers === false
+      ? 'menu.noSpeakers'
+      : !audio.hasVoices
+        ? 'menu.noLocalVoice'
+        : audio.moonVoice
+          ? 'menu.moonVoice'
+          : 'menu.localVoice'
+
   return (
     <>
       <div className={`drawer-overlay ${open ? 'visible' : ''}`} onClick={onClose} />
-      <aside className={`drawer ${open ? 'open' : ''}`} aria-hidden={!open} aria-label="Menú">
+      <aside className={`drawer ${open ? 'open' : ''}`} aria-hidden={!open} aria-label={t('menu.label')}>
         <div className="drawer-head">
           <span className="brand-name">Moon-C</span>
-          <button className="icon-btn" onClick={onClose} aria-label="Cerrar menú">
+          <button className="icon-btn" onClick={onClose} aria-label={t('menu.close')}>
             <CloseIcon />
           </button>
         </div>
 
         <section className="drawer-section">
-          <h3>Maniobras guiadas (3D)</h3>
-          {MANEUVER_LIST.map((m) => (
-            <button key={m.id} className="account" onClick={() => onManeuver(m.id)}>
+          <h3>{t('menu.maneuvers')}</h3>
+          {MANEUVER_LIST.map((id) => (
+            <button key={id} className="account" onClick={() => onManeuver(id)}>
               <span className="account-info">
-                <strong>{m.label}</strong>
-                <span>{m.hint}</span>
+                <strong>{t(`maneuver.${id}.label`)}</strong>
+                <span>{t(`maneuver.${id}.hint`)}</span>
               </span>
             </button>
           ))}
         </section>
 
         <section className="drawer-section">
-          <h3>Cuenta</h3>
+          <h3>{t('menu.account')}</h3>
           <button
             className={`account ${accountId === 'general' ? 'selected' : ''}`}
             onClick={() => pickAccount('general')}
           >
             <span className="avatar">GE</span>
             <span className="account-info">
-              <strong>General</strong>
-              <span>Anuncios y vista de toda la tripulación</span>
+              <strong>{t('account.general')}</strong>
+              <span>{t('menu.generalHint')}</span>
             </span>
           </button>
           {CREW.map((c) => (
@@ -84,43 +98,47 @@ export default function MenuDrawer({
               <span className="avatar">{c.initials}</span>
               <span className="account-info">
                 <strong>{c.name}</strong>
-                <span>
-                  {c.roleLabel} · pulsera {c.bracelet_id}
-                </span>
+                <span>{t('menu.crewLine', { role: roleLabel(c.role, lang), bracelet: c.bracelet_id })}</span>
               </span>
-              {inEmergency(c.crew_id) && <span className="dot dot-danger" title="Emergencia activa" />}
+              {inEmergency(c.crew_id) && <span className="dot dot-danger" title={t('menu.activeEmergency')} />}
             </button>
           ))}
         </section>
 
         <section className="drawer-section">
-          <h3>Registrar lectura</h3>
-          <MeasurementEntry key={accountId} accountId={accountId} online={online} language={language} />
+          <h3>{t('menu.language')}</h3>
+          {account ? (
+            <p className="fineprint">
+              {t('menu.languageCrew', { name: account.name, language: t(`lang.${account.preferredLanguage}`) })}
+            </p>
+          ) : (
+            <>
+              <LanguageSwitch onChange={onLanguage} className="segmented segmented--2" />
+              <p className="fineprint">{t('menu.languageGeneral')}</p>
+            </>
+          )}
         </section>
 
         <section className="drawer-section">
-          <h3>Audio y subtítulos</h3>
+          <h3>{t('menu.logReading')}</h3>
+          <MeasurementEntry key={accountId} accountId={accountId} online={online} />
+        </section>
+
+        <section className="drawer-section">
+          <h3>{t('menu.audio')}</h3>
           <label className="row-toggle">
             <span>
-              Leer respuestas en voz alta
-              <small>
-                {!audio.supported
-                  ? 'Este navegador no tiene voz.'
-                  : audio.hasSpeakers === false
-                    ? 'No se detectaron bocinas.'
-                    : !audio.hasVoices
-                      ? 'No hay una voz instalada en el equipo para este idioma.'
-                      : 'Usa una voz instalada en el equipo (sin internet).'}
-              </small>
+              {t('menu.readAloud')}
+              <small>{t(audioNote)}</small>
             </span>
             <input type="checkbox" checked={voiceOn} onChange={(e) => setVoiceOn(e.target.checked)} />
           </label>
-          <div className="segmented" role="radiogroup" aria-label="Subtítulos">
+          <div className="segmented" role="radiogroup" aria-label={t('menu.subtitles')}>
             {[
-              ['auto', 'Automático'],
-              ['on', 'Siempre'],
-              ['off', 'Apagados'],
-            ].map(([v, label]) => (
+              ['auto', 'menu.subsAuto'],
+              ['on', 'menu.subsOn'],
+              ['off', 'menu.subsOff'],
+            ].map(([v, key]) => (
               <button
                 key={v}
                 role="radio"
@@ -128,54 +146,53 @@ export default function MenuDrawer({
                 className={subtitleMode === v ? 'selected' : ''}
                 onClick={() => setSubtitleMode(v)}
               >
-                {label}
+                {t(key)}
               </button>
             ))}
           </div>
-          <p className="fineprint">Automático: aparecen cuando no hay bocinas o la voz está apagada.</p>
+          <p className="fineprint">{t('menu.subsHint')}</p>
           <p className="fineprint">
-            <strong>Micrófono:</strong> el dictado de Chrome y Edge usa un servicio en internet (Google o Microsoft), así
-            que el audio sale del equipo y sin conexión no funciona. Escribir siempre funciona sin internet.
+            <strong>{t('menu.micLabel')}</strong> {t('menu.micNote')}
           </p>
         </section>
 
         <section className="drawer-section">
-          <h3>Simulación (demo)</h3>
+          <h3>{t('menu.simulation')}</h3>
           <div className="sim-row">
-            <select value={simCrew} onChange={(e) => setSimCrew(e.target.value)} aria-label="Tripulante">
+            <select value={simCrew} onChange={(e) => setSimCrew(e.target.value)} aria-label={t('menu.crewMember')}>
               {CREW.map((c) => (
                 <option key={c.crew_id} value={c.crew_id}>
                   {c.name}
                 </option>
               ))}
             </select>
-            <select value={simKind} onChange={(e) => setSimKind(e.target.value)} aria-label="Tipo de emergencia">
-              {Object.entries(EMERGENCY_TYPES).map(([k, v]) => (
+            <select value={simKind} onChange={(e) => setSimKind(e.target.value)} aria-label={t('menu.emergencyType')}>
+              {Object.keys(EMERGENCY_TYPES).map((k) => (
                 <option key={k} value={k}>
-                  {v.label}
+                  {t(`scenario.${k}`)}
                 </option>
               ))}
             </select>
           </div>
           <div className="sim-row">
             <button className="btn btn-danger btn-sm" onClick={() => onSimulate(simCrew, simKind)}>
-              Simular emergencia
+              {t('menu.simulate')}
             </button>
             <button className="btn btn-ghost btn-sm" onClick={onReset}>
-              Restablecer
+              {t('menu.reset')}
             </button>
           </div>
-          <p className="fineprint">Los signos tardan unos segundos en llegar al rango urgente, como en una pulsera real.</p>
+          <p className="fineprint">{t('menu.simHint')}</p>
         </section>
 
         {accountId === 'general' && (
           <section className="drawer-section">
-            <h3>Datos y enlace con la Tierra</h3>
+            <h3>{t('menu.data')}</h3>
             <DataSection online={online} sync={sync} onChanged={onDataChanged} />
           </section>
         )}
 
-        <p className="drawer-foot">Datos simulados · rangos de guías clínicas y de la NASA, pendientes de validación médica.</p>
+        <p className="drawer-foot">{t('menu.foot')}</p>
       </aside>
     </>
   )

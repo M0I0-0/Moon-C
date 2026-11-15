@@ -1,11 +1,10 @@
 // Convierte las respuestas del backend (/vitals y /alerts) a la forma que usan los componentes,
 // la misma que produce la simulación local (hooks/useCrewSimulation.js).
-import { MANUAL_KEY, protocolView } from '../data/manual'
+import { MANUAL_KEY } from '../data/manual'
+import { maneuverGuideText, reportedText } from './alerts'
 
 const FRONT_KEY = Object.fromEntries(Object.entries(MANUAL_KEY).map(([front, manual]) => [manual, front]))
 export const toFrontIndicator = (indicator) => FRONT_KEY[indicator] ?? indicator
-
-const MANEUVER_LABEL = { rcp: 'RCP', torniquete: 'torniquete', atragantamiento: 'atragantamiento' }
 
 /** Un tripulante de /vitals -> { values, history, emergency, updatedAt }. */
 export function memberFromVitals(vitals) {
@@ -25,11 +24,11 @@ export function memberFromVitals(vitals) {
 
 export const membersFromVitals = (list) => Object.fromEntries(list.map((v) => [v.crew_id, memberFromVitals(v)]))
 
-/** Una alerta de /alerts -> la forma de las alertas locales (más `message`, ya traducido por el backend). */
+/** Una alerta de /alerts -> la forma de las alertas locales (más `message`). Las alertas van en inglés. */
 export function alertFromBackend(alert) {
   let text = null
-  if (alert.kind === 'report') text = protocolView(alert.protocol, 'es')?.title.split(':')[0] ?? 'una emergencia'
-  if (alert.kind === 'maneuver') text = `guía de ${MANEUVER_LABEL[alert.protocol] ?? alert.protocol}`
+  if (alert.kind === 'report') text = reportedText(alert.protocol)
+  if (alert.kind === 'maneuver') text = maneuverGuideText(alert.protocol)
   return {
     id: alert.id,
     kind: alert.kind,

@@ -47,10 +47,11 @@ export const api = {
   status: () => request('/status', { ms: 5000 }),
 
   // El backend espera a la IA hasta MOON_C_OLLAMA_TIMEOUT_S (10–25 s): margen de sobra.
-  chat: ({ sessionId, crewId, message, language }) =>
+  // autoLanguage (cuenta General): contesta en el idioma del mensaje; `language` queda de respaldo.
+  chat: ({ sessionId, crewId, message, language, autoLanguage = false }) =>
     request('/chat', {
       method: 'POST',
-      body: { session_id: sessionId, crew_id: crewId ?? null, message, language },
+      body: { session_id: sessionId, crew_id: crewId ?? null, message, language, auto_language: autoLanguage },
       ms: 45000,
     }),
   resetSession: (sessionId) => request('/session/reset', { method: 'POST', body: { session_id: sessionId } }),
@@ -63,8 +64,8 @@ export const api = {
     request('/simulation/emergency', { method: 'POST', body: { crew_id: crewId, scenario } }),
   simulationReset: (crewId = null) => request('/simulation/reset', { method: 'POST', body: { crew_id: crewId } }),
 
-  // Alertas a bordo. Por defecto: abiertas (vistas o no), en el idioma pedido.
-  alerts: ({ language = 'es', includeAcknowledged = true, includeResolved = false } = {}) =>
+  // Alertas a bordo. Por defecto: abiertas (vistas o no), en inglés (el idioma común de la tripulación).
+  alerts: ({ language = 'en', includeAcknowledged = true, includeResolved = false } = {}) =>
     request(
       `/alerts?${new URLSearchParams({
         language,
@@ -73,14 +74,14 @@ export const api = {
       })}`,
       { ms: 5000 },
     ),
-  ackAlert: (id, language = 'es') => request(`/alerts/${encodeURIComponent(id)}/ack?language=${language}`, { method: 'POST' }),
-  resolveAlert: (id, language = 'es') =>
+  ackAlert: (id, language = 'en') => request(`/alerts/${encodeURIComponent(id)}/ack?language=${language}`, { method: 'POST' }),
+  resolveAlert: (id, language = 'en') =>
     request(`/alerts/${encodeURIComponent(id)}/resolve?language=${language}`, { method: 'POST' }),
   resolveCrewAlerts: (crewId = null) => request('/alerts/resolve', { method: 'POST', body: { crew_id: crewId } }),
 
-  // Maniobras guiadas: alerta al abrir la guía y resumen para la Tierra al terminar.
-  startManeuver: ({ crewId, maneuver, language = 'es' }) =>
-    request(`/maneuvers/start?language=${language}`, { method: 'POST', body: { crew_id: crewId ?? null, maneuver } }),
+  // Maniobras guiadas: alerta al abrir la guía (en inglés, como todas) y resumen para la Tierra al terminar.
+  startManeuver: ({ crewId, maneuver }) =>
+    request('/maneuvers/start', { method: 'POST', body: { crew_id: crewId ?? null, maneuver } }),
   sendManeuverReport: ({ crewId, maneuver, summary }) =>
     request('/maneuvers/reports', { method: 'POST', body: { crew_id: crewId ?? null, maneuver, summary } }),
 

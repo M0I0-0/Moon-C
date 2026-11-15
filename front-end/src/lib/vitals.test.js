@@ -53,19 +53,21 @@ describe('alertFromBackend', () => {
       indicator: 'blood_pressure_systolic',
       value: 188,
       unit: 'mmHg',
-      message: 'Alerta: Moisés, presión arterial (sistólica) 188 mmHg',
+      message: 'Alert: Moisés, blood pressure (systolic) 188 mmHg',
     })
     expect(a).toMatchObject({ kind: 'vital', crewId: 'moises', indicator: 'blood_pressure', value: 188, text: null })
     expect(a.message).toContain('188 mmHg')
   })
 
-  it('alerta reportada en el chat: solo el nombre del protocolo', () => {
-    const a = alertFromBackend({ ...base, kind: 'report', protocol: 'chest_pain', message: 'Alerta: Moisés reportó dolor de pecho' })
-    expect(a).toMatchObject({ kind: 'report', indicator: null, text: 'Dolor de pecho' })
+  // Las alertas van siempre en inglés, aunque el tripulante use español.
+  it('alerta reportada en el chat: solo el nombre del protocolo, en inglés', () => {
+    const a = alertFromBackend({ ...base, kind: 'report', protocol: 'chest_pain', message: 'Alert: Moisés reported chest pain' })
+    expect(a).toMatchObject({ kind: 'report', indicator: null, text: 'chest pain' })
+    expect(alertFromBackend({ ...base, kind: 'report', protocol: 'general_emergency', message: '' }).text).toBe('an emergency')
   })
 
-  it('alerta de maniobra', () => {
-    expect(alertFromBackend({ ...base, kind: 'maneuver', protocol: 'rcp', message: '' }).text).toBe('guía de RCP')
+  it('alerta de maniobra, en inglés', () => {
+    expect(alertFromBackend({ ...base, kind: 'maneuver', protocol: 'rcp', message: '' }).text).toBe('CPR guide')
   })
 })
 

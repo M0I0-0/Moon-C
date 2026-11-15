@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ManeuverPanel from './components/ManeuverPanel'
-import { ENV_TO_MANEUVER, MANIOBRAS, explicitManeuver, suggestedManeuver, toReportSummary } from './lib/maneuvers'
+import { ENV_TO_MANEUVER, explicitManeuver, maneuverTitle, suggestedManeuver, toReportSummary } from './lib/maneuvers'
 import Scene from './components/Scene'
 import TopBar from './components/TopBar'
 import MenuDrawer from './components/MenuDrawer'
@@ -8,22 +8,23 @@ import VitalsPanel from './components/VitalsPanel'
 import CrewOverview, { EmergencyDetail } from './components/CrewOverview'
 import Announcements from './components/Announcements'
 import AlertBanner from './components/AlertBanner'
-import { alertText } from './lib/alerts'
+import { ALERT_LANGUAGE, alertText, reportedText } from './lib/alerts'
 import ChatDock from './components/ChatDock'
 import Subtitles from './components/Subtitles'
 import VitalDetail from './components/VitalDetail'
 import { ENVIRONMENTS } from './data/environments'
 import { useAnnouncements } from './hooks/useAnnouncements'
 import { useSyncStatus } from './hooks/useSyncStatus'
-import { INDICATORS, STATUS_LABEL, classify, crewById, worstStatus } from './data/manual'
+import { INDICATORS, classify, crewById, worstStatus } from './data/manual'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useCrewSimulation } from './hooks/useCrewSimulation'
 import { useRemoteCrew } from './hooks/useRemoteCrew'
 import { useSpeechInput, useSpeechOutput } from './hooks/useSpeech'
 import { useBackendStatus } from './hooks/useBackendStatus'
-import { askBackend, askLocal } from './lib/assistant'
+import { askBackend, askLocal, detectLanguage } from './lib/assistant'
 import { api } from './lib/api'
 import { speechLangFor } from './config'
+import { I18nContext, makeI18n, toLanguage, translate } from './i18n'
 
 let seq = 0
 const uid = () => `${Date.now()}-${++seq}`
@@ -34,7 +35,10 @@ const DEVICE_ID = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}${Math.ran
 const sessionFor = (accountId) => `${DEVICE_ID}-${accountId}`
 // Igual que el backend (MOON_C_SESSION_TTL_S): la conversación se borra tras 10 min sin actividad.
 const CHAT_TTL_MS = 10 * 60 * 1000
-const QUICK_GENERAL = ['¿Cómo mido la saturación?', 'Emergencia médica', 'Hola, Moon-C']
+const QUICK_GENERAL = {
+  es: ['¿Cómo mido la saturación?', 'Emergencia médica', 'Hola, Moon-C'],
+  en: ['How do I measure my oxygen saturation?', 'Medical emergency', 'Hello, Moon-C'],
+}
 const QUICK_CREW = {
   es: ['¿Cómo mido mi temperatura?', 'Me siento raro', 'Dormí muy poco'],
   en: ['How do I measure my temperature?', 'I feel weird', 'I barely slept'],
@@ -42,6 +46,7 @@ const QUICK_CREW = {
 
 export default function App() {
   const [accountId, setAccountId] = useLocalStorage('moonc.account', 'general')
+  const [generalLang, setGeneralLang] = useLocalStorage('moonc.generalLang', 'es')
   const [voiceOn, setVoiceOn] = useLocalStorage('moonc.voice', true)
   const [subtitleMode, setSubtitleMode] = useLocalStorage('moonc.subtitles', 'auto')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -64,8 +69,12 @@ export default function App() {
 
   const account = accountId === 'general' ? null : crewById(accountId)
   const isGeneral = !account
-  // Chat y voz en el idioma del tripulante (la cuenta General usa español).
-  const lang = account?.preferredLanguage ?? 'es'
+  // Idioma de la pantalla, el chat y la voz. Cada tripulante usa el de su perfil (por nacionalidad);
+  // la cuenta General cambia con el botón ES/EN, o sola cuando le escriben o hablan en el otro idioma.
+  // Las alertas van siempre en inglés (src/lib/alerts.js).
+  const lang = account?.preferredLanguage ?? toLanguage(generalLang)
+  const i18n = useMemo(() => makeI18n(lang), [lang])
+  const { t } = i18n
   const speechLang = speechLangFor(lang)
 
   const backend = useBackendStatus()
@@ -74,11 +83,11 @@ export default function App() {
   const setMouth = useCallback((level) => {
     mouthRef.current = level
   }, [])
-  const moonVoice = backend.online && backend.info?.voice === 'ready' && lang === 'es'
-  const tts = useSpeechOutput(speechLang, { moonVoice, onMouth: setMouth })
+  const moonVoiceReady = backend.online && backend.info?.voice === 'ready'
+  const tts = useSpeechOutput(lang, { moonVoice: moonVoiceReady, onMouth: setMouth })
   // Signos y alertas: del backend (una sola fuente para todas las pantallas) o, sin enlace, simulados aquí.
   const localCrew = useCrewSimulation()
-  const remoteCrew = useRemoteCrew(backend.online, lang)
+  const remoteCrew = useRemoteCrew(backend.online)
   const sim = backend.online && remoteCrew.ready ? remoteCrew : localCrew
   const refreshCrew = remoteCrew.refresh
   const board = useAnnouncements(backend.online)
@@ -90,16 +99,27 @@ export default function App() {
   const audioAvailable = voiceOn && tts.supported && tts.hasVoices && tts.hasSpeakers !== false
   const showSubs = subtitleMode === 'on' || (subtitleMode === 'auto' && !audioAvailable)
 
+  useEffect(() => {
+    document.documentElement.lang = lang
+    document.title = t('app.title')
+  }, [lang, t])
+
+  /**
+   * Moon-C dice un texto (voz y/o subtítulo). Cada texto se lee con una voz de su idioma: las respuestas
+   * en el de la respuesta, las alertas en inglés. Si no hay voz para ese idioma, se muestra el subtítulo
+   * aunque el audio esté activo.
+   */
   const say = useCallback(
-    (text, speaker = 'Moon-C') => {
+    (text, { speaker = 'Moon-C', kind = 'reply', lang: textLang = lang } = {}) => {
       const id = uid()
       const clear = () => setCaption((c) => (c?.id === id ? null : c))
-      setCaption({ id, speaker, text })
+      const speakable = voiceOn && tts.hasSpeakers !== false && tts.canSpeak(textLang)
+      setCaption({ id, speaker, kind, text, lang: textLang, silent: !speakable })
       const readMs = Math.max(4000, text.split(/\s+/).length * 420)
-      if (audioAvailable) tts.speak(text, { onEnd: () => setTimeout(clear, 1200) })
-      setTimeout(clear, audioAvailable ? readMs * 2 : readMs)
+      if (speakable) tts.speak(text, { lang: textLang, onEnd: () => setTimeout(clear, 1200) })
+      setTimeout(clear, speakable ? readMs * 2 : readMs)
     },
-    [audioAvailable, tts],
+    [voiceOn, tts, lang],
   )
 
   const startManeuver = useCallback(
@@ -113,12 +133,12 @@ export default function App() {
       // Prioridad 2: abrir una guía de emergencia avisa a la tripulación y al oficial médico.
       if (backend.online) {
         api
-          .startManeuver({ crewId: account?.crew_id ?? null, maneuver: id, language: lang })
+          .startManeuver({ crewId: account?.crew_id ?? null, maneuver: id })
           .then(() => refreshCrew())
           .catch(() => {})
       }
     },
-    [envId, backend.online, account, lang, refreshCrew],
+    [envId, backend.online, account, refreshCrew],
   )
 
   // "Reporta a Tierra": el resumen de la guía se guarda en el backend y queda en cola para la Tierra.
@@ -173,9 +193,17 @@ export default function App() {
       lastActivity.current = Date.now()
       appendLog(key, { who: 'user', name: account?.name ?? 'General', text: message })
       setSuggestions((s) => ({ ...s, [key]: [] }))
+      // Cuenta General: Moon-C contesta en el idioma del mensaje (si se nota) y la pantalla cambia con ella.
+      // Los tripulantes siempre en el idioma de su perfil.
+      const messageLang = isGeneral ? (detectLanguage(message) ?? lang) : lang
       const asked = explicitManeuver(message)
       if (asked) {
-        appendLog(key, { who: 'assistant', name: 'Moon-C', text: `Abro la guía 3D: ${MANIOBRAS[asked].titulo}.` })
+        if (isGeneral) setGeneralLang(messageLang)
+        appendLog(key, {
+          who: 'assistant',
+          name: 'Moon-C',
+          text: translate(messageLang, 'chat.openingGuide', { title: maneuverTitle(asked, messageLang) }),
+        })
         startManeuver(asked)
         return
       }
@@ -188,6 +216,7 @@ export default function App() {
             crewId: account?.crew_id ?? null,
             sessionId: sessionFor(key),
             language: lang,
+            autoLanguage: isGeneral,
           })
         } catch {
           backend.markOffline()
@@ -195,8 +224,10 @@ export default function App() {
       }
       if (!res) {
         await new Promise((r) => setTimeout(r, 350))
-        res = askLocal({ message, language: lang })
+        res = askLocal({ message, language: messageLang })
       }
+      const replyLang = toLanguage(res.language ?? messageLang)
+      if (isGeneral && replyLang !== lang) setGeneralLang(replyLang)
       lastActivity.current = Date.now()
       appendLog(key, {
         who: 'assistant',
@@ -209,12 +240,12 @@ export default function App() {
       })
       setSuggestions((s) => ({ ...s, [key]: res.suggestions ?? [] }))
       setBusy(false)
-      say(res.reply)
+      say(res.reply, { lang: replyLang })
       if (res.category === 'emergency' && account) {
-        sim.reportFromChat(account.crew_id, res.protocol?.title?.split(':')[0] ?? 'una emergencia')
+        sim.reportFromChat(account.crew_id, reportedText(res.protocol?.name)) // la alerta va en inglés
       }
     },
-    [accountId, account, lang, appendLog, backend, say, sim, startManeuver],
+    [accountId, account, isGeneral, lang, appendLog, backend, say, sim, startManeuver, setGeneralLang],
   )
 
   const mic = useSpeechInput(speechLang, send)
@@ -224,34 +255,34 @@ export default function App() {
     logsRef.current = logs
   }, [logs])
   useEffect(() => {
-    const t = setInterval(() => {
+    const timer = setInterval(() => {
       const current = logsRef.current[accountId] ?? []
       if (Date.now() - lastActivity.current < CHAT_TTL_MS || !current.some((e) => e.who !== 'system')) return
       api.resetSession(sessionFor(accountId)).catch(() => {})
       setLogs((l) => ({
         ...l,
-        [accountId]: [{ id: uid(), at: Date.now(), who: 'system', text: 'Conversación borrada tras 10 min sin actividad.' }],
+        [accountId]: [{ id: uid(), at: Date.now(), who: 'system', key: 'chat.cleared' }],
       }))
       setSuggestions((s) => ({ ...s, [accountId]: [] }))
     }, 30000)
-    return () => clearInterval(t)
+    return () => clearInterval(timer)
   }, [accountId])
 
-  // Anunciar alertas nuevas (voz y/o subtítulos) a la cuenta que corresponda.
+  // Anunciar alertas nuevas (voz y/o subtítulos) a la cuenta que corresponda. Siempre en inglés.
   const announced = useRef(new Set())
   useEffect(() => {
     for (const a of sim.alerts) {
       if (announced.current.has(a.id)) continue
       announced.current.add(a.id)
-      if (isGeneral || a.crewId === accountId) say(alertText(a), 'Alerta')
+      if (isGeneral || a.crewId === accountId) say(alertText(a), { speaker: 'Alert', kind: 'alert', lang: ALERT_LANGUAGE })
     }
   }, [sim.alerts, isGeneral, accountId, say])
 
   // Moon-C saluda al abrir la app y al cambiar de cuenta.
   useEffect(() => {
     setGreeting(true)
-    const t = setTimeout(() => setGreeting(false), 2200)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setGreeting(false), 2200)
+    return () => clearTimeout(timer)
   }, [accountId])
 
   // Al cambiar de cuenta se cierra cualquier vista de emergencia abierta.
@@ -276,7 +307,7 @@ export default function App() {
       // Pulsera simulada: identifica al tripulante y empieza un contexto limpio para esta sesión.
       if (crew) api.identify({ braceletId: crew.bracelet_id, sessionId: sessionFor(id) }).catch(() => {})
       lastActivity.current = Date.now()
-      appendLog(id, { who: 'system', text: `Sesión iniciada · ${crew ? crew.name : 'General'}` })
+      appendLog(id, { who: 'system', key: 'chat.sessionStarted', vars: { name: crew ? crew.name : 'General' } })
     },
     [accountId, setAccountId, appendLog],
   )
@@ -306,9 +337,10 @@ export default function App() {
     })
   }
 
+  // Los anuncios se leen con la voz del idioma en que están escritos.
   const postAnnouncement = ({ text, priority, readAloud }) => {
     board.post({ text, priority })
-    if (readAloud) say(text, 'Anuncio')
+    if (readAloud) say(text, { speaker: t('speaker.announcement'), kind: 'announcement', lang: detectLanguage(text) ?? lang })
   }
 
   const member = account ? sim.members[account.crew_id] : null
@@ -317,7 +349,7 @@ export default function App() {
     : sim.activeAlerts.length
       ? 'urgent'
       : 'normal'
-  const talking = tts.speaking || Boolean(caption && caption.speaker !== 'Anuncio')
+  const talking = tts.speaking || Boolean(caption && caption.kind !== 'announcement')
   const linkDown = backend.checked && !backend.online
   const assistantMood = mic.listening
     ? 'escuchando'
@@ -343,142 +375,145 @@ export default function App() {
     ? suggestions[accountId]
     : log.length
       ? []
-      : isGeneral
-        ? QUICK_GENERAL
-        : (QUICK_CREW[lang] ?? QUICK_CREW.es)
+      : (isGeneral ? QUICK_GENERAL : QUICK_CREW)[lang]
+  // Un texto que no se puede leer en voz alta en su idioma se muestra aunque los subtítulos estén en automático.
+  const showCaption = showSubs || (caption?.silent && subtitleMode !== 'off')
 
   return (
-    <div className={`app env-${env.id}`}>
-      <Scene
-        maneuver={maneuver}
-        ctrlRef={mctl}
-        onManeuverEvent={{
-          onPaso: (...a) => maneuverEvents.current.onPaso(...a),
-          onConteo: (...a) => maneuverEvents.current.onConteo(...a),
-          onTiempo: (...a) => maneuverEvents.current.onTiempo(...a),
-          onReady: (...a) => maneuverEvents.current.onReady(...a),
-          onError: (...a) => maneuverEvents.current.onError(...a),
-        }}
-        envId={env.id}
-        talking={talking}
-        mood={assistantMood}
-        mouthRef={mouthRef}
-      />
+    <I18nContext.Provider value={i18n}>
+      <div className={`app env-${env.id}`}>
+        <Scene
+          maneuver={maneuver}
+          ctrlRef={mctl}
+          onManeuverEvent={{
+            onPaso: (...a) => maneuverEvents.current.onPaso(...a),
+            onConteo: (...a) => maneuverEvents.current.onConteo(...a),
+            onTiempo: (...a) => maneuverEvents.current.onTiempo(...a),
+            onReady: (...a) => maneuverEvents.current.onReady(...a),
+            onError: (...a) => maneuverEvents.current.onError(...a),
+          }}
+          envId={env.id}
+          talking={talking}
+          mood={assistantMood}
+          mouthRef={mouthRef}
+          language={lang}
+        />
 
-      <TopBar
-        env={env}
-        account={account}
-        backendOnline={backend.online}
-        earth={earth.status}
-        audioAvailable={audioAvailable}
-        showSubs={showSubs}
-        onMenu={() => setMenuOpen(true)}
-        mobilePanel={mobilePanel}
-        setMobilePanel={setMobilePanel}
-        isGeneral={isGeneral}
-      />
+        <TopBar
+          env={env}
+          account={account}
+          backendOnline={backend.online}
+          earth={earth.status}
+          audioAvailable={audioAvailable}
+          showSubs={showSubs}
+          onMenu={() => setMenuOpen(true)}
+          mobilePanel={mobilePanel}
+          setMobilePanel={setMobilePanel}
+          isGeneral={isGeneral}
+          onLanguage={setGeneralLang}
+        />
 
-      <AlertBanner alerts={visibleAlerts} isGeneral={isGeneral} onOpen={openEmergency} onAck={sim.acknowledge} />
+        <AlertBanner alerts={visibleAlerts} isGeneral={isGeneral} onOpen={openEmergency} onAck={sim.acknowledge} />
 
-      <aside className={`panel panel-left ${maneuver || mobilePanel === 'left' ? 'mobile-open' : ''}`}>
-        {maneuver ? (
-          <ManeuverPanel
-            id={maneuver.id}
-            entorno={maneuver.entorno}
-            state={mstate}
-            ctrlRef={mctl}
-            onEnv={(entorno) => startManeuver(maneuver.id, entorno)}
-            onSoloManos={(v) => {
-              if (mctl.current) mctl.current.soloManos = v
-              setMstate((s) => ({ ...s, soloManos: v }))
-            }}
-            onClose={stopManeuver}
-          />
-        ) : (
-          <Announcements items={board.items} canPost={isGeneral} onPost={postAnnouncement} limit={isGeneral ? undefined : 3} />
-        )}
-      </aside>
-
-      <aside className={`panel panel-right ${mobilePanel === 'right' ? 'mobile-open' : ''}`}>
-        {isGeneral ? (
-          emergencyView && emergencyAlerts.length ? (
-            <EmergencyDetail
-              crewId={emergencyView}
-              member={sim.members[emergencyView]}
-              alerts={emergencyAlerts}
-              accessAt={accessLog[emergencyView] ?? Date.now()}
-              onBack={() => setEmergencyView(null)}
-              onResolve={resolveEmergency}
-              onSelectVital={(indicator) => setVitalDetail({ crewId: emergencyView, indicator })}
+        <aside className={`panel panel-left ${maneuver || mobilePanel === 'left' ? 'mobile-open' : ''}`}>
+          {maneuver ? (
+            <ManeuverPanel
+              id={maneuver.id}
+              entorno={maneuver.entorno}
+              state={mstate}
+              ctrlRef={mctl}
+              onEnv={(entorno) => startManeuver(maneuver.id, entorno)}
+              onSoloManos={(v) => {
+                if (mctl.current) mctl.current.soloManos = v
+                setMstate((s) => ({ ...s, soloManos: v }))
+              }}
+              onClose={stopManeuver}
             />
           ) : (
-            <CrewOverview members={sim.members} activeAlerts={sim.activeAlerts} onOpen={openEmergency} />
-          )
-        ) : (
-          <VitalsPanel
-            member={member}
-            title="Mis signos"
-            subtitle={`${account.name} · pulsera ${account.bracelet_id}`}
-            onSelect={(indicator) => setVitalDetail({ crewId: account.crew_id, indicator })}
+            <Announcements items={board.items} canPost={isGeneral} onPost={postAnnouncement} limit={isGeneral ? undefined : 3} />
+          )}
+        </aside>
+
+        <aside className={`panel panel-right ${mobilePanel === 'right' ? 'mobile-open' : ''}`}>
+          {isGeneral ? (
+            emergencyView && emergencyAlerts.length ? (
+              <EmergencyDetail
+                crewId={emergencyView}
+                member={sim.members[emergencyView]}
+                alerts={emergencyAlerts}
+                accessAt={accessLog[emergencyView] ?? Date.now()}
+                onBack={() => setEmergencyView(null)}
+                onResolve={resolveEmergency}
+                onSelectVital={(indicator) => setVitalDetail({ crewId: emergencyView, indicator })}
+              />
+            ) : (
+              <CrewOverview members={sim.members} activeAlerts={sim.activeAlerts} onOpen={openEmergency} />
+            )
+          ) : (
+            <VitalsPanel
+              member={member}
+              subtitle={t('vitals.subtitle', { name: account.name, bracelet: account.bracelet_id })}
+              onSelect={(indicator) => setVitalDetail({ crewId: account.crew_id, indicator })}
+            />
+          )}
+        </aside>
+
+        <div className="bottom">
+          {showCaption && <Subtitles caption={caption} interim={mic.listening ? mic.interim : ''} />}
+          <ChatDock
+            log={log}
+            suggestions={chips}
+            busy={busy}
+            onSend={send}
+            onManeuver={startManeuver}
+            mic={mic}
+            placeholder={isGeneral ? t('chat.placeholderGeneral') : t('chat.placeholderCrew', { name: account.name })}
+          />
+        </div>
+
+        {detailAllowed && (
+          <VitalDetail
+            crew={crewById(vitalDetail.crewId)}
+            member={sim.members[vitalDetail.crewId]}
+            indicator={vitalDetail.indicator}
+            onClose={closeDetail}
+            onNav={navDetail}
           />
         )}
-      </aside>
 
-      <div className="bottom">
-        {showSubs && <Subtitles caption={caption} interim={mic.listening ? mic.interim : ''} />}
-        <ChatDock
-          log={log}
-          suggestions={chips}
-          busy={busy}
-          onSend={send}
+        <MenuDrawer
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          accountId={accountId}
+          setAccountId={switchAccount}
+          inEmergency={sim.inEmergency}
+          voiceOn={voiceOn}
+          setVoiceOn={(v) => {
+            setVoiceOn(v)
+            if (!v) tts.cancel()
+          }}
+          subtitleMode={subtitleMode}
+          setSubtitleMode={setSubtitleMode}
+          audio={tts}
           onManeuver={startManeuver}
-          mic={mic}
-          placeholder={isGeneral ? 'Escribe o usa el micrófono (cuenta General)' : `Escribe o usa el micrófono, ${account.name}`}
+          online={backend.online}
+          onLanguage={setGeneralLang}
+          sync={earth.status}
+          onDataChanged={() => {
+            earth.refresh()
+            refreshCrew()
+          }}
+          onSimulate={(crewId, kind) => {
+            sim.triggerEmergency(crewId, kind)
+            setMenuOpen(false)
+          }}
+          onReset={() => {
+            sim.resolve()
+            setEmergencyView(null)
+            setAccessLog({})
+          }}
         />
       </div>
-
-      {detailAllowed && (
-        <VitalDetail
-          crew={crewById(vitalDetail.crewId)}
-          member={sim.members[vitalDetail.crewId]}
-          indicator={vitalDetail.indicator}
-          onClose={closeDetail}
-          onNav={navDetail}
-        />
-      )}
-
-      <MenuDrawer
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        accountId={accountId}
-        setAccountId={switchAccount}
-        inEmergency={sim.inEmergency}
-        voiceOn={voiceOn}
-        setVoiceOn={(v) => {
-          setVoiceOn(v)
-          if (!v) tts.cancel()
-        }}
-        subtitleMode={subtitleMode}
-        setSubtitleMode={setSubtitleMode}
-        audio={tts}
-        onManeuver={startManeuver}
-        online={backend.online}
-        language={lang}
-        sync={earth.status}
-        onDataChanged={() => {
-          earth.refresh()
-          refreshCrew()
-        }}
-        onSimulate={(crewId, kind) => {
-          sim.triggerEmergency(crewId, kind)
-          setMenuOpen(false)
-        }}
-        onReset={() => {
-          sim.resolve()
-          setEmergencyView(null)
-          setAccessLog({})
-        }}
-      />
-    </div>
+    </I18nContext.Provider>
   )
 }

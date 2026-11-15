@@ -119,13 +119,13 @@ Every setting is optional. Use environment variables or copy `.env.example` to `
 
 ## API
 
-The full contract, with schemas and examples, is at `/docs`. Responses use the language sent in the request, then the crew member's `preferredLanguage`, then English (`en` or `es`).
+The full contract, with schemas and examples, is at `/docs`. Responses use the language sent in the request, then the crew member's `preferredLanguage`, then English (`en` or `es`). With `auto_language: true`, `/chat` replies in the language the message is written in, and alerts are always in English (see [Language](#language)).
 
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/status` | Backend ok, Ollama reachable, model name, `earth_link` state, `voice` state |
 | POST | `/tts` | `{text, language?}` → WAV spoken with Moon-C's own voice (Spanish only; 503 while loading or if not installed) |
-| POST | `/chat` | `{session_id, crew_id?, message, language?}` → `{category, reply, language, ai_used, personalized, protocol?, indicator?, moment?, source?, suggestions}` |
+| POST | `/chat` | `{session_id, crew_id?, message, language?, auto_language?}` → `{category, reply, language, ai_used, personalized, protocol?, indicator?, moment?, source?, suggestions}` |
 | POST | `/session/reset` | `{session_id}`: forget that chat context |
 | POST | `/identify` | Simulated bracelet: `{bracelet_id, session_id?}` → crew profile; clears that session's context |
 | GET | `/manual`, `/manual/{indicator}` | Localized manual (`?language=en\|es`) |
@@ -133,7 +133,7 @@ The full contract, with schemas and examples, is at `/docs`. Responses use the l
 | POST | `/measurements` | `{crew_id?, indicator, value, unit, timestamp?, language?}` → measurement with `status`. Urgent creates an alert. Without `crew_id`: unassigned and `needs_confirmation: true` |
 | GET | `/measurements` | Filters: `crew_id`, `indicator`, `since`, `unassigned` |
 | POST | `/measurements/{id}/assign` | `{crew_id}`. Only for unassigned readings (otherwise 409) |
-| GET | `/alerts` | Open alerts, for example `"Alert: Moisés, body temperature 38.2 °C"`. Kinds: `vital` (urgent reading), `report` (emergency detected in the chat), `maneuver` (guided maneuver started). Filters: `include_acknowledged`, `include_resolved` |
+| GET | `/alerts` | Open alerts, in English (`?language=es` for Spanish), for example `"Alert: Moisés, body temperature 39.6 °C"`. Kinds: `vital` (urgent reading), `report` (emergency detected in the chat), `maneuver` (guided maneuver started). Filters: `include_acknowledged`, `include_resolved` |
 | POST | `/alerts/{id}/ack` | Acknowledge an alert (it stays open) |
 | POST | `/alerts/{id}/resolve`, `/alerts/resolve` | Close one alert, or every open alert of a crew member (`{crew_id}`, omit it for all) |
 | GET | `/vitals`, `/vitals/{crew_id}` | Live vital signs from the simulated bracelets: value, status and recent history of each indicator |
@@ -155,6 +155,7 @@ The quickest way to talk to Moon-C is the terminal chat helper. Run it with the 
 ```bash
 python scripts/chat.py                 # English, no crew member
 python scripts/chat.py --crew moises   # as Moisés (Spanish)
+python scripts/chat.py --auto          # like the General account: replies in the language you write in
 ```
 
 It prints each reply with its category, language, whether the AI was used and the response time. `/reset` clears the conversation and `/quit` exits.
@@ -184,6 +185,13 @@ The router (`app/intent.py`) normalizes the text (lowercase, no accents, no punc
 7. **fallback**: an honest "I'm not sure" with options. If a conversation is already going on (the last turn was small talk or support), the AI keeps it going instead.
 
 To change keywords, edit `shared/keywords.json` and restart the backend. To change health content, edit `shared/protocols.json`: it is validated at startup, and a broken manual stops the backend with a clear error instead of giving wrong answers.
+
+## Language
+
+- **Crew accounts** use the crew member's `preferredLanguage` (by nationality, in `shared/crew.json`). Moon-C answers Moisés in Spanish even if he writes in English.
+- **The General account** follows whoever is using it. The front-end sends `auto_language: true`, and Moon-C replies in the language the message is written in. The router counts common English and Spanish words (`language_hints` in `shared/keywords.json`); ¿, ¡ and ñ count as Spanish. If the message is unclear ("ok", "SpO2"), the request's `language` is kept. The front-end switches the whole screen to the reply's `language`, and runs the same detection offline (shared test cases: `shared/language_cases.json`).
+- **The AI never switches language.** The system prompt names the reply language. A small model still tends to mirror the user, so an AI reply in another language is replaced by a canned one: `language` always matches the reply, and the front-end reads it with the right voice.
+- **Alerts are always in English**, the crew's common language, whatever language each account uses. That covers `/alerts`, `/maneuvers/start` and the alert inside a `/measurements` response. `?language=es` still returns the Spanish text.
 
 ## Emotional support and personal profiles
 
@@ -225,7 +233,7 @@ git lfs pull                               # the 63 MB model is stored with Git 
 pip install -r requirements-voice.txt      # piper-tts, praat-parselmouth, numpy, scipy
 ```
 
-Without it, `/status` reports `voice: "unavailable"` and the front-end uses a voice installed on the machine, or subtitles. English replies always use that local voice, because Moon-C's voice only speaks Spanish for now.
+Without it, `/status` reports `voice: "unavailable"` and the front-end uses a voice installed on the machine, or subtitles. English replies and alerts always use that local voice, because Moon-C's voice only speaks Spanish for now. If the machine has no English voice, they are shown as subtitles.
 
 > ⚠️ **License:** `piper-tts` 1.8 and `praat-parselmouth` are **GPL-3.0**. Distributing the backend with them installed means distributing it under GPL-compatible terms. An open hackathon project usually complies, but have someone who handles licenses confirm it.
 
@@ -236,6 +244,7 @@ Without it, `/status` reports `voice: "unavailable"` and the front-end uses a vo
 - **Not medically validated.** The ranges come from published guidelines (NEWS2, AHA/ACC, WHO, AASM/SRS) and NASA standards, but they are for healthy adults at rest, they are not personal baselines, and some thresholds (mood, radiation alerts) are Moon-C design choices. The protocol steps are illustrative. All of it must be validated by medical experts before any real use; see [shared/REFERENCES.md](../shared/REFERENCES.md).
 - **Keyword routing, not understanding.** The router can't read negation: "I don't have chest pain" still opens the emergency protocol, which is the safe side by design. It doesn't handle typos and supports English and Spanish only.
 - **The post-filter is keyword-based.** It can discard a harmless AI reply. In that case the user gets the manual-based answer instead.
+- **Language detection counts common words.** A very short or mixed message ("ok", "SpO2", "ok gracias thanks") is unclear and keeps the current language. Only English and Spanish are told apart.
 - **Alerts, chat context and live signs live in memory.** They are lost on restart; measurements and safety records are not. Run a single process (no multiple Uvicorn workers).
 - **Simulated bracelets.** Live signs come from a simulation (`MOON_C_SIMULATION`) until real sensors exist; its readings are stored like real ones.
 - **Earth sync is simulated.** Nothing is transmitted or encrypted. Only confirmed (assigned) readings are queued.

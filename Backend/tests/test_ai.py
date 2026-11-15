@@ -34,7 +34,9 @@ def test_small_talk_uses_ai_with_required_options(make_client):
     assert payload["options"] == {"num_predict": 120, "temperature": 0.7}
     system = payload["messages"][0]
     assert system["role"] == "system" and system["content"].startswith(SYSTEM_PROMPT)
-    assert "Always reply in English." in system["content"] and "Ana" in system["content"]
+    assert "Always reply in English, even if the crew member writes in another language." in system["content"]
+    assert "Ana" in system["content"]
+    assert "same language the crew member uses" not in system["content"]  # it contradicted the line above
     assert payload["messages"][-1] == {"role": "user", "content": "Good morning, Moon-C"}
 
 
@@ -43,7 +45,8 @@ def test_spanish_small_talk(make_client):
     data = chat(make_client(ollama), "Buenos días, Moon-C", crew_id="moises")
     assert data["language"] == "es" and data["ai_used"] is True
     system = ollama.chat_calls[0]["messages"][0]["content"]
-    assert "Responde siempre en español y usa el femenino al hablar de ti misma." in system  # Moon-C is female
+    # Moon-C is female, and the model must not switch language.
+    assert "Responde siempre en español, aunque te escriban en otro idioma, y usa el femenino al hablar de ti misma." in system
 
 
 @pytest.mark.parametrize(

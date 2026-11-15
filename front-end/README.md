@@ -41,7 +41,16 @@ La URL se cambia con `VITE_API_URL` en `.env.local` (ver `.env.example`).
   En inglés, o si el backend no tiene la voz instalada, usa una voz instalada en el equipo (`speechSynthesis`,
   nunca voces de red). En modo automático los subtítulos aparecen si no hay bocinas, no hay voz para el
   idioma o la voz está apagada.
-- **Idioma**: chat y voz en el idioma de cada tripulante (`preferredLanguage` de `shared/crew.json`).
+- **Idioma**: cada tripulante usa el de su perfil (`preferredLanguage` de `shared/crew.json`, por
+  nacionalidad). La cuenta General cambia con el botón ES/EN (arriba o en el menú) y también sola: Moon-C
+  contesta en el idioma en que le escribes o hablas (`auto_language` del backend) y toda la pantalla cambia
+  con ella, igual que la voz y el dictado. Sin backend, el front detecta el idioma con la misma regla
+  (`detectLanguage` en `src/lib/assistant.js`, casos compartidos en `shared/language_cases.json`). Los textos
+  de la interfaz están en `src/i18n/strings.js` (español e inglés; `src/i18n/i18n.test.js` revisa que no
+  falte ninguno) y los de las maniobras 3D en `Model3D/moonc/maniobras.js` (`EN`).
+- **Alertas**: las de un tripulante (por ejemplo, saturación baja) van **siempre en inglés**, el idioma común
+  de la tripulación, sin importar el idioma de la cuenta (`src/lib/alerts.js`). Se leen con una voz en inglés
+  del equipo; si no hay, se muestran como subtítulo.
 
 Todos los datos de signos vitales son simulados. Los rangos vienen de guías clínicas (NEWS2, AHA/ACC, OMS, AASM/SRS) y estándares de la NASA, ajustados al espacio (fuentes en `../shared/REFERENCES.md`), y siguen pendientes de validación médica.
 
@@ -54,7 +63,9 @@ src/
   hooks/                signos y alertas del backend (useRemoteCrew) o locales (useCrewSimulation),
                         anuncios, enlace con la Tierra, voz, estado del backend
   lib/api.js            cliente del backend (todas las llamadas pasan por aquí)
-  lib/assistant.js      chat: backend o, sin enlace, solo emergencias
+  lib/assistant.js      chat: backend o, sin enlace, solo emergencias; detección de idioma
+  lib/alerts.js         texto de las alertas (siempre en inglés)
   lib/vitals.js         convierte /vitals y /alerts a la forma de los componentes
+  i18n/                 textos de la interfaz en español e inglés, y el idioma actual (useI18n)
   data/                 manual (lee ../shared), ambientes, anuncios de ejemplo
 ```

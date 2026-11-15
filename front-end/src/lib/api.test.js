@@ -19,13 +19,29 @@ describe('api', () => {
     expect(url).toBe('http://localhost:8000/chat')
     expect(init.method).toBe('POST')
     expect(init.headers['Content-Type']).toBe('application/json')
-    expect(JSON.parse(init.body)).toEqual({ session_id: 'dev1-ana', crew_id: 'ana', message: 'hello', language: 'en' })
+    expect(JSON.parse(init.body)).toEqual({
+      session_id: 'dev1-ana',
+      crew_id: 'ana',
+      message: 'hello',
+      language: 'en',
+      auto_language: false,
+    })
   })
 
-  it('la cuenta General manda crew_id null', async () => {
+  it('la cuenta General manda crew_id null y pide contestar en el idioma del mensaje', async () => {
     const fetch = mockFetch({ reply: 'Hola' })
-    await api.chat({ sessionId: 'dev1-general', message: 'hola', language: 'es' })
-    expect(JSON.parse(fetch.mock.calls[0][1].body).crew_id).toBeNull()
+    await api.chat({ sessionId: 'dev1-general', message: 'hola', language: 'es', autoLanguage: true })
+    const body = JSON.parse(fetch.mock.calls[0][1].body)
+    expect(body.crew_id).toBeNull()
+    expect(body.auto_language).toBe(true)
+  })
+
+  it('las alertas se piden en inglés', async () => {
+    const fetch = mockFetch([])
+    await api.alerts()
+    await api.ackAlert('a1')
+    expect(fetch.mock.calls[0][0]).toContain('language=en')
+    expect(fetch.mock.calls[1][0]).toBe('http://localhost:8000/alerts/a1/ack?language=en')
   })
 
   it('identify y resetSession usan los endpoints del backend', async () => {
@@ -61,9 +77,10 @@ describe('api', () => {
 describe('api (fase 3)', () => {
   it('maniobras: alerta al abrir y reporte para Tierra', async () => {
     const fetch = mockFetch({})
-    await api.startManeuver({ crewId: 'moises', maneuver: 'rcp', language: 'es' })
+    await api.startManeuver({ crewId: 'moises', maneuver: 'rcp' })
     await api.sendManeuverReport({ crewId: null, maneuver: 'torniquete', summary: { title: 'Torniquete' } })
-    expect(fetch.mock.calls[0][0]).toBe('http://localhost:8000/maneuvers/start?language=es')
+    // Sin ?language: la alerta sale en inglés, el idioma común de la tripulación.
+    expect(fetch.mock.calls[0][0]).toBe('http://localhost:8000/maneuvers/start')
     expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ crew_id: 'moises', maneuver: 'rcp' })
     expect(fetch.mock.calls[1][0]).toBe('http://localhost:8000/maneuvers/reports')
     expect(JSON.parse(fetch.mock.calls[1][1].body)).toEqual({ crew_id: null, maneuver: 'torniquete', summary: { title: 'Torniquete' } })

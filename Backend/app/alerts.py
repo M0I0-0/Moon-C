@@ -11,6 +11,10 @@ Kinds of alert:
 An alert stays open until it is resolved; acknowledging it only says someone saw it.
 Alerts live in memory only and never include chat text: a report alert keeps just
 the protocol name.
+
+Alerts about a crew member are in English (``ALERT_LANGUAGE``), the crew's common
+language, whatever language each crew member uses with Moon-C. A Spanish text is
+still available on request (``?language=es``).
 """
 
 from __future__ import annotations
@@ -23,6 +27,8 @@ from datetime import datetime
 from .manual import Manual, format_value
 from .schemas import AlertView, Measurement
 from .storage import now_utc
+
+ALERT_LANGUAGE = "en"
 
 _TEXTS = {
     "en": {
@@ -198,8 +204,8 @@ class AlertBoard:
             return count
 
     # ------------------------------------------------------------------ presentation
-    def message(self, alert: Alert, lang: str) -> str:
-        texts = _TEXTS.get(lang, _TEXTS["en"])
+    def message(self, alert: Alert, lang: str = ALERT_LANGUAGE) -> str:
+        texts = _TEXTS.get(lang, _TEXTS[ALERT_LANGUAGE])
         who = alert.crew_name or texts["unknown"]
         if alert.kind == "report":
             if alert.protocol == "general_emergency" or not self._manual.has_protocol(alert.protocol or ""):
@@ -216,7 +222,7 @@ class AlertBoard:
             who=who, what=name[:1].lower() + name[1:], value=format_value(alert.value, alert.unit)
         )
 
-    def view(self, alert: Alert, lang: str) -> AlertView:
+    def view(self, alert: Alert, lang: str = ALERT_LANGUAGE) -> AlertView:
         return AlertView(
             id=alert.id,
             kind=alert.kind,

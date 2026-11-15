@@ -1,35 +1,33 @@
-import { CREW, SHORT_LABEL, crewById, protocolView, PROTOCOL_FOR_INDICATOR } from '../data/manual'
+import { CREW, crewById, protocolView, PROTOCOL_FOR_INDICATOR, roleLabel } from '../data/manual'
+import { alertReason } from '../lib/alerts'
 import { BackIcon, LockIcon, AlertIcon } from './Icons'
 import VitalsPanel from './VitalsPanel'
-
-const time = (ms) => new Date(ms).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+import { useI18n } from '../i18n'
 
 export function EmergencyDetail({ crewId, member, alerts, accessAt, onBack, onResolve, onSelectVital }) {
+  const { lang, t, time } = useI18n()
   const crew = crewById(crewId)
   const vital = alerts.find((a) => a.kind === 'vital')
-  const p = protocolView(vital ? PROTOCOL_FOR_INDICATOR[vital.indicator] : 'general_emergency')
+  const p = protocolView(vital ? PROTOCOL_FOR_INDICATOR[vital.indicator] : 'general_emergency', lang)
   return (
     <div className="emergency-detail">
       <button className="link-btn" onClick={onBack}>
-        <BackIcon width={16} height={16} /> Tripulación
+        <BackIcon width={16} height={16} /> {t('crew.title')}
       </button>
       <div className="access-note">
         <AlertIcon width={16} height={16} />
-        Acceso de emergencia a los datos de {crew.name} · registrado a las {time(accessAt)}
+        {t('crew.access', { name: crew.name, time: time(accessAt) })}
       </div>
-      <ul className="alert-reasons">
+      {/* Motivos de las alertas: en inglés, como todas las alertas. */}
+      <ul className="alert-reasons" lang="en">
         {alerts.map((a) => (
           <li key={a.id}>
-            {a.kind === 'vital'
-              ? `${SHORT_LABEL[a.indicator]} en rango urgente`
-              : a.kind === 'maneuver'
-                ? `Se abrió la ${a.text}`
-                : `Reporte por voz/texto: ${a.text}`}
+            {alertReason(a)}
             <span>{time(a.createdAt)}</span>
           </li>
         ))}
       </ul>
-      <VitalsPanel member={member} title={crew.name} subtitle={crew.roleLabel} onSelect={onSelectVital} />
+      <VitalsPanel member={member} title={crew.name} subtitle={roleLabel(crew.role, lang)} onSelect={onSelectVital} />
       {p && (
         <div className="protocol">
           <h3>{p.title}</h3>
@@ -42,18 +40,19 @@ export function EmergencyDetail({ crewId, member, alerts, accessAt, onBack, onRe
         </div>
       )}
       <button className="btn btn-ghost btn-block" onClick={() => onResolve(crewId)}>
-        Marcar emergencia como atendida
+        {t('crew.resolve')}
       </button>
     </div>
   )
 }
 
 export default function CrewOverview({ members, activeAlerts, onOpen }) {
+  const { lang, t, time } = useI18n()
   return (
     <div className="crew">
       <div className="panel-head">
-        <h2>Tripulación</h2>
-        <span className="panel-sub">Los datos individuales son privados. Se abren solo en una emergencia.</span>
+        <h2>{t('crew.title')}</h2>
+        <span className="panel-sub">{t('crew.private')}</span>
       </div>
       <ul className="crew-list">
         {CREW.map((c) => {
@@ -64,15 +63,15 @@ export default function CrewOverview({ members, activeAlerts, onOpen }) {
               <span className="avatar">{c.initials}</span>
               <div className="crew-info">
                 <span className="crew-name">{c.name}</span>
-                <span className="crew-role">{c.roleLabel}</span>
+                <span className="crew-role">{roleLabel(c.role, lang)}</span>
               </div>
               {emergency ? (
                 <button className="btn btn-danger btn-sm" onClick={() => onOpen(c.crew_id)}>
-                  Abrir datos
+                  {t('crew.open')}
                 </button>
               ) : (
                 <span className="crew-ok">
-                  <LockIcon width={14} height={14} /> Sin alertas
+                  <LockIcon width={14} height={14} /> {t('crew.noAlerts')}
                 </span>
               )}
             </li>
@@ -80,7 +79,7 @@ export default function CrewOverview({ members, activeAlerts, onOpen }) {
         })}
       </ul>
       <p className="fineprint">
-        Última lectura de pulseras: {time(Math.max(...Object.values(members).map((m) => m.updatedAt)))}
+        {t('crew.lastReading', { time: time(Math.max(...Object.values(members).map((m) => m.updatedAt))) })}
       </p>
     </div>
   )

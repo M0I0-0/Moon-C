@@ -9,8 +9,9 @@ export async function checkBackend() {
   }
 }
 
-export async function askBackend({ message, crewId, sessionId, language }) {
-  return { ...(await api.chat({ message, crewId, sessionId, language })), via: 'backend' }
+/** autoLanguage (cuenta General): el backend contesta en el idioma del mensaje si se nota. */
+export async function askBackend({ message, crewId, sessionId, language, autoLanguage = false }) {
+  return { ...(await api.chat({ message, crewId, sessionId, language, autoLanguage })), via: 'backend' }
 }
 
 // ---------------------------------------------------------------------------
@@ -62,6 +63,25 @@ export function detectEmergency(message) {
   const text = normalize(message)
   if (!text) return null
   return (best(text, EMERGENCY) ?? best(text, EMERGENCY_FALLBACK))?.group ?? null
+}
+
+// Palabras comunes de cada idioma (keywords.json, language_hints).
+const HINTS = Object.entries(keywords.language_hints)
+  .filter(([lang, words]) => !lang.startsWith('_') && Array.isArray(words))
+  .map(([lang, words]) => [lang, new Set(words.map(normalize))])
+const SPANISH_MARKS = /[¿¡ñÑ]/
+
+/**
+ * Idioma en que está escrito un mensaje ('en' | 'es'), o null si no se nota ("ok", "SpO2").
+ * Misma regla que KeywordRouter.detect_language del backend: gana el idioma con más palabras
+ * comunes; ¿, ¡ y ñ cuentan como español; un empate no decide.
+ */
+export function detectLanguage(message) {
+  const words = normalize(message).split(' ').filter(Boolean)
+  const scores = Object.fromEntries(HINTS.map(([lang, set]) => [lang, words.filter((w) => set.has(w)).length]))
+  if (SPANISH_MARKS.test(message)) scores.es += 1
+  const [[winner, top], [, second]] = Object.entries(scores).sort((a, b) => b[1] - a[1])
+  return top > second ? winner : null
 }
 
 const OFFLINE = {

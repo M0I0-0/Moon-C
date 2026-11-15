@@ -1,7 +1,7 @@
 {
   "_comment": "Keyword lists for Moon-C's intent router. Edit freely: no code changes needed (restart the backend to reload).",
   "_matching": "Text and keywords are normalized the same way before matching: lowercase, accents removed, apostrophes removed (can't -> cant), other punctuation replaced by spaces. A keyword matches only as whole words. Categories are checked in strict order: emergency, health, ambiguous, small_talk, then fallback. Keywords of every language are checked for every category, so emergency phrases always work in both languages regardless of the active language.",
-  "version": "0.2.0",
+  "version": "0.3.0",
 
   "emergency": {
     "chest_pain": {
@@ -145,5 +145,45 @@
     "_comment": "Everyday pleasantries removed from an AI reply before it is checked for health or emergency keywords, so 'Good night, sleep well!' is not discarded.",
     "en": ["sleep well", "sleep tight", "sweet dreams", "good night", "good mood", "great mood", "in a good mood"],
     "es": ["duerme bien", "que duermas bien", "que descanses", "dulces suenos", "buen animo", "buen humor", "de buen humor"]
+  },
+
+  "language_hints": {
+    "_comment": "Common words that tell English and Spanish apart, to answer in the language a message is written in (General account) and to check the language of AI replies. Single normalized words only (no accents, no apostrophes). A word must never be in both lists, and words used in both languages (a, me, no, he, has, son, ok, hey, normal, doctor...) stay out. The language with more words wins; ¿, ¡ and ñ count as Spanish; a tie means 'unclear' and the current language is kept. Shared test cases: shared/language_cases.json.",
+    "en": [
+      "the", "and", "or", "but", "if", "of", "to", "in", "on", "at", "for", "with", "from", "about", "into", "by", "through",
+      "is", "are", "was", "were", "be", "been", "being", "am", "do", "does", "did", "dont", "doesnt", "didnt",
+      "have", "had", "can", "cant", "cannot", "could", "couldnt", "will", "wont", "would", "should", "must",
+      "isnt", "arent", "wasnt", "im", "ive", "youre", "its", "it", "this", "that", "these", "those", "there", "here",
+      "what", "whats", "how", "hows", "why", "who", "when", "where", "which",
+      "i", "you", "your", "she", "we", "they", "my", "our", "their", "his", "her", "him", "them", "us",
+      "not", "yes", "yeah", "please", "thanks", "thank", "hello", "hi", "bye", "goodbye", "good", "morning", "afternoon",
+      "evening", "night", "today", "tonight", "tomorrow", "yesterday", "now", "just", "very", "really", "so", "too", "also",
+      "much", "many", "more", "some", "any", "all", "again", "still", "maybe", "sure", "sorry", "fine", "great", "well",
+      "bad", "better", "worse", "lot", "little",
+      "feel", "feeling", "felt", "tired", "sleep", "slept", "sleepy", "pain", "hurts", "hurt", "chest", "head", "breathe",
+      "breathing", "help", "need", "want", "know", "think", "tell", "say", "said", "talk", "see", "look", "measure", "heart",
+      "rate", "blood", "pressure", "oxygen", "temperature", "fever", "sick", "dizzy", "sad", "happy", "stressed", "lonely",
+      "miss", "family", "friend", "crew", "mission", "weird", "guide", "open", "show", "start", "stop", "ready", "going",
+      "doing", "get", "got", "go"
+    ],
+    "es": [
+      "de", "del", "al", "el", "la", "los", "las", "un", "una", "unos", "unas", "lo", "le", "les", "se", "te", "nos",
+      "mi", "mis", "tu", "tus", "su", "sus",
+      "que", "quien", "cual", "cuando", "donde", "como", "cuanto", "cuanta", "cuantos", "porque", "por", "para", "con",
+      "pero", "y", "o", "ni", "en", "es", "esta", "estas", "estoy", "estamos", "estan", "estaba", "estado", "soy", "eres",
+      "somos", "fue", "ser", "estar", "hay", "tengo", "tienes", "tiene", "tenemos", "puedo", "puedes", "puede", "quiero",
+      "quieres", "necesito", "siento", "sientes", "siente",
+      "muy", "mas", "menos", "mucho", "mucha", "muchos", "poco", "poca", "todo", "toda", "todos", "nada", "algo",
+      "alguien", "nadie", "ya", "aun", "todavia", "tambien", "hoy", "ayer", "manana", "ahora", "siempre", "nunca", "aqui",
+      "alli", "ahi",
+      "hola", "gracias", "adios", "buenos", "buenas", "buen", "dia", "dias", "tardes", "noches", "si", "bien", "mejor",
+      "peor", "claro", "verdad", "vale", "oye", "pues", "entonces",
+      "ayuda", "ayudame", "dolor", "duele", "duelen", "pecho", "cabeza", "respirar", "respiro", "dormi", "dormir", "sueno",
+      "cansado", "cansada", "mareado", "mareada", "mareo", "fiebre", "raro", "rara", "triste", "estresado", "estresada",
+      "extrano", "familia", "casa", "amigo", "amiga", "companero", "companera", "tripulacion", "mision", "este", "esto",
+      "eso", "esa", "ese", "otro", "otra", "cada", "hacer", "hago", "hace", "dime", "cuentame", "decir", "hablar",
+      "platicar", "voy", "vamos", "ir", "ver", "mira", "creo", "guia", "abre", "abrir", "medir", "mido", "presion",
+      "temperatura", "oxigeno", "frecuencia", "cardiaca", "animo", "emergencia", "sangrado", "desmayo"
+    ]
   }
 }

@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api'
+import { ALERT_LANGUAGE } from '../lib/alerts'
 import { alertFromBackend, membersFromVitals } from '../lib/vitals'
 
 const POLL_MS = 2500
+const language = ALERT_LANGUAGE // las alertas van siempre en inglés, sea cual sea el idioma de la pantalla
 
 /**
  * Signos vitales y alertas desde el backend (pulseras simuladas): una sola fuente para todas
  * las pantallas. Misma interfaz que useCrewSimulation; `ready` es false si el backend no
  * responde o tiene la simulación apagada, y entonces la app usa la simulación local.
  */
-export function useRemoteCrew(enabled, language = 'es') {
+export function useRemoteCrew(enabled) {
   const [state, setState] = useState({ ready: false, members: {}, alerts: [] })
   const mounted = useRef(true)
 
@@ -33,7 +35,7 @@ export function useRemoteCrew(enabled, language = 'es') {
     } catch {
       if (mounted.current) setState((s) => ({ ...s, ready: false }))
     }
-  }, [language])
+  }, [])
 
   useEffect(() => {
     if (!enabled) return undefined
@@ -56,7 +58,7 @@ export function useRemoteCrew(enabled, language = 'es') {
       await api.ackAlert(id, language).catch(() => {})
       refresh()
     },
-    [language, refresh],
+    [refresh],
   )
 
   // "Emergencia atendida": cierra las alertas y termina la emergencia simulada (crewId vacío = todos).

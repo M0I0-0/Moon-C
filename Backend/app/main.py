@@ -28,7 +28,7 @@ from fastapi.responses import JSONResponse
 
 from . import __version__
 from .ai import OllamaClient, SmallTalk
-from .alerts import AlertBoard, AlertNotFound
+from .alerts import ALERT_LANGUAGE, AlertBoard, AlertNotFound
 from .bracelets import SimulatedBracelets, UnknownCrew, UnknownScenario
 from .chat import ChatService
 from .config import Settings, get_settings
@@ -103,7 +103,11 @@ TAGS = [
     {"name": "crew", "description": "Simulated bracelet identification."},
     {"name": "manual", "description": "Health manual: indicators, ranges and protocols."},
     {"name": "measurements", "description": "Readings, compared with the manual's reference ranges."},
-    {"name": "alerts", "description": "On-board alerts: urgent readings, emergencies reported in the chat, maneuvers."},
+    {
+        "name": "alerts",
+        "description": "On-board alerts (in English, the crew's common language): urgent readings, emergencies "
+        "reported in the chat, maneuvers.",
+    },
     {"name": "vitals", "description": "Live vital signs from the simulated bracelets."},
     {"name": "simulation", "description": "Demo controls: simulated emergencies."},
     {"name": "voice", "description": "Moon-C's own offline voice (Spanish)."},
@@ -209,6 +213,9 @@ def get_services(request: Request) -> Services:
 
 ServicesDep = Annotated[Services, Depends(get_services)]
 LanguageQuery = Annotated[Language, Query(description="Response language.")]
+AlertLanguageQuery = Annotated[
+    Language, Query(description="Alert language. English by default: alerts use the crew's common language.")
+]
 
 api = APIRouter()
 
@@ -239,6 +246,7 @@ async def get_status(services: ServicesDep) -> StatusResponse:
     description=(
         "Routes the message by keywords: emergency → protocol, health → manual, ambiguous → clarifying "
         "question, small_talk → local AI (canned reply if unavailable), otherwise fallback. "
+        "With `auto_language`, Moon-C replies in the language the message is written in when it is clear. "
         "Messages are kept in memory only (max 10 turns, 10 min) and never stored or logged."
     ),
 )
@@ -347,7 +355,7 @@ def create_measurement(body: MeasurementIn, services: ServicesDep) -> Measuremen
         language=lang,
         message=describe(services.manual, evaluation, lang, needs_confirmation),
         guidance=_guidance(services, evaluation.indicator, evaluation.status, lang, crew),
-        alert=services.alerts.view(alert, lang) if alert else None,
+        alert=services.alerts.view(alert) if alert else None,  # alerts are in English (ALERT_LANGUAGE)
         source=services.manual.indicator_source(evaluation.indicator),
     )
 
@@ -394,7 +402,7 @@ def assign_measurement(measurement_id: str, body: AssignRequest, services: Servi
 )
 def list_alerts(
     services: ServicesDep,
-    language: LanguageQuery = "en",
+    language: AlertLanguageQuery = ALERT_LANGUAGE,
     include_acknowledged: bool = False,
     include_resolved: bool = False,
 ) -> list[AlertView]:
@@ -405,7 +413,7 @@ def list_alerts(
 @api.post(
     "/alerts/{alert_id}/ack", response_model=AlertView, responses=NOT_FOUND, tags=["alerts"], summary="Acknowledge"
 )
-def acknowledge_alert(alert_id: str, services: ServicesDep, language: LanguageQuery = "en") -> AlertView:
+def acknowledge_alert(alert_id: str, services: ServicesDep, language: AlertLanguageQuery = ALERT_LANGUAGE) -> AlertView:
     try:
         alert = services.alerts.acknowledge(alert_id)
     except AlertNotFound as exc:
@@ -416,7 +424,7 @@ def acknowledge_alert(alert_id: str, services: ServicesDep, language: LanguageQu
 @api.post(
     "/alerts/{alert_id}/resolve", response_model=AlertView, responses=NOT_FOUND, tags=["alerts"], summary="Resolve"
 )
-def resolve_alert(alert_id: str, services: ServicesDep, language: LanguageQuery = "en") -> AlertView:
+def resolve_alert(alert_id: str, services: ServicesDep, language: AlertLanguageQuery = ALERT_LANGUAGE) -> AlertView:
     try:
         alert = services.alerts.resolve(alert_id)
     except AlertNotFound as exc:
@@ -432,7 +440,7 @@ def resolve_alert(alert_id: str, services: ServicesDep, language: LanguageQuery 
     description="Omit crew_id to resolve every open alert. Returns the alerts that were closed.",
 )
 def resolve_crew_alerts(
-    body: AlertResolveRequest, services: ServicesDep, language: LanguageQuery = "en"
+    body: AlertResolveRequest, services: ServicesDep, language: AlertLanguageQuery = ALERT_LANGUAGE
 ) -> list[AlertView]:
     return [services.alerts.view(a, language) for a in services.alerts.resolve_crew(body.crew_id)]
 
@@ -539,7 +547,9 @@ def text_to_speech(body: SpeechRequest, services: ServicesDep) -> Response:
     summary="A guided maneuver was opened: alert the crew and the medical officer",
     description="Reuses the open alert if the same guide is reopened. An unknown crew_id never blocks the alert.",
 )
-def start_maneuver(body: ManeuverStartRequest, services: ServicesDep, language: LanguageQuery = "en") -> AlertView:
+def start_maneuver(
+    body: ManeuverStartRequest, services: ServicesDep, language: AlertLanguageQuery = ALERT_LANGUAGE
+) -> AlertView:
     member = services.crew.get(body.crew_id)
     alert = services.alerts.maneuver(member.crew_id if member else None, member.name if member else None, body.maneuver)
     return services.alerts.view(alert, language)

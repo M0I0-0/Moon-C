@@ -1,0 +1,32 @@
+{
+  "_comment": "Shared test cases for language detection (keywords.json, language_hints). The backend (Backend/app/intent.py, KeywordRouter.detect_language) and the front-end (front-end/src/lib/assistant.js, detectLanguage) must agree on every case. Both test suites read this file. language null = unclear: Moon-C keeps the current language.",
+  "cases": [
+    {"text": "What is a normal heart rate?", "language": "en"},
+    {"text": "Hi Moon-C, how are you today?", "language": "en"},
+    {"text": "I'm very stressed", "language": "en"},
+    {"text": "I can't breathe", "language": "en"},
+    {"text": "Thanks!", "language": "en"},
+    {"text": "Good morning", "language": "en"},
+    {"text": "chest pain", "language": "en"},
+    {"text": "Is Rubén ok?", "language": "en"},
+    {"text": "Guide me through CPR", "language": "en"},
+    {"text": "Hola, how are you?", "language": "en"},
+    {"text": "¿Cuál es mi pulso normal?", "language": "es"},
+    {"text": "Hola Moon-C, ¿cómo estás hoy?", "language": "es"},
+    {"text": "Estoy muy estresado", "language": "es"},
+    {"text": "No puedo respirar", "language": "es"},
+    {"text": "Gracias", "language": "es"},
+    {"text": "Me siento raro", "language": "es"},
+    {"text": "Me duele el pecho", "language": "es"},
+    {"text": "Ya no quiero vivir", "language": "es"},
+    {"text": "Mareo", "language": "es"},
+    {"text": "¿Sí?", "language": "es"},
+    {"text": "Buenas noches, Moon-C", "language": "es"},
+    {"text": "ok", "language": null},
+    {"text": "SpO2", "language": null},
+    {"text": "Moon-C", "language": null},
+    {"text": "jaja", "language": null},
+    {"text": "ok gracias thanks", "language": null},
+    {"text": "123", "language": null}
+  ]
+}

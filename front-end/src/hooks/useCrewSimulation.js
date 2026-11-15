@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useReducer } from 'react'
-import { CREW, LIVE_INDICATORS, UNIT, classify } from '../data/manual'
+import { CREW, LIVE_INDICATORS, classify, manualUnit } from '../data/manual'
 
 // Datos simulados: no hay pulseras reales, así que cada tripulante tiene una
 // línea base y los signos vitales "en vivo" varían un poco cada pocos segundos.
@@ -11,12 +11,13 @@ const BASELINE = {
 }
 
 // Mismos escenarios (y claves) que Backend/app/bracelets.py. Nombres neutros: Moon-C no diagnostica.
+// El nombre de cada uno está en src/i18n/strings.js (scenario.<id>).
 export const EMERGENCY_TYPES = {
-  low_oxygen: { label: 'Baja saturación de oxígeno', target: { spo2: 86, heart_rate: 118, respiratory_rate: 32 } },
-  high_heart_rate: { label: 'Frecuencia cardiaca muy alta', target: { heart_rate: 138, blood_pressure: 150 } },
-  high_temperature: { label: 'Temperatura alta', target: { body_temperature: 39.6, heart_rate: 104, respiratory_rate: 22 } },
-  high_blood_pressure: { label: 'Presión arterial muy alta', target: { blood_pressure: 188, heart_rate: 96 } },
-  solar_storm: { label: 'Tormenta solar (radiación)', target: { radiation: 1500 } },
+  low_oxygen: { target: { spo2: 86, heart_rate: 118, respiratory_rate: 32 } },
+  high_heart_rate: { target: { heart_rate: 138, blood_pressure: 150 } },
+  high_temperature: { target: { body_temperature: 39.6, heart_rate: 104, respiratory_rate: 22 } },
+  high_blood_pressure: { target: { blood_pressure: 188, heart_rate: 96 } },
+  solar_storm: { target: { radiation: 1500 } },
 }
 
 // Ruido por lectura, límites físicos y decimales de cada indicador en vivo.
@@ -92,7 +93,7 @@ function reducer(state, action) {
               crewId: id,
               indicator: ind,
               value: values[ind],
-              unit: UNIT[ind],
+              unit: manualUnit(ind), // unidad del manual (bpm, breaths/min…): las alertas van en inglés
               createdAt: Date.now(),
               acknowledged: false,
               resolved: false,

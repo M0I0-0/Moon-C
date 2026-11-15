@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { MenuIcon, SpeakerIcon, CaptionIcon } from './Icons'
+import { LANGUAGES, useI18n } from '../i18n'
 
 function Clock() {
   const [now, setNow] = useState(() => new Date())
@@ -10,53 +11,100 @@ function Clock() {
   return <span className="clock">UTC {now.toISOString().slice(11, 19)}</span>
 }
 
-export default function TopBar({ env, account, backendOnline, earth, audioAvailable, showSubs, onMenu, mobilePanel, setMobilePanel, isGeneral }) {
+/**
+ * Idioma de la pantalla. La cuenta General lo cambia aquí (o sola, al escribirle en el otro idioma);
+ * cada tripulante usa el de su perfil, así que solo se muestra.
+ */
+export function LanguageSwitch({ account, onChange, className = 'lang-switch' }) {
+  const { lang, t } = useI18n()
+  if (account) {
+    return (
+      <span className="pill" title={t('topbar.languageCrew', { name: account.name })}>
+        {lang.toUpperCase()}
+      </span>
+    )
+  }
+  return (
+    <span className={className} role="radiogroup" aria-label={t('topbar.language')} title={t('topbar.languageGeneral')}>
+      {LANGUAGES.map((l) => (
+        <button
+          key={l}
+          type="button"
+          role="radio"
+          aria-checked={lang === l}
+          className={lang === l ? 'selected' : ''}
+          onClick={() => onChange(l)}
+        >
+          {l.toUpperCase()}
+        </button>
+      ))}
+    </span>
+  )
+}
+
+export default function TopBar({
+  env,
+  account,
+  backendOnline,
+  earth,
+  audioAvailable,
+  showSubs,
+  onMenu,
+  mobilePanel,
+  setMobilePanel,
+  isGeneral,
+  onLanguage,
+}) {
+  const { t } = useI18n()
   const toSend = earth ? earth.pending + earth.pending_reports : 0
   const togglePanel = (p) => setMobilePanel(mobilePanel === p ? null : p)
   return (
     <header className="topbar">
-      <button className="menu-btn" onClick={onMenu} aria-label="Abrir menú">
+      <button className="menu-btn" onClick={onMenu} aria-label={t('topbar.openMenu')}>
         <MenuIcon />
-        <span>Menú</span>
+        <span>{t('topbar.menu')}</span>
       </button>
       <div className="brand">
         <span className="brand-name">Moon-C</span>
         <span className="brand-place">
-          {env.name} · {env.place}
+          {t(env.nameKey)} · {t(env.placeKey)}
         </span>
       </div>
       <div className="topbar-right">
         <span className="pill pill-account">
           <span className="avatar avatar-xs">{account ? account.initials : 'GE'}</span>
-          {account ? account.name : 'General'}
+          {account ? account.name : t('account.general')}
         </span>
-        <span
-          className={`pill ${backendOnline ? 'pill-ok' : ''}`}
-          title={backendOnline ? 'Conectado al backend de Moon-C' : 'Backend no disponible: el chat solo atiende emergencias'}
-        >
+        <LanguageSwitch account={account} onChange={onLanguage} />
+        <span className={`pill ${backendOnline ? 'pill-ok' : ''}`} title={t(backendOnline ? 'topbar.backendOn' : 'topbar.backendOff')}>
           <span className="dot" />
-          {backendOnline ? 'Backend' : 'Sin enlace'}
+          {t(backendOnline ? 'topbar.backend' : 'topbar.noLink')}
         </span>
         {earth && (
           <span
             className={`pill ${earth.earth_link === 'online' ? 'pill-ok' : ''}`}
-            title={`Enlace con la Tierra (simulado): ${earth.earth_link === 'online' ? 'en línea' : 'sin conexión'}. Por enviar: ${earth.pending} lecturas y ${earth.pending_reports} reportes.`}
+            title={t('topbar.earthTitle', {
+              state: t(earth.earth_link === 'online' ? 'topbar.online' : 'topbar.offline'),
+              readings: earth.pending,
+              reports: earth.pending_reports,
+            })}
           >
-            Tierra{toSend > 0 ? ` · ${toSend} por enviar` : ''}
+            {t('topbar.earth')}
+            {toSend > 0 ? t('topbar.toSend', { count: toSend }) : ''}
           </span>
         )}
-        <span className="pill" title={audioAvailable ? 'Voz activa' : 'Sin audio: se muestran subtítulos'}>
+        <span className="pill" title={t(audioAvailable ? 'topbar.voiceOn' : 'topbar.noAudio')}>
           {audioAvailable ? <SpeakerIcon width={15} height={15} /> : <CaptionIcon width={15} height={15} />}
-          {audioAvailable ? (showSubs ? 'Voz + subt.' : 'Voz') : 'Subtítulos'}
+          {t(audioAvailable ? (showSubs ? 'topbar.voiceSubs' : 'topbar.voice') : 'topbar.subtitles')}
         </span>
         <Clock />
       </div>
       <div className="mobile-tabs">
         <button className={mobilePanel === 'left' ? 'active' : ''} onClick={() => togglePanel('left')}>
-          Anuncios
+          {t('topbar.announcements')}
         </button>
         <button className={mobilePanel === 'right' ? 'active' : ''} onClick={() => togglePanel('right')}>
-          {isGeneral ? 'Tripulación' : 'Mis signos'}
+          {t(isGeneral ? 'topbar.crew' : 'topbar.myVitals')}
         </button>
       </div>
     </header>

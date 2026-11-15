@@ -26,9 +26,21 @@ function dispose(root) {
  * y cara con shader. La cabeza sigue a la cámara encima de la animación.
  * Si recibe `maneuver` ({ id, entorno, nonce }), monta el maniquí de esa maniobra a su lado,
  * lleva la cámara hacia él y reporta el avance con `ctrlRef` (controlador) y `onEvent`.
+ * Los pasos van en `language` ('es' | 'en'); si cambia a media guía, solo cambian los textos.
  * Mientras carga, o si falla (sin WebGL2, archivo faltante), muestra `fallback`.
  */
-export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallback, maneuver, ctrlRef, onEvent, speaking = false, mouthRef }) {
+export default function MoonCModel({
+  mood = 'atenta',
+  height = 1.55,
+  root,
+  fallback,
+  maneuver,
+  ctrlRef,
+  onEvent,
+  speaking = false,
+  mouthRef,
+  language = 'es',
+}) {
   const [moon, setMoon] = useState(null)
   const [failed, setFailed] = useState(false)
   const aim = useRef({})
@@ -37,6 +49,7 @@ export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallb
   const moodRef = useRef(mood)
   const eventRef = useRef(onEvent)
   const speakingRef = useRef(speaking)
+  const languageRef = useRef(language)
   const { controls } = useThree()
 
   useEffect(() => {
@@ -44,6 +57,13 @@ export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallb
     eventRef.current = onEvent
     speakingRef.current = speaking
   })
+
+  // Cambio de idioma a media guía: el controlador vuelve a mandar el paso actual ya traducido.
+  useEffect(() => {
+    languageRef.current = language
+    const ctrl = ctrlRef?.current
+    if (ctrl && ctrl.idioma !== language) ctrl.idioma = language
+  }, [language, ctrlRef])
 
   useEffect(() => {
     let alive = true
@@ -105,6 +125,7 @@ export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallb
       moon,
       archivos: MANEUVER_FILES,
       entorno: mEnv,
+      idioma: languageRef.current,
       onPaso: (i, paso, pasos) => emit('onPaso', i, paso, pasos),
       onConteo: (n, total) => emit('onConteo', n, total),
       onTiempo: (s) => emit('onTiempo', s),
@@ -117,6 +138,7 @@ export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallb
         }
         ctrl = m
         if (ctrlRef) ctrlRef.current = m
+        m.idioma = languageRef.current // por si el idioma cambió mientras cargaba el maniquí
         m.iniciar()
         emit('onReady', m)
       })

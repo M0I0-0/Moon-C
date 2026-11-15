@@ -5,6 +5,7 @@ Start the backend first (uvicorn app.main:app --reload --port 8000), then:
     python scripts/chat.py                  # English, no crew member
     python scripts/chat.py --crew moises    # as Moisés (replies in Spanish)
     python scripts/chat.py --lang es        # force Spanish
+    python scripts/chat.py --auto           # like the General account: replies in the language you write in
 
 Commands: /reset clears the conversation, /quit exits.
 Nothing is saved: the backend keeps the conversation in memory only.
@@ -25,6 +26,9 @@ def main() -> None:
     parser.add_argument("--url", default="http://localhost:8000", help="backend URL")
     parser.add_argument("--crew", help="crew_id from shared/crew.json, e.g. moises, ana, ruben, valentina")
     parser.add_argument("--lang", choices=["en", "es"], help="reply language")
+    parser.add_argument(
+        "--auto", action="store_true", help="reply in the language each message is written in (General account)"
+    )
     args = parser.parse_args()
 
     try:
@@ -36,6 +40,7 @@ def main() -> None:
     print("Type a message. /reset clears the conversation, /quit exits.\n")
 
     session_id = f"cli-{uuid.uuid4().hex[:8]}"
+    language = args.lang
     with httpx.Client(base_url=args.url, timeout=90) as client:
         while True:
             try:
@@ -55,8 +60,10 @@ def main() -> None:
             body = {"session_id": session_id, "message": message}
             if args.crew:
                 body["crew_id"] = args.crew
-            if args.lang:
-                body["language"] = args.lang
+            if language:
+                body["language"] = language
+            if args.auto:
+                body["auto_language"] = True
             start = time.perf_counter()
             res = client.post("/chat", json=body)
             elapsed = time.perf_counter() - start
@@ -65,6 +72,8 @@ def main() -> None:
                 continue
 
             data = res.json()
+            if args.auto:
+                language = data["language"]  # like the front-end: the next unclear message keeps this language
             print(f"Moon-C > {data['reply']}")
             details = [data["category"], data["language"], "AI" if data["ai_used"] else "no AI", f"{elapsed:.1f}s"]
             if data.get("protocol"):

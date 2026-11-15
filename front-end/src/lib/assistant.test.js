@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import cases from '@shared/router_cases.json'
-import { askLocal, detectEmergency, normalize } from './assistant'
+import languageCases from '@shared/language_cases.json'
+import { askLocal, detectEmergency, detectLanguage, normalize } from './assistant'
+
+describe('detectLanguage coincide con KeywordRouter.detect_language del backend', () => {
+  it.each(languageCases.cases)('"$text" -> $language', ({ text, language }) => {
+    expect(detectLanguage(text)).toBe(language)
+  })
+})
 
 describe('detectEmergency (sin enlace) coincide con el router del backend', () => {
   it.each(cases.emergency)('"$text" -> $protocol', ({ text, protocol }) => {

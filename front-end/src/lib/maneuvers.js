@@ -1,13 +1,26 @@
 // Maniobras guiadas de Model3D (RCP, torniquete, atragantamiento): archivos, atajos y detección de intención.
-// La lógica de pasos vive en Model3D/moonc/maniobras.js; aquí solo se conecta con la app.
-import { MANIOBRAS, ENTORNOS, FUENTES } from '@model3d/moonc/maniobras.js'
+// La lógica y los textos (español e inglés) viven en Model3D/moonc/maniobras.js; aquí solo se conecta con la app.
+import {
+  MANIOBRAS,
+  ENTORNOS,
+  FUENTES,
+  EN as MANEUVERS_EN,
+  datosEntorno,
+  textoFuente,
+  tituloManiobra,
+} from '@model3d/moonc/maniobras.js'
 import rcpUrl from '@model3d/moonc/maniqui_rcp.glb?url'
 import brazoUrl from '@model3d/moonc/maniqui_brazo.glb?url'
 import torsoUrl from '@model3d/moonc/maniqui_torso.glb?url'
 import pinoUrl from '@model3d/moonc/metodo_pino.jpg?url'
 import heimlichUrl from '@model3d/moonc/heimlich.jpg?url'
 
-export { MANIOBRAS, ENTORNOS, FUENTES }
+export { MANIOBRAS, ENTORNOS, FUENTES, MANEUVERS_EN }
+
+/** Título de la maniobra, nombre de un entorno y fuente citada, en el idioma de la pantalla. */
+export const maneuverTitle = (id, lang) => tituloManiobra(id, lang)
+export const environmentName = (key, lang) => datosEntorno(key, lang)?.nombre ?? key
+export const sourceText = (key, lang) => textoFuente(key, lang)
 
 // Los .glb se sirven con la URL que genera Vite (maniobras.js los pediría a `base + nombre`).
 export const MANEUVER_FILES = {
@@ -20,11 +33,8 @@ export const MANEUVER_IMAGES = { 'metodo_pino.jpg': pinoUrl, 'heimlich.jpg': hei
 // Ambiente de la app -> entorno de maniobras.
 export const ENV_TO_MANEUVER = { iss: 'iss', moon: 'luna', mars: 'marte', home: 'tierra' }
 
-export const MANEUVER_LIST = [
-  { id: 'rcp', label: 'RCP', hint: 'Paro cardiaco' },
-  { id: 'torniquete', label: 'Torniquete', hint: 'Sangrado grave en brazo o pierna' },
-  { id: 'atragantamiento', label: 'Atragantamiento', hint: 'Adulto consciente' },
-]
+// Nombre y descripción de cada una en src/i18n/strings.js (maneuver.<id>.label / .hint).
+export const MANEUVER_LIST = ['rcp', 'torniquete', 'atragantamiento']
 
 // Cámara por maniobra, en el espacio del modelo de Moon-C (copiado de Model3D/moonc/moonc-escena.js).
 // [posición, objetivo]
@@ -35,13 +45,13 @@ export const MANEUVER_CAMS = {
 }
 
 const EXPLICIT = [
-  ['rcp', /\b(rcp|reanimacion|reanimar|resucitacion|masaje cardiaco)\b/],
-  ['torniquete', /\b(torniquete)\b/],
-  ['atragantamiento', /\b(atragant\w*|heimlich)\b/],
+  ['rcp', /\b(rcp|reanimacion|reanimar|resucitacion|masaje cardiaco|cpr|resuscitation|resuscitate)\b/],
+  ['torniquete', /\b(torniquete|tourniquet)\b/],
+  ['atragantamiento', /\b(atragant\w*|heimlich|choking)\b/],
 ]
 const norm = (t) => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
-/** El usuario pide la guía por nombre ("guíame con la RCP"). */
+/** El usuario pide la guía por nombre ("guíame con la RCP", "guide me through CPR"). */
 export function explicitManeuver(message) {
   const t = norm(message)
   return EXPLICIT.find(([, re]) => re.test(t))?.[0] ?? null

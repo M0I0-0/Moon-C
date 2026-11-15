@@ -1,18 +1,18 @@
 import { useState } from 'react'
 import { api } from '../lib/api'
-
-const time = (iso) => new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+import { useI18n } from '../i18n'
 
 /** Cuenta General: enlace con la Tierra (simulado), exportar datos y borrado por privacidad. */
 export default function DataSection({ online, sync, onChanged }) {
+  const { t, time } = useI18n()
   const [message, setMessage] = useState('')
 
-  if (!online) return <p className="fineprint">Sin enlace con el backend.</p>
+  if (!online) return <p className="fineprint">{t('data.noLink')}</p>
 
   const simulate = async () => {
     try {
       const r = await api.syncSimulate()
-      setMessage(`Contacto con Tierra: se enviaron ${r.synced_count} lecturas y ${r.synced_reports} reportes.`)
+      setMessage(t('data.synced', { readings: r.synced_count, reports: r.synced_reports }))
       onChanged?.()
     } catch (err) {
       setMessage(err.message)
@@ -20,14 +20,11 @@ export default function DataSection({ online, sync, onChanged }) {
   }
 
   const wipe = async () => {
-    const ok = window.confirm(
-      '¿Borrar todas las lecturas, reportes de maniobras y registros de acceso? Los anuncios se conservan. No se puede deshacer.',
-    )
-    if (!ok) return
+    if (!window.confirm(t('data.confirmWipe'))) return
     try {
       const r = await api.deleteAllData()
       setMessage(
-        `Borrado: ${r.measurements_deleted} lecturas, ${r.reports_deleted} reportes y ${r.access_log_deleted} registros de acceso.`,
+        t('data.wiped', { readings: r.measurements_deleted, reports: r.reports_deleted, access: r.access_log_deleted }),
       )
       onChanged?.()
     } catch (err) {
@@ -39,27 +36,30 @@ export default function DataSection({ online, sync, onChanged }) {
     <>
       {sync && (
         <p className="fineprint">
-          Enlace {sync.earth_link === 'online' ? 'en línea' : 'sin conexión'} · por enviar: {sync.pending} lecturas y{' '}
-          {sync.pending_reports} reportes
-          {sync.awaiting_assignment ? ` · ${sync.awaiting_assignment} sin asignar` : ''}
-          {sync.last_sync ? ` · último contacto ${time(sync.last_sync)}` : ''}
+          {t('data.link', {
+            state: t(sync.earth_link === 'online' ? 'topbar.online' : 'topbar.offline'),
+            readings: sync.pending,
+            reports: sync.pending_reports,
+          })}
+          {sync.awaiting_assignment ? t('data.unassigned', { count: sync.awaiting_assignment }) : ''}
+          {sync.last_sync ? t('data.lastSync', { time: time(sync.last_sync) }) : ''}
         </p>
       )}
       <div className="sim-row">
         <button className="btn btn-ghost btn-sm" onClick={simulate}>
-          Simular contacto con Tierra
+          {t('data.simulate')}
         </button>
       </div>
       <div className="sim-row">
         <a className="btn btn-ghost btn-sm" href={api.exportUrl('json')} download>
-          Exportar JSON
+          {t('data.exportJson')}
         </a>
         <a className="btn btn-ghost btn-sm" href={api.exportUrl('csv')} download>
-          Exportar CSV
+          {t('data.exportCsv')}
         </a>
       </div>
       <button className="btn btn-danger btn-sm" onClick={wipe}>
-        Borrar todos los datos
+        {t('data.wipe')}
       </button>
       {message && (
         <p className="fineprint" role="status">

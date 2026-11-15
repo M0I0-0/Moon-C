@@ -52,9 +52,10 @@ def test_urgent_reading_creates_alert(client):
     data = res.json()
     assert data["status"] == "urgent"
     assert data["needs_confirmation"] is False
-    assert data["language"] == "es"  # Moisés prefers Spanish
-    assert data["alert"]["message"] == "Alerta: Moisés, temperatura corporal 39.4 °C"
+    assert data["language"] == "es"  # Moisés prefers Spanish: the reading's message and guidance...
     assert data["guidance"] and "oficial médico" in " ".join(data["guidance"])
+    # ...but alerts about a crew member are always in English, the crew's common language.
+    assert data["alert"]["message"] == "Alert: Moisés, body temperature 39.4 °C"
 
     alerts = client.get("/alerts").json()
     assert [a["message"] for a in alerts] == ["Alert: Moisés, body temperature 39.4 °C"]

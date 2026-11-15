@@ -82,6 +82,13 @@ ul, ol { list-style: none; }
 .pill-account { color: var(--text); padding-left: 4px; }
 .pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--warn); }
 .pill-ok .dot { background: var(--ok); }
+.lang-switch {
+  display: inline-flex; height: 30px; border: 1px solid var(--line); border-radius: 999px; overflow: hidden;
+  background: var(--panel); backdrop-filter: blur(12px);
+}
+.lang-switch button { padding: 0 10px; font-size: 12px; color: var(--muted); }
+.lang-switch button + button { border-left: 1px solid var(--line); }
+.lang-switch .selected { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
 .clock { font-family: var(--mono); font-size: 12px; color: var(--muted); padding: 0 4px; text-shadow: 0 1px 4px #000; }
 .mobile-tabs { display: none; }
 
@@ -252,6 +259,7 @@ ul, ol { list-style: none; }
 .segmented button { padding: 7px 0; font-size: 13px; color: var(--muted); }
 .segmented button + button { border-left: 1px solid var(--line-strong); }
 .segmented .selected { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.segmented--2 { grid-template-columns: repeat(2, 1fr); margin-bottom: 8px; }
 .sim-row { display: flex; gap: 8px; margin-bottom: 8px; }
 .sim-row select { flex: 1; height: 32px; border-radius: 6px; background: rgba(255,255,255,.05); border: 1px solid var(--line-strong); padding: 0 6px; }
 .sim-row select option { background: var(--panel-solid); }

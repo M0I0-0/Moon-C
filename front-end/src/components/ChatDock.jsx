@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { MicIcon, SendIcon, ChevronIcon } from './Icons'
-import { MANIOBRAS } from '../lib/maneuvers'
-
-const time = (ms) => new Date(ms).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+import { maneuverTitle } from '../lib/maneuvers'
+import { useI18n } from '../i18n'
 
 function Entry({ e, onManeuver }) {
-  if (e.who === 'system') return <li className="log-system">{e.text}</li>
+  const { lang, t, time } = useI18n()
+  // Los avisos del sistema se traducen al cambiar de idioma; los mensajes quedan en el idioma en que se escribieron.
+  if (e.who === 'system') return <li className="log-system">{e.key ? t(e.key, e.vars) : e.text}</li>
   const steps = e.protocol?.steps
   const intro = steps && e.protocol.title ? e.text.split(e.protocol.title)[0].trim() : null
   return (
@@ -13,7 +14,7 @@ function Entry({ e, onManeuver }) {
       <div className="log-meta">
         <span className="log-name">{e.name}</span>
         <span>{time(e.at)}</span>
-        {e.via === 'local' && <span className="log-via">sin enlace</span>}
+        {e.via === 'local' && <span className="log-via">{t('chat.noLink')}</span>}
       </div>
       {steps ? (
         <div className="log-text">
@@ -30,7 +31,7 @@ function Entry({ e, onManeuver }) {
       )}
       {e.maneuver && onManeuver && (
         <button className="chip-btn maneuver-open" onClick={() => onManeuver(e.maneuver)}>
-          Abrir guía 3D: {MANIOBRAS[e.maneuver].titulo}
+          {t('chat.openGuide', { title: maneuverTitle(e.maneuver, lang) })}
         </button>
       )}
     </li>
@@ -38,6 +39,7 @@ function Entry({ e, onManeuver }) {
 }
 
 export default function ChatDock({ log, suggestions, busy, onSend, onManeuver, mic, placeholder }) {
+  const { t } = useI18n()
   const [text, setText] = useState('')
   const [open, setOpen] = useState(true)
   const listRef = useRef(null)
@@ -55,18 +57,18 @@ export default function ChatDock({ log, suggestions, busy, onSend, onManeuver, m
   }
 
   return (
-    <section className="dock" aria-label="Conversación con Moon-C">
+    <section className="dock" aria-label={t('chat.aria')}>
       <button className="dock-toggle" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         <ChevronIcon width={14} height={14} className={open ? 'rot-90' : ''} />
-        Bitácora {log.length > 0 && <span className="count">{log.filter((l) => l.who !== 'system').length}</span>}
+        {t('chat.log')} {log.length > 0 && <span className="count">{log.filter((l) => l.who !== 'system').length}</span>}
       </button>
       {open && (
         <ol className="log" ref={listRef}>
-          {log.length === 0 && <li className="log-system">Sin mensajes todavía.</li>}
+          {log.length === 0 && <li className="log-system">{t('chat.empty')}</li>}
           {log.map((e) => (
             <Entry key={e.id} e={e} onManeuver={onManeuver} />
           ))}
-          {busy && <li className="log-system">Moon-C está respondiendo…</li>}
+          {busy && <li className="log-system">{t('chat.busy')}</li>}
         </ol>
       )}
       {suggestions.length > 0 && (
@@ -85,12 +87,8 @@ export default function ChatDock({ log, suggestions, busy, onSend, onManeuver, m
           onClick={mic.listening ? mic.stop : mic.start}
           disabled={!mic.supported}
           aria-pressed={mic.listening}
-          aria-label={mic.listening ? 'Detener micrófono' : 'Hablar'}
-          title={
-            mic.supported
-              ? 'Hablar (el dictado del navegador usa internet y envía el audio a ese servicio)'
-              : 'Este navegador no permite dictado. Usa Chrome o Edge, o escribe.'
-          }
+          aria-label={t(mic.listening ? 'chat.micStop' : 'chat.micStart')}
+          title={t(mic.supported ? 'chat.micTitle' : 'chat.micUnsupported')}
         >
           <MicIcon />
         </button>
@@ -98,16 +96,16 @@ export default function ChatDock({ log, suggestions, busy, onSend, onManeuver, m
           ref={inputRef}
           value={mic.listening ? mic.interim || text : text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={mic.listening ? 'Escuchando…' : placeholder}
-          aria-label="Mensaje"
+          placeholder={mic.listening ? t('chat.listening') : placeholder}
+          aria-label={t('chat.message')}
           maxLength={2000}
         />
-        <button type="submit" className="send" disabled={!text.trim() || busy} aria-label="Enviar">
+        <button type="submit" className="send" disabled={!text.trim() || busy} aria-label={t('chat.send')}>
           <SendIcon />
         </button>
       </form>
       {(mic.error || !mic.supported) && (
-        <p className="composer-note">{mic.error || 'Dictado no disponible en este navegador: puedes escribir.'}</p>
+        <p className="composer-note">{mic.error ? t(`mic.error.${mic.error}`) : t('chat.micUnavailable')}</p>
       )}
     </section>
   )

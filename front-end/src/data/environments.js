@@ -1,9 +1,8 @@
-// La app usa un solo ambiente: la sala (modo hogar).
+// La app usa un solo ambiente: la sala (modo hogar). Nombre y lugar: src/i18n/strings.js (env.home.*).
 export const ENVIRONMENTS = {
   home: {
     id: 'home',
-    name: 'Casa',
-    place: 'Sala · modo hogar',
-    description: 'Una sala cálida para platicar con calma.',
+    nameKey: 'env.home.name',
+    placeKey: 'env.home.place',
   },
 }

@@ -15,6 +15,9 @@ Classifies a message in this strict order:
 All keywords live in shared/keywords.json. Matching is deterministic and
 offline: the text and the keywords are normalized the same way, keywords match
 whole words only, and the earliest match wins (ties go to the longest keyword).
+
+The router also tells which language a message is written in (``detect_language``),
+with the common words listed in keywords.json (``language_hints``).
 """
 
 from __future__ import annotations
@@ -26,10 +29,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .schemas import INDICATORS, Category
+from .schemas import INDICATORS, LANGUAGES, Category, Language
 
 _APOSTROPHES = re.compile(r"['’‘`´ʼ]")
 _NON_WORD = re.compile(r"[^\w\s]|_")
+_SPANISH_MARKS = re.compile(r"[¿¡ñÑ]")
 
 
 def normalize(text: str) -> str:
@@ -114,6 +118,7 @@ class KeywordRouter:
             ]
             self._allow = sorted(_phrases(data.get("post_filter_allow", {})), key=len, reverse=True)
             self._block = [("label", kw) for kw in _phrases(data.get("post_filter_block", {}))]
+            self._hints = self._language_hints(data.get("language_hints", {}))
         except (KeyError, AttributeError, TypeError) as exc:
             raise KeywordsError(f"keywords.json is malformed: {exc!r}") from exc
 
@@ -132,6 +137,20 @@ class KeywordRouter:
             raise KeywordsError(f"Keywords file not found: {path}") from exc
         except json.JSONDecodeError as exc:
             raise KeywordsError(f"Keywords file is not valid JSON: {path} ({exc})") from exc
+
+    @staticmethod
+    def _language_hints(node: Any) -> dict[str, frozenset[str]]:
+        """Common words per language. A word listed for two languages would say nothing: rejected."""
+        hints = {lang: frozenset(normalize(str(w)) for w in node.get(lang, [])) - {""} for lang in LANGUAGES}
+        owner: dict[str, str] = {}
+        for lang, words in hints.items():
+            if any(" " in word for word in words):
+                raise KeywordsError(f"language_hints.{lang} must hold single words")
+            for word in words:
+                if word in owner:
+                    raise KeywordsError(f"language_hints lists '{word}' for both {owner[word]} and {lang}")
+                owner[word] = lang
+        return hints
 
     @property
     def emergency_protocols(self) -> set[str]:
@@ -184,6 +203,21 @@ class KeywordRouter:
             return Intent("small_talk", small_talk_type=small_talk.group)
 
         return Intent("fallback")
+
+    def detect_language(self, text: str) -> Language | None:
+        """The language a message is written in, or None if it is unclear.
+
+        Counts the common words of each language (keywords.json, ``language_hints``); ¿, ¡ and ñ
+        count as Spanish. The language with more words wins. A tie, or no common word at all
+        ("ok", "SpO2"), is unclear: the caller keeps the current language. Same rule as the
+        front-end (front-end/src/lib/assistant.js, detectLanguage).
+        """
+        words = normalize(text).split()
+        scores = {lang: sum(word in hints for word in words) for lang, hints in self._hints.items()}
+        if _SPANISH_MARKS.search(text):
+            scores["es"] += 1
+        (best, top), (_, second) = sorted(scores.items(), key=lambda item: item[1], reverse=True)[:2]
+        return best if top > second else None  # type: ignore[return-value]
 
     def mentions_health_or_emergency(self, text: str) -> bool:
         """Post-filter for AI replies: True if the text touches health or emergency topics.

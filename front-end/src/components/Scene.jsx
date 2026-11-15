@@ -30,7 +30,7 @@ function Platform({ color, base }) {
 }
 
 /** Asistente Moon-C: no da vueltas; el cuerpo gira suave hacia la cámara y la cabeza la sigue. */
-function Assistant({ accent, talking, mood, maneuver, ctrlRef, onManeuverEvent, mouthRef }) {
+function Assistant({ accent, talking, mood, maneuver, ctrlRef, onManeuverEvent, mouthRef, language }) {
   const root = useRef()
   useFrame(({ camera }) => {
     const g = root.current
@@ -64,13 +64,14 @@ function Assistant({ accent, talking, mood, maneuver, ctrlRef, onManeuverEvent, 
           onEvent={onManeuverEvent}
           speaking={talking}
           mouthRef={mouthRef}
+          language={language}
         />
       )}
     </group>
   )
 }
 
-export default function Scene({ envId, talking, mood, maneuver, ctrlRef, onManeuverEvent, mouthRef }) {
+export default function Scene({ envId, talking, mood, maneuver, ctrlRef, onManeuverEvent, mouthRef, language }) {
   const accent = ACCENT[envId] ?? ACCENT.iss
   const base = BASE[envId] ?? '#1b1f26'
   return (
@@ -86,6 +87,7 @@ export default function Scene({ envId, talking, mood, maneuver, ctrlRef, onManeu
           ctrlRef={ctrlRef}
           onManeuverEvent={onManeuverEvent}
           mouthRef={mouthRef}
+          language={language}
         />
         <OrbitControls
           makeDefault

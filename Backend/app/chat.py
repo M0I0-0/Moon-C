@@ -11,6 +11,9 @@
                 on: then the AI keeps it going
 
 Language: the request's language, then the crew member's preferredLanguage, then English.
+With ``auto_language`` (the General account), the language the message is written in wins
+when it is clear. The reply is always in the language the response says: an AI reply in
+another language is replaced by a canned one.
 """
 
 from __future__ import annotations
@@ -105,6 +108,8 @@ class ChatService:
         session = self.sessions.open(req.session_id, requested_crew.crew_id if requested_crew else None)
         crew = requested_crew or self.crew.get(session.crew_id)
         lang = req.language or (crew.preferredLanguage if crew else None) or "en"
+        if req.auto_language:
+            lang = self.router.detect_language(req.message) or lang
 
         intent = self.router.classify(req.message)
         if intent.category == "emergency":
@@ -209,6 +214,10 @@ class ChatService:
         text, ai_used = await self.small_talk.reply(
             req.message, history, lang, crew.name if crew else None, intent.small_talk_type, notes=notes
         )
+        if ai_used and self.router.detect_language(text) not in (None, lang):
+            # The model answered in another language (small models tend to mirror the user's): the
+            # response's `language`, and the voice that reads it, would be wrong. Use a canned reply.
+            text, ai_used = self.small_talk.canned(lang, intent.small_talk_type), False
         if ai_used and not is_safe_small_talk(text, self.router):
             if supporting:
                 # Mid-conversation about how they feel: keep listening instead of switching to the manual.
