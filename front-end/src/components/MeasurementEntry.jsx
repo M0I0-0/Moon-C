@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../lib/api'
-import { CREW, INDICATORS, UNIT, crewById, indicatorName, toManualKey } from '../data/manual'
+import { CREW, INDICATORS, UNIT, crewById, indicatorName, toManualKey, unitLabel } from '../data/manual'
+import { tr } from '../lib/i18n'
 
-const label = (indicator) => (indicator === 'blood_pressure' ? 'Presión arterial' : indicatorName(indicator))
 const toNumber = (text) => Number(String(text).trim().replace(',', '.'))
 
 /**
  * Registrar una lectura a mano (POST /measurements). El backend la compara con el manual,
  * avisa si es urgente y, si no se sabe de quién es, pide confirmarlo (cuenta General).
+ * El mensaje y los pasos vuelven en el idioma de la pantalla.
  */
-export default function MeasurementEntry({ accountId, online, language }) {
+export default function MeasurementEntry({ accountId, online, lang = 'es' }) {
+  const language = lang
+  const t = (key, vars) => tr(lang, key, vars)
+  const label = (indicator) => (indicator === 'blood_pressure' ? t('entryBloodPressure') : indicatorName(indicator, language))
   const isGeneral = accountId === 'general'
   const [crewChoice, setCrewChoice] = useState('')
   const [indicator, setIndicator] = useState('body_temperature')
@@ -35,7 +39,7 @@ export default function MeasurementEntry({ accountId, online, language }) {
     loadPending()
   }, [loadPending])
 
-  if (!online) return <p className="fineprint">Para registrar lecturas se necesita enlace con el backend.</p>
+  if (!online) return <p className="fineprint">{t('entryNoLink')}</p>
 
   const submit = async (e) => {
     e.preventDefault()
@@ -80,8 +84,8 @@ export default function MeasurementEntry({ accountId, online, language }) {
     <form className="entry" onSubmit={submit}>
       {isGeneral && (
         <div className="sim-row">
-          <select value={crewChoice} onChange={(e) => setCrewChoice(e.target.value)} aria-label="Tripulante">
-            <option value="">Sin asignar (confirmar después)</option>
+          <select value={crewChoice} onChange={(e) => setCrewChoice(e.target.value)} aria-label={t('entryCrewMember')}>
+            <option value="">{t('entryUnassigned')}</option>
             {CREW.map((c) => (
               <option key={c.crew_id} value={c.crew_id}>
                 {c.name}
@@ -91,7 +95,7 @@ export default function MeasurementEntry({ accountId, online, language }) {
         </div>
       )}
       <div className="sim-row">
-        <select value={indicator} onChange={(e) => setIndicator(e.target.value)} aria-label="Indicador">
+        <select value={indicator} onChange={(e) => setIndicator(e.target.value)} aria-label={t('entryIndicator')}>
           {INDICATORS.map((i) => (
             <option key={i} value={i}>
               {label(i)}
@@ -105,8 +109,8 @@ export default function MeasurementEntry({ accountId, online, language }) {
           inputMode="decimal"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          placeholder={isPressure ? 'Sistólica' : 'Valor'}
-          aria-label={isPressure ? 'Presión sistólica' : 'Valor'}
+          placeholder={t(isPressure ? 'entrySystolic' : 'entryValue')}
+          aria-label={t(isPressure ? 'entrySystolicAria' : 'entryValue')}
         />
         {isPressure && (
           <input
@@ -114,13 +118,13 @@ export default function MeasurementEntry({ accountId, online, language }) {
             inputMode="decimal"
             value={diastolic}
             onChange={(e) => setDiastolic(e.target.value)}
-            placeholder="Diastólica"
-            aria-label="Presión diastólica"
+            placeholder={t('entryDiastolic')}
+            aria-label={t('entryDiastolicAria')}
           />
         )}
-        <span className="entry-unit">{UNIT[indicator]}</span>
+        <span className="entry-unit">{unitLabel(indicator, language)}</span>
         <button className="btn btn-primary btn-sm" type="submit" disabled={busy || !value || (isPressure && !diastolic)}>
-          Registrar
+          {t('entrySubmit')}
         </button>
       </div>
 
@@ -158,13 +162,13 @@ export default function MeasurementEntry({ accountId, online, language }) {
               ))}
             </div>
           )}
-          {result.assignedTo && <p className="fineprint">Asignada a {crewById(result.assignedTo)?.name}.</p>}
+          {result.assignedTo && <p className="fineprint">{t('entryAssignedTo', { name: crewById(result.assignedTo)?.name })}</p>}
         </div>
       )}
 
       {isGeneral && pending.length > 0 && !result?.needsConfirmation && (
         <div className="entry-pending">
-          <p className="fineprint">Lecturas sin asignar: {pending.length}</p>
+          <p className="fineprint">{t('entryPending', { count: pending.length })}</p>
           {pending.slice(-5).map((m) => (
             <div key={m.id} className="sim-row">
               <span className="entry-unit">
@@ -172,10 +176,10 @@ export default function MeasurementEntry({ accountId, online, language }) {
               </span>
               <select
                 defaultValue=""
-                aria-label="Confirmar tripulante"
+                aria-label={t('entryConfirmCrew')}
                 onChange={(e) => e.target.value && assign([m.id], e.target.value)}
               >
-                <option value="">¿De quién es?</option>
+                <option value="">{t('entryWhose')}</option>
                 {CREW.map((c) => (
                   <option key={c.crew_id} value={c.crew_id}>
                     {c.name}

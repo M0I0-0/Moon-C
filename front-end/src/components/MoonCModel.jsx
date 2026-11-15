@@ -29,9 +29,21 @@ function dispose(root) {
  * y cara con shader. La cabeza sigue a la cámara encima de la animación.
  * Si recibe `maneuver` ({ id, entorno, nonce }), monta el maniquí de esa maniobra a su lado,
  * lleva la cámara hacia él y reporta el avance con `ctrlRef` (controlador) y `onEvent`.
+ * Los pasos van en `language` ('es' | 'en'); si cambia a media guía, solo cambian los textos.
  * Mientras carga, o si falla (sin WebGL2, archivo faltante), muestra `fallback`.
  */
-export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallback, maneuver, ctrlRef, onEvent, speaking = false, mouthRef }) {
+export default function MoonCModel({
+  mood = 'atenta',
+  height = 1.55,
+  root,
+  fallback,
+  maneuver,
+  ctrlRef,
+  onEvent,
+  speaking = false,
+  mouthRef,
+  language = 'es',
+}) {
   const [moon, setMoon] = useState(null)
   const [failed, setFailed] = useState(false)
   const aim = useRef({})
@@ -93,6 +105,13 @@ export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallb
   useEffect(() => {
     ctrlRef?.current?.cambiarEntorno?.(mEnv)
   }, [mEnv, ctrlRef])
+  // Igual con el idioma: se lee al montar y, a media guía, el controlador vuelve a mandar el paso traducido.
+  const languageRef = useRef(language)
+  languageRef.current = language
+  useEffect(() => {
+    const c = ctrlRef?.current
+    if (c && c.idioma !== language) c.idioma = language
+  }, [language, ctrlRef])
   useEffect(() => {
     const group = holder.current
     if (!moon || !mId || !group) return undefined
@@ -114,6 +133,7 @@ export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallb
       moon,
       archivos: MANEUVER_FILES,
       entorno: envRef.current,
+      idioma: languageRef.current,
       onPaso: (i, paso, pasos) => emit('onPaso', i, paso, pasos),
       onConteo: (n, total) => emit('onConteo', n, total),
       onTiempo: (s) => emit('onTiempo', s),
@@ -126,6 +146,7 @@ export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallb
         }
         ctrl = m
         if (ctrlRef) ctrlRef.current = m
+        m.idioma = languageRef.current // por si el idioma cambió mientras cargaba el maniquí
         m.iniciar()
         emit('onReady', m)
       })

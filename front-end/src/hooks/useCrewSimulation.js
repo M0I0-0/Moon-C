@@ -11,12 +11,13 @@ const BASELINE = {
 }
 
 // Mismos escenarios (y claves) que Backend/app/bracelets.py. Nombres neutros: Moon-C no diagnostica.
+// El nombre de cada uno está en src/lib/i18n.js (scenario_<id>).
 export const EMERGENCY_TYPES = {
-  low_oxygen: { label: 'Baja saturación de oxígeno', target: { spo2: 86, heart_rate: 118, respiratory_rate: 32 } },
-  high_heart_rate: { label: 'Frecuencia cardiaca muy alta', target: { heart_rate: 138, blood_pressure: 150 } },
-  high_temperature: { label: 'Temperatura alta', target: { body_temperature: 39.6, heart_rate: 104, respiratory_rate: 22 } },
-  high_blood_pressure: { label: 'Presión arterial muy alta', target: { blood_pressure: 188, heart_rate: 96 } },
-  solar_storm: { label: 'Tormenta solar (radiación)', target: { radiation: 1500 } },
+  low_oxygen: { target: { spo2: 86, heart_rate: 118, respiratory_rate: 32 } },
+  high_heart_rate: { target: { heart_rate: 138, blood_pressure: 150 } },
+  high_temperature: { target: { body_temperature: 39.6, heart_rate: 104, respiratory_rate: 22 } },
+  high_blood_pressure: { target: { blood_pressure: 188, heart_rate: 96 } },
+  solar_storm: { target: { radiation: 1500 } },
 }
 
 // Ruido por lectura, límites físicos y decimales de cada indicador en vivo.
@@ -122,6 +123,7 @@ function reducer(state, action) {
             kind: 'report',
             crewId: action.crewId,
             text: action.text,
+            protocol: action.protocol ?? null,
             createdAt: Date.now(),
             acknowledged: false,
             resolved: false,
@@ -156,7 +158,8 @@ export function useCrewSimulation() {
   }, [])
 
   const triggerEmergency = useCallback((crewId, kind) => dispatch({ type: 'emergency', crewId, kind }), [])
-  const reportFromChat = useCallback((crewId, text) => dispatch({ type: 'report', crewId, text }), [])
+  // `protocol` permite mostrar lo reportado en el idioma de cada cuenta (src/lib/alerts.js).
+  const reportFromChat = useCallback((crewId, text, protocol) => dispatch({ type: 'report', crewId, text, protocol }), [])
   const acknowledge = useCallback((id) => dispatch({ type: 'ack', id }), [])
   const resolve = useCallback((crewId) => dispatch({ type: 'resolve', crewId }), [])
 

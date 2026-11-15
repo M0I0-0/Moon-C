@@ -1,5 +1,61 @@
 import { describe, expect, it } from 'vitest'
-import { autoOpenManeuver, replyIntro, toReportSummary } from './maneuvers'
+import {
+  ENTORNOS,
+  FUENTES,
+  MANEUVERS_EN,
+  MANEUVER_LIST,
+  MANIOBRAS,
+  autoOpenManeuver,
+  environmentName,
+  explicitManeuver,
+  maneuverTitle,
+  replyIntro,
+  sourceText,
+  toReportSummary,
+} from './maneuvers'
+
+describe('maniobras en inglés (Model3D/moonc/maniobras.js)', () => {
+  it.each(MANEUVER_LIST)('%s: cada paso y atajo tiene su texto en inglés, con las mismas variantes', (id) => {
+    const en = MANEUVERS_EN.maniobras[id]
+    expect(en.titulo).toBeTruthy()
+    for (const paso of MANIOBRAS[id].pasos) {
+      const tr = en.pasos[paso.id]
+      expect(tr?.titulo, paso.id).toBeTruthy()
+      if (paso.textos) expect(Object.keys(tr.textos ?? {}).sort(), paso.id).toEqual(Object.keys(paso.textos).sort())
+      else expect(tr.texto, paso.id).toBeTruthy()
+      if (paso.imagenAlt) expect(tr.imagenAlt, paso.id).toBeTruthy()
+    }
+    for (const atajo of MANIOBRAS[id].atajos ?? []) expect(en.atajos[atajo.paso], atajo.paso).toBeTruthy()
+  })
+
+  it('entornos y fuentes en los dos idiomas', () => {
+    for (const key of Object.keys(ENTORNOS)) {
+      expect(MANEUVERS_EN.entornos[key]).toMatchObject({
+        nombre: expect.any(String),
+        retraso: expect.any(String),
+        evacuacion: expect.any(String),
+      })
+      expect(environmentName(key, 'es')).toBe(ENTORNOS[key].nombre)
+    }
+    for (const key of Object.keys(FUENTES)) expect(sourceText(key, 'en')).toBe(MANEUVERS_EN.fuentes[key])
+    expect(environmentName('luna', 'en')).toBe('Lunar base')
+  })
+
+  it('el título sigue el idioma de la pantalla', () => {
+    expect(maneuverTitle('rcp', 'es')).toBe('RCP (paro cardiaco)')
+    expect(maneuverTitle('rcp', 'en')).toBe('CPR (cardiac arrest)')
+  })
+
+  it('la guía se puede pedir por nombre en los dos idiomas', () => {
+    expect(explicitManeuver('Guíame con la RCP')).toBe('rcp')
+    expect(explicitManeuver('Guide me through CPR')).toBe('rcp')
+    expect(explicitManeuver('How do I use a tourniquet?')).toBe('torniquete')
+    expect(explicitManeuver('Se está atragantando')).toBe('atragantamiento')
+    // En inglés "choking" pasa por el backend y la abre autoOpenManeuver (con la alerta de emergencia).
+    expect(explicitManeuver('He is choking')).toBeNull()
+    expect(explicitManeuver('Hello')).toBeNull()
+  })
+})
 
 const faint = { name: 'fainting_unresponsive' }
 const bleed = { name: 'bleeding' }

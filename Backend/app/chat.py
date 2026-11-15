@@ -14,7 +14,8 @@
                 already going on: then the AI keeps it going
 
 Language: the message's own language when clear, then the session's last one, then the request's,
-the crew member's preferredLanguage, then English.
+the crew member's preferredLanguage, then English. The reply is always in the language the response
+says: an AI reply in another language is replaced by a canned one.
 
 Clinical wording below (follow-up questions and reassurance) is deliberately conservative: it only asks
 and, when the answer is serious, escalates to an emergency protocol. It gives no new treatment.
@@ -442,6 +443,10 @@ class ChatService:
         text, ai_used = await self.small_talk.reply(
             req.message, history, lang, crew.name if crew else None, intent.small_talk_type, notes=notes
         )
+        if ai_used and detect_language(text) not in (None, lang):
+            # The model answered in another language than the one this reply is labelled with: the
+            # front-end would read it with the wrong voice. Use a canned reply in `lang` instead.
+            text, ai_used = self.small_talk.canned(lang, intent.small_talk_type), False
         if ai_used and not is_safe_small_talk(text, self.router):
             if supporting:
                 # Mid-conversation about how they feel: keep listening instead of switching to the manual.

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MicIcon, SendIcon, ChevronIcon } from './Icons'
-import { MANIOBRAS } from '../lib/maneuvers'
+import { maneuverTitle } from '../lib/maneuvers'
 import { localeFor, tr } from '../lib/i18n'
 
 const time = (ms, lang) => new Date(ms).toLocaleTimeString(localeFor(lang), { hour: '2-digit', minute: '2-digit' })
@@ -31,7 +31,7 @@ function Entry({ e, onManeuver, lang }) {
       )}
       {e.maneuver && onManeuver && (
         <button className="chip-btn maneuver-open" onClick={() => onManeuver(e.maneuver)}>
-          {tr(lang, 'openGuide', { name: MANIOBRAS[e.maneuver].titulo })}
+          {tr(lang, 'openGuide', { name: maneuverTitle(e.maneuver, lang) })}
         </button>
       )}
     </li>

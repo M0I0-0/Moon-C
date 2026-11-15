@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { tr } from '../lib/i18n'
-import { ENTORNOS, FUENTES, MANIOBRAS, MANEUVER_IMAGES } from '../lib/maneuvers'
+import { ENTORNOS, MANEUVER_IMAGES, environmentName, maneuverTitle, sourceText } from '../lib/maneuvers'
 import { CloseIcon } from './Icons'
 
 // Estado del "Resumen para Tierra" que guarda el backend (lo pone App al llegar al paso "Reporta a Tierra").
@@ -14,10 +14,12 @@ const REPORT_KEY = {
 
 const typing = (el) => el && (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable)
 
-/** Panel de una maniobra guiada: paso actual, conteo/tiempo, atajos y resumen para Tierra. */
+/**
+ * Panel de una maniobra guiada: paso actual, conteo/tiempo, atajos y resumen para Tierra.
+ * Los pasos llegan en el idioma de la pantalla (Model3D/moonc/maniobras.js, opción `idioma`).
+ */
 export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSoloManos, onClose, lang = 'es', notice = null }) {
   const [summary, setSummary] = useState(null)
-  const def = MANIOBRAS[id]
   const ctrl = ctrlRef.current
   const { index = -1, paso, pasos = [], conteo = 0, total = 0, tiempo = null, soloManos = false } = state ?? {}
   const loading = !paso
@@ -54,7 +56,7 @@ export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSo
       <div className="maneuver-head">
         <div>
           <div className="maneuver-kicker">{tr(lang, 'guideKicker')}</div>
-          <h2>{def.titulo}</h2>
+          <h2>{maneuverTitle(id, lang)}</h2>
         </div>
         <button className="icon-btn" onClick={onClose} aria-label={tr(lang, 'guideExit')}>
           <CloseIcon />
@@ -64,9 +66,9 @@ export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSo
       <label className="maneuver-env">
         <span>{tr(lang, 'guideEnv')}</span>
         <select value={entorno} onChange={(e) => onEnv(e.target.value)}>
-          {Object.entries(ENTORNOS).map(([key, e]) => (
+          {Object.keys(ENTORNOS).map((key) => (
             <option key={key} value={key}>
-              {e.nombre}
+              {environmentName(key, lang)}
             </option>
           ))}
         </select>
@@ -116,8 +118,8 @@ export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSo
               </div>
             )}
             <div className="maneuver-source">
-              <span className={`badge badge--${paso.estado}`}>{paso.estado}</span>
-              <span>{FUENTES[paso.fuente] ?? paso.fuente}</span>
+              <span className={`badge badge--${paso.estado}`}>{tr(lang, `guideState_${paso.estado}`)}</span>
+              <span>{sourceText(paso.fuente, lang)}</span>
             </div>
           </div>
 
@@ -163,11 +165,11 @@ export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSo
             <pre className="maneuver-summary">
               {[
                 summary.maniobra,
-                `Entorno: ${summary.entorno}`,
-                `Retraso de comunicación: ${summary.retrasoComunicacion}`,
-                `Duración: ${summary.duracionSeg} s`,
-                summary.compresiones ? `Compresiones: ${summary.compresiones}` : null,
-                summary.torniquete ? `Torniquete: ${summary.torniquete}` : null,
+                tr(lang, 'guideSummaryEnv', { value: summary.entorno }),
+                tr(lang, 'guideSummaryDelay', { value: summary.retrasoComunicacion }),
+                tr(lang, 'guideSummaryDuration', { value: summary.duracionSeg }),
+                summary.compresiones ? tr(lang, 'guideSummaryCompressions', { value: summary.compresiones }) : null,
+                summary.torniquete ? tr(lang, 'guideSummaryTourniquet', { value: summary.torniquete }) : null,
                 '',
                 ...summary.eventos.map((e) => `+${e.seg}s  ${e.evento}`),
               ]

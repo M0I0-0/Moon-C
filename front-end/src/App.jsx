@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ManeuverPanel from './components/ManeuverPanel'
-import { ENV_TO_MANEUVER, MANIOBRAS, autoOpenManeuver, explicitManeuver, replyIntro, suggestedManeuver, toReportSummary } from './lib/maneuvers'
+import { ENV_TO_MANEUVER, autoOpenManeuver, explicitManeuver, maneuverTitle, replyIntro, suggestedManeuver, toReportSummary } from './lib/maneuvers'
 import { QUICK_GENERAL, baseLang, tr } from './lib/i18n'
 import Scene from './components/Scene'
 import TopBar from './components/TopBar'
@@ -16,7 +16,7 @@ import VitalDetail from './components/VitalDetail'
 import { ENVIRONMENTS } from './data/environments'
 import { useAnnouncements } from './hooks/useAnnouncements'
 import { useSyncStatus } from './hooks/useSyncStatus'
-import { INDICATORS, STATUS_LABEL, classify, crewById, worstStatus } from './data/manual'
+import { INDICATORS, classify, crewById, worstStatus } from './data/manual'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useCrewSimulation } from './hooks/useCrewSimulation'
 import { useRemoteCrew } from './hooks/useRemoteCrew'
@@ -80,12 +80,33 @@ export default function App() {
   useEffect(() => {
     if (storedAccount !== accountId) setAccountId(accountId)
   }, [storedAccount, accountId, setAccountId])
-  // Chat y voz en el idioma del tripulante (la cuenta General usa español).
-  const lang = account?.preferredLanguage ?? 'es'
+  // Idioma de la cuenta: cada tripulante, el de su perfil (por nacionalidad); la cuenta General, el que se
+  // eligió con el botón ES/EN (español al principio).
+  const [generalLang, setGeneralLang] = useLocalStorage('moonc.generalLang', 'es')
+  const accountLang = account?.preferredLanguage ?? baseLang(generalLang)
   // Idioma de la conversación: el último en que habló la persona (por cuenta); empieza en el de la cuenta.
   const [talkLang, setTalkLang] = useState({})
-  const convLang = talkLang[accountId] ?? lang
+  const convLang = talkLang[accountId] ?? accountLang
+  // Idioma de la pantalla: el del perfil para un tripulante; en la cuenta General, el de la conversación.
+  const lang = isGeneral ? convLang : accountLang
   const speechLang = speechLangFor(convLang)
+  // Botón ES/EN de la cuenta General: cambia pantalla y conversación juntas.
+  const chooseGeneralLang = useCallback(
+    (l) => {
+      setGeneralLang(l)
+      setTalkLang((t) => {
+        if (!('general' in t)) return t
+        const next = { ...t }
+        delete next.general
+        return next
+      })
+    },
+    [setGeneralLang],
+  )
+  useEffect(() => {
+    document.documentElement.lang = lang
+    document.title = tr(lang, 'appTitle')
+  }, [lang])
 
   const backend = useBackendStatus()
   // Voz propia de Moon-C (backend /tts, español) con la boca siguiendo el volumen real del audio.
@@ -107,28 +128,36 @@ export default function App() {
   const env = ENVIRONMENTS.home // la app usa siempre la sala (modo hogar)
   const envId = env.id
   const audioAvailable = voiceOn && tts.supported && tts.hasVoices && tts.hasSpeakers !== false
-  const showSubs = subtitleMode === 'on' || (subtitleMode === 'auto' && !audioAvailable) || Boolean(caption?.cut)
+  // Un texto que no se puede leer en voz alta en su idioma (`silent`) se muestra aunque los subtítulos estén en automático.
+  const showSubs =
+    subtitleMode === 'on' ||
+    (subtitleMode === 'auto' && !audioAvailable) ||
+    Boolean(caption?.cut) ||
+    (Boolean(caption?.silent) && subtitleMode !== 'off')
 
+  // kind: 'reply' | 'alert' | 'announcement' (estilo del subtítulo; los anuncios no mueven la boca).
   const say = useCallback(
-    (text, speaker = 'Moon-C', spokenLang = convLang) => {
+    (text, speaker = 'Moon-C', spokenLang = convLang, kind = 'reply') => {
       const id = uid()
       const clear = () => setCaption((c) => (c?.id === id ? null : c))
-      setCaption({ id, speaker, text })
+      // Cada texto se lee con una voz de su idioma; si no hay voz para ese idioma, se muestra como subtítulo.
+      const speakable = voiceOn && tts.hasSpeakers !== false && tts.canSpeak(spokenLang)
+      setCaption({ id, speaker, text, kind, silent: !speakable })
       const readMs = Math.max(4000, text.split(/\s+/).length * 420)
-      if (audioAvailable) {
+      if (speakable) {
         tts.speak(text, {
           lang: spokenLang,
           onEnd: () => setTimeout(clear, 1200),
           // La voz propia se cortó a la mitad: se muestra el texto completo aunque los subtítulos estén en automático.
           onPartial: () => {
-            setCaption({ id, speaker, text, cut: true })
+            setCaption({ id, speaker, text, kind, cut: true })
             setTimeout(clear, readMs)
           },
         })
       }
-      setTimeout(clear, audioAvailable ? readMs * 2 : readMs)
+      setTimeout(clear, speakable ? readMs * 2 : readMs)
     },
-    [audioAvailable, tts, convLang],
+    [voiceOn, tts, convLang],
   )
   sayRef.current = say
 
@@ -190,9 +219,9 @@ export default function App() {
       if (resumeRef.current) return // remontaje por cambio de entorno: onReady restaura el paso sin repetir la voz
       if (!spoken.current.has(paso.id)) {
         spoken.current.add(paso.id)
-        // Los pasos vienen de Model3D en español; "Reporta a Tierra" no afirma un envío que no ocurrió.
-        const text = paso.id === 'reporte' && !backend.online ? tr('es', 'reportOffline') : paso.texto
-        say(`${paso.titulo}. ${text}`, 'Moon-C', 'es')
+        // Los pasos vienen de Model3D en el idioma de la pantalla; "Reporta a Tierra" no afirma un envío que no ocurrió.
+        const text = paso.id === 'reporte' && !backend.online ? tr(lang, 'reportOffline') : paso.texto
+        say(`${paso.titulo}. ${text}`, 'Moon-C', lang)
       }
       if (paso.id === 'reporte' && !reportSent.current) {
         reportSent.current = true
@@ -212,7 +241,7 @@ export default function App() {
       if (m.pasos.some((p) => p.id === target)) m.ir(target)
       else if (m.paso && !spoken.current.has(m.paso.id)) {
         spoken.current.add(m.paso.id)
-        say(`${m.paso.titulo}. ${m.paso.texto}`, 'Moon-C', 'es')
+        say(`${m.paso.titulo}. ${m.paso.texto}`, 'Moon-C', lang)
       }
     },
     onError: () => {
@@ -257,7 +286,7 @@ export default function App() {
       setSuggestions((s) => ({ ...s, [key]: [] }))
       const asked = explicitManeuver(message)
       if (asked) {
-        appendLog(key, { who: 'assistant', name: 'Moon-C', text: tr(lang, 'guideOpening', { name: MANIOBRAS[asked].titulo }) })
+        appendLog(key, { who: 'assistant', name: 'Moon-C', text: tr(lang, 'guideOpening', { name: maneuverTitle(asked, lang) }) })
         startManeuver(asked)
         return
       }
@@ -307,7 +336,7 @@ export default function App() {
           say(res.reply, 'Moon-C', replyLang)
         }
         if (res.category === 'emergency' && account) {
-          sim.reportFromChat(account.crew_id, res.protocol?.title?.split(':')[0] ?? 'una emergencia')
+          sim.reportFromChat(account.crew_id, res.protocol?.title?.split(':')[0] ?? tr(lang, 'alertAnEmergency'), res.protocol?.name)
         }
       } catch {
         if (!stale()) appendLog(key, { who: 'system', text: tr(lang, 'answerFailed') })
@@ -366,7 +395,7 @@ export default function App() {
     for (const a of sim.alerts) {
       if (announced.current.has(a.id)) continue
       announced.current.add(a.id)
-      if (isGeneral || a.crewId === accountId) say(alertText(a), 'Alerta', lang)
+      if (isGeneral || a.crewId === accountId) say(alertText(a, lang), tr(lang, 'speakerAlert'), lang, 'alert')
     }
   }, [sim.alerts, isGeneral, accountId, lang, say])
 
@@ -402,10 +431,10 @@ export default function App() {
       lastActivity.current = Date.now()
       appendLog(id, {
         who: 'system',
-        text: tr(crew?.preferredLanguage ?? 'es', 'sessionStarted', { name: crew ? crew.name : 'General' }),
+        text: tr(crew?.preferredLanguage ?? baseLang(generalLang), 'sessionStarted', { name: crew ? crew.name : 'General' }),
       })
     },
-    [accountId, setAccountId, appendLog, dropContext],
+    [accountId, setAccountId, appendLog, dropContext, generalLang],
   )
 
   const openEmergency = (crewId) => {
@@ -435,7 +464,8 @@ export default function App() {
 
   const postAnnouncement = ({ text, priority, readAloud }) => {
     board.post({ text, priority })
-    if (readAloud) say(text, 'Anuncio', lang)
+    // Se lee con la voz del idioma en que está escrito.
+    if (readAloud) say(text, tr(lang, 'speakerAnnouncement'), detectLanguage(text) ?? lang, 'announcement')
   }
 
   const member = account ? sim.members[account.crew_id] : null
@@ -444,7 +474,7 @@ export default function App() {
     : sim.activeAlerts.length
       ? 'urgent'
       : 'normal'
-  const talking = tts.speaking || Boolean(caption && caption.speaker !== 'Anuncio')
+  const talking = tts.speaking || Boolean(caption && caption.kind !== 'announcement')
   const linkDown = backend.checked && !backend.online
   const assistantMood = mic.listening
     ? 'escuchando'
@@ -490,6 +520,7 @@ export default function App() {
         talking={talking}
         mood={assistantMood}
         mouthRef={mouthRef}
+        language={lang}
       />
 
       <TopBar
@@ -504,9 +535,10 @@ export default function App() {
         setMobilePanel={setMobilePanel}
         isGeneral={isGeneral}
         lang={lang}
+        onLanguage={chooseGeneralLang}
       />
 
-      <AlertBanner alerts={visibleAlerts} isGeneral={isGeneral} onOpen={openEmergency} onAck={sim.acknowledge} />
+      <AlertBanner alerts={visibleAlerts} isGeneral={isGeneral} onOpen={openEmergency} onAck={sim.acknowledge} lang={lang} />
 
       <aside className={`panel panel-left ${maneuver || mobilePanel === 'left' ? 'mobile-open' : ''}`}>
         {maneuver ? (
@@ -529,7 +561,13 @@ export default function App() {
             notice={autoGuide}
           />
         ) : (
-          <Announcements items={board.items} canPost={isGeneral} onPost={postAnnouncement} limit={isGeneral ? undefined : 3} />
+          <Announcements
+            items={board.items}
+            canPost={isGeneral}
+            onPost={postAnnouncement}
+            limit={isGeneral ? undefined : 3}
+            lang={lang}
+          />
         )}
       </aside>
 
@@ -544,22 +582,24 @@ export default function App() {
               onBack={() => setEmergencyView(null)}
               onResolve={resolveEmergency}
               onSelectVital={(indicator) => setVitalDetail({ crewId: emergencyView, indicator })}
+              lang={lang}
             />
           ) : (
-            <CrewOverview members={sim.members} activeAlerts={sim.activeAlerts} onOpen={openEmergency} />
+            <CrewOverview members={sim.members} activeAlerts={sim.activeAlerts} onOpen={openEmergency} lang={lang} />
           )
         ) : (
           <VitalsPanel
             member={member}
             title={tr(lang, 'mySigns')}
-            subtitle={`${account.name} · pulsera ${account.bracelet_id}`}
+            subtitle={tr(lang, 'vitalsSubtitle', { name: account.name, bracelet: account.bracelet_id })}
             onSelect={(indicator) => setVitalDetail({ crewId: account.crew_id, indicator })}
+            lang={lang}
           />
         )}
       </aside>
 
       <div className="bottom">
-        {showSubs && <Subtitles caption={caption} interim={mic.listening ? mic.interim : ''} />}
+        {showSubs && <Subtitles caption={caption} interim={mic.listening ? mic.interim : ''} lang={lang} />}
         <ChatDock
           log={log}
           suggestions={chips}
@@ -579,6 +619,7 @@ export default function App() {
           indicator={vitalDetail.indicator}
           onClose={closeDetail}
           onNav={navDetail}
+          lang={lang}
         />
       )}
 
@@ -598,7 +639,8 @@ export default function App() {
         audio={tts}
         onManeuver={startManeuver}
         online={backend.online}
-        language={lang}
+        lang={lang}
+        onLanguage={chooseGeneralLang}
         sync={earth.status}
         onDataChanged={() => {
           earth.refresh()
