@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { MicIcon, SendIcon, ChevronIcon } from './Icons'
+import { MANIOBRAS } from '../lib/maneuvers'
 
 const time = (ms) => new Date(ms).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
 
-function Entry({ e }) {
+function Entry({ e, onManeuver }) {
   if (e.who === 'system') return <li className="log-system">{e.text}</li>
   const steps = e.protocol?.steps
   const intro = steps && e.protocol.title ? e.text.split(e.protocol.title)[0].trim() : null
@@ -27,11 +28,16 @@ function Entry({ e }) {
       ) : (
         <p className="log-text">{e.text}</p>
       )}
+      {e.maneuver && onManeuver && (
+        <button className="chip-btn maneuver-open" onClick={() => onManeuver(e.maneuver)}>
+          Abrir guía 3D: {MANIOBRAS[e.maneuver].titulo}
+        </button>
+      )}
     </li>
   )
 }
 
-export default function ChatDock({ log, suggestions, busy, onSend, mic, placeholder }) {
+export default function ChatDock({ log, suggestions, busy, onSend, onManeuver, mic, placeholder }) {
   const [text, setText] = useState('')
   const [open, setOpen] = useState(true)
   const listRef = useRef(null)
@@ -58,7 +64,7 @@ export default function ChatDock({ log, suggestions, busy, onSend, mic, placehol
         <ol className="log" ref={listRef}>
           {log.length === 0 && <li className="log-system">Sin mensajes todavía.</li>}
           {log.map((e) => (
-            <Entry key={e.id} e={e} />
+            <Entry key={e.id} e={e} onManeuver={onManeuver} />
           ))}
           {busy && <li className="log-system">Moon-C está respondiendo…</li>}
         </ol>

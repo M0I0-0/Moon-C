@@ -11,6 +11,8 @@ export default defineConfig({
     alias: {
       '@shared': fileURLToPath(new URL('../shared', import.meta.url)),
       '@model3d': fileURLToPath(new URL('../Model3D', import.meta.url)),
+      // Model3D/moonc/maniobras.js importa 'three/addons/...' pero vive fuera de front-end/ (sin node_modules propio).
+      'three/addons': fileURLToPath(new URL('./node_modules/three/examples/jsm', import.meta.url)),
     },
   },
   server: {

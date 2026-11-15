@@ -9,7 +9,7 @@
 // La cara usa una "calcomanía" frontal (moonc_cara.jpg) que el shader deforma:
 // párpados superior/inferior, cejas (manchas claras), mirada y boca.
 
-export const STATES = ['tranquila','atenta','alerta','escuchando','pensando','hablando','sin_enlace','saludo'];
+export const STATES = ['tranquila','atenta','alerta','escuchando','pensando','hablando','sin_enlace','saludo','rcp','rcp_manos','rcp_hombros','rcp_respira','llamar','senalar','tq_colocar','tq_jalar','tq_girar','tq_trabar','ah_sostener','ah_golpes','ah_abrazo','ah_empuje','rcp_er_pos','rcp_er','ah_cuenta'];
 
 // Coordenadas en el espacio del modelo (x, y), medidas sobre la cara horneada
 const FACE = {
@@ -35,8 +35,43 @@ export const FACE_PRESETS = {
   pensando:   { lid:[0.14,0.14], low:[0.10,0.10], brow:[[0.004,0.040],[0,0.004]],  browRot:[0.30,-0.10],  browS:[[0.95,1.1],[1,1]],      look:[0.55,0.6],  blink:[3,6],    saccade:0.25 },
   hablando:   { lid:[0.08,0.08], low:[0.12,0.12], brow:[[0,0.010],[0,0.010]],       browRot:[0.15,0.15],   browS:[[1,1],[1,1]],          look:[0,0],       blink:[2,4.5],  saccade:0.3, talk:true },
   sin_enlace: { lid:[1,1],       low:[0,0],       brow:[[0,-0.012],[0,-0.012]],     browRot:[0.20,0.20],   browS:[[1.08,0.85],[1.08,0.85]],look:[0,-0.3],   blink:null,     saccade:0, arc:[-1,-1] },
+  rcp:        { lid:[0.16,0.16], low:[0.06,0.06], brow:[[0.004,-0.006],[-0.004,-0.006]],browRot:[-0.30,-0.30], browS:[[1.05,0.9],[1.05,0.9]], look:[0,-0.7],  blink:[4,8],    saccade:0.05 },
   saludo:     { lid:[1,1],       low:[0,0],       brow:[[0,0.030],[0,0.030]],       browRot:[0.25,0.25],   browS:[[1,1.05],[1,1.05]],    look:[0,0],       blink:null,     saccade:0, arc:[1,1] },
 };
+// alias de cara para los pasos de maniobras
+Object.assign(FACE_PRESETS, {
+  rcp_manos: FACE_PRESETS.rcp,
+  rcp_hombros: { ...FACE_PRESETS.hablando, look: [0.4, -0.5] },
+  rcp_respira: { ...FACE_PRESETS.atenta, look: [0.5, -0.6], blink: [5, 9] },
+  llamar: { ...FACE_PRESETS.hablando, brow: [[0, 0.03], [0, 0.03]], browRot: [0.2, 0.2] },
+  senalar: { ...FACE_PRESETS.atenta, look: [0.2, -0.5] },
+  tq_colocar: FACE_PRESETS.rcp, tq_girar: FACE_PRESETS.rcp, tq_trabar: FACE_PRESETS.rcp,
+  rcp_er_pos: FACE_PRESETS.rcp, rcp_er: FACE_PRESETS.rcp,
+  ah_sostener: FACE_PRESETS.rcp, ah_golpes: { ...FACE_PRESETS.rcp, lid: [0.2, 0.2] }, ah_abrazo: FACE_PRESETS.rcp, ah_empuje: { ...FACE_PRESETS.rcp, lid: [0.25, 0.25] }, ah_cuenta: { ...FACE_PRESETS.hablando, look: [0.5, -0.4] },
+  tq_jalar: { ...FACE_PRESETS.rcp, lid: [0.25, 0.25], brow: [[0, -0.01], [0, -0.01]] },
+});
+
+// Iluminación recomendada (estilo vinil suave): luz principal con sombras, relleno, contorno y sombra en el piso.
+export function iluminarEscena(THREE, renderer, scene, { piso = -0.95, sombras = true } = {}) {
+  renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1.0;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  if (sombras) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
+  const g = new THREE.Group(); g.name = 'iluminacion';
+  const hemi = new THREE.HemisphereLight(0xe9ecff, 0x6b6880, 0.9);
+  const key = new THREE.DirectionalLight(0xfff6ee, 2.2); key.position.set(2.2, 3.2, 3.0);
+  if (sombras) { key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.radius = 6; key.shadow.bias = -0.0004; key.shadow.normalBias = 0.02;
+    Object.assign(key.shadow.camera, { left: -2, right: 2, top: 2, bottom: -2, near: 0.5, far: 12 }); }
+  const fill = new THREE.DirectionalLight(0xdfe6ff, 0.6); fill.position.set(-3, 1.2, 2);
+  const rim = new THREE.DirectionalLight(0xc9d2ff, 1.4); rim.position.set(-1.5, 2.5, -3.5);
+  g.add(hemi, key, fill, rim);
+  if (sombras) {
+    const suelo = new THREE.Mesh(new THREE.CircleGeometry(3, 64), new THREE.ShadowMaterial({ opacity: 0.28 }));
+    suelo.rotation.x = -Math.PI / 2; suelo.position.y = piso; suelo.receiveShadow = true; g.add(suelo);
+  }
+  scene.add(g);
+  scene.traverse(o => { if (o.isMesh && o !== g) { o.castShadow = sombras; o.receiveShadow = sombras; } });
+  return g;
+}
 
 export async function createMoonC({ THREE, gltf, faceUrl, faceClosedUrl, crossfade = 0.45 }) {
   const T = THREE, root = gltf.scene;
@@ -56,6 +91,7 @@ export async function createMoonC({ THREE, gltf, faceUrl, faceClosedUrl, crossfa
     uBrowOff: { value: [new T.Vector2(), new T.Vector2()] }, uBrowRot: { value: new T.Vector2() },
     uBrowAx: { value: new T.Vector2(...FACE.browAx) }, uBrowAng: { value: new T.Vector2(...FACE.browAng) },
     uBrowS: { value: [new T.Vector2(1,1), new T.Vector2(1,1)] }, uBrowFur: { value: col(FACE.browFur) }, uBrowCol: { value: col(FACE.browCol) },
+    uPadOn: { value: 0 },   // almohadillas ahora son geometría en los brazos
     uPadCol: { value: col('#5e5c6a') }, uPadC: { value: [new T.Vector2(-0.410, -0.552), new T.Vector2(0.370, -0.552)] }, uPadU: { value: [new T.Vector2(-0.47, -0.88), new T.Vector2(0.47, -0.88)] },
     uLook: { value: new T.Vector2() }, uMouth: { value: 0 }, uArc: { value: new T.Vector2(-1,-1) },
     uFur: { value: col(FACE.fur) }, uCheek: { value: col(FACE.cheek) }, uLash: { value: col(FACE.lash) },
@@ -64,7 +100,7 @@ export async function createMoonC({ THREE, gltf, faceUrl, faceClosedUrl, crossfa
 
   root.traverse(o => {
     if (!o.isMesh) return;
-    o.frustumCulled = false;
+    o.frustumCulled = false; o.castShadow = true; o.receiveShadow = true;
     const m = o.material;
     m.metalness = 0; m.roughness = 1; m.roughnessMap = null; m.metalnessMap = null; m.envMapIntensity = 0.5;
     if (m.normalScale) m.normalScale.set(0.35, 0.35);   // menos ruido de Meshy
@@ -97,17 +133,17 @@ varying vec3 vRest; varying vec3 vRestN; varying vec3 vSmoothN;
 uniform sampler2D uFace, uFaceClosed; uniform vec2 uMin, uSize, uEyeC[2], uEyeR, uBrowC[2], uBrowR, uMouthC, uLid, uLow, uBrowOff[2], uBrowRot, uLook;
 uniform float uMouth; uniform vec2 uArc; uniform vec2 uBrowAx, uBrowAng, uBrowS[2]; uniform vec3 uBrowFur, uBrowCol; uniform vec3 uFur, uCheek, uLash, uMouthIn, uTongue;
 float faceFlat = 0.0; float pawFlat = 0.0;
-uniform vec3 uPadCol; uniform vec2 uPadC[2], uPadU[2];
+uniform vec3 uPadCol; uniform vec2 uPadC[2], uPadU[2]; uniform float uPadOn;
 float blob(vec2 p, vec2 c, vec2 u, vec2 r){ vec2 d = p - c; vec2 l = vec2(dot(d, vec2(u.y, -u.x)), dot(d, u)) / r; float e = length(l); float aa = max(fwidth(e), 0.03); return 1.0 - smoothstep(1.0 - aa, 1.0 + aa, e); }
 vec2 rot2(vec2 v, float a){ float c=cos(a), s=sin(a); return vec2(c*v.x-s*v.y, s*v.x+c*v.y); }`)
-        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * 0.28;')
+        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * 0.10;')
         .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\nnormal = normalize(mix(normal, nonPerturbedNormal, pawFlat));\nnormal = normalize(mix(normal, normalize(vSmoothN) * (gl_FrontFacing ? 1.0 : -1.0), faceFlat));')
         .replace('#include <map_fragment>', `#include <map_fragment>
 {                                               // almohadillas: mismo diseño y posición en ambas patas (palma, hacia el frente)
   for (int k = 0; k < 2; k++) {
     float sx = (k == 0) ? -1.0 : 1.0;
     float inPaw = step(0.27, vRest.x * sx) * step(-0.70, vRest.y) * step(vRest.y, -0.40) * step(0.12, vRest.z);
-    if (inPaw > 0.0) {
+    if (inPaw * uPadOn > 0.0) {
       pawFlat = 1.0;
       vec2 pp = vRest.xy, u = normalize(uPadU[k]), n = vec2(u.y, -u.x), cc = uPadC[k];
       float pf = smoothstep(0.25, 0.5, normalize(vRestN).z);   // solo la cara de la palma
@@ -298,6 +334,7 @@ vec2 rot2(vec2 v, float a){ float c=cos(a), s=sin(a); return vec2(c*v.x-s*v.y, s
   return {
     root, mixer, states: Object.keys(acts), get state() { return state; },
     setState, update,
+    action(name) { return acts[name] || null; },
     talk(on) { talking = !!on; },
     setMouth(v) { mouthExt = v == null ? null : Math.max(0, Math.min(1, v)); },
     express(p) { manual = p || {}; },

@@ -327,3 +327,32 @@ ul, ol { list-style: none; }
 .vd-pos { font-family: var(--mono); font-size: 12px; color: var(--faint); }
 @media (max-width: 560px) { .vd-stats { grid-template-columns: repeat(2, 1fr); } .vd-value { font-size: 36px; } }
 
+/* ---------------------------------------------------------------- maniobras guiadas */
+.maneuver-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.maneuver-head h2 { font-size: 16px; line-height: 1.25; }
+.maneuver-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: .09em; color: var(--accent); font-weight: 600; }
+.maneuver-env { display: grid; gap: 4px; font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+.maneuver-env select { height: 32px; border-radius: 6px; background: rgba(255,255,255,.05); border: 1px solid var(--line-strong); padding: 0 6px; color: var(--text); }
+.maneuver-env select option { background: var(--panel-solid); }
+.maneuver-loading { color: var(--muted); font-size: 13px; }
+.maneuver-progress { display: flex; gap: 3px; margin-bottom: 10px; }
+.maneuver-progress span { flex: 1; height: 4px; border-radius: 2px; background: var(--line-strong); }
+.maneuver-progress .done { background: var(--accent); opacity: .5; }
+.maneuver-progress .on { background: var(--accent); }
+.maneuver-step-n { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+.maneuver-step h3 { font-size: 15px; margin-bottom: 6px; }
+.maneuver-step p { font-size: 13px; line-height: 1.45; }
+.maneuver-img { width: 100%; border-radius: 8px; margin-top: 10px; background: #fff; }
+.maneuver-count { font-family: var(--mono); font-size: 34px; font-weight: 700; margin: 10px 0 2px; color: var(--accent); }
+.maneuver-count small { font-size: 14px; color: var(--muted); font-weight: 400; }
+.maneuver-source { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0 12px; font-size: 11px; color: var(--faint); }
+.badge { flex: none; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; padding: 1px 6px; border-radius: 4px; }
+.badge--validado { background: rgba(92,191,138,.18); color: var(--ok); }
+.badge--supuesto { background: rgba(226,179,74,.18); color: var(--warn); }
+.maneuver-nav { display: flex; gap: 8px; }
+.maneuver-nav .btn { flex: 1; }
+.maneuver-shortcuts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.maneuver-check { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted); margin-top: 10px; }
+.maneuver-summary { font-family: var(--mono); font-size: 11px; white-space: pre-wrap; background: rgba(255,255,255,.05); border-radius: 6px; padding: 8px; margin-top: 8px; max-height: 180px; overflow: auto; }
+.maneuver-note { font-size: 11px; color: var(--faint); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 14px; }
+.maneuver-open { margin-top: 8px; }

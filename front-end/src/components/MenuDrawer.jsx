@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react'
 import { CREW } from '../data/manual'
-import { ENV_LIST } from '../data/environments'
 import { EMERGENCY_TYPES } from '../hooks/useCrewSimulation'
 import { CloseIcon } from './Icons'
+import { MANEUVER_LIST } from '../lib/maneuvers'
 
 export default function MenuDrawer({
   open,
   onClose,
-  envId,
-  setEnvId,
   accountId,
   setAccountId,
   inEmergency,
@@ -16,11 +14,10 @@ export default function MenuDrawer({
   setVoiceOn,
   subtitleMode,
   setSubtitleMode,
-  showCrewModel,
-  setShowCrewModel,
   audio,
   onSimulate,
   onReset,
+  onManeuver,
 }) {
   const [simCrew, setSimCrew] = useState(CREW[3]?.crew_id ?? CREW[0].crew_id)
   const [simKind, setSimKind] = useState('hypoxia')
@@ -47,6 +44,18 @@ export default function MenuDrawer({
             <CloseIcon />
           </button>
         </div>
+
+        <section className="drawer-section">
+          <h3>Maniobras guiadas (3D)</h3>
+          {MANEUVER_LIST.map((m) => (
+            <button key={m.id} className="account" onClick={() => onManeuver(m.id)}>
+              <span className="account-info">
+                <strong>{m.label}</strong>
+                <span>{m.hint}</span>
+              </span>
+            </button>
+          ))}
+        </section>
 
         <section className="drawer-section">
           <h3>Cuenta</h3>
@@ -76,38 +85,6 @@ export default function MenuDrawer({
               {inEmergency(c.crew_id) && <span className="dot dot-danger" title="Emergencia activa" />}
             </button>
           ))}
-        </section>
-
-        <section className="drawer-section">
-          <h3>Ambiente</h3>
-          <div className="env-grid">
-            {ENV_LIST.map((e) => (
-              <button
-                key={e.id}
-                className={`env ${envId === e.id ? 'selected' : ''}`}
-                onClick={() => setEnvId(e.id)}
-                aria-pressed={envId === e.id}
-              >
-                <span
-                  className="env-swatch"
-                  style={{ background: `linear-gradient(160deg, ${e.swatch[0]} 45%, ${e.swatch[1]})` }}
-                />
-                <strong>{e.name}</strong>
-                <span>{e.place}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="drawer-section">
-          <h3>Escena</h3>
-          <label className="row-toggle">
-            <span>
-              Mostrar modelo del tripulante
-              <small>Figura pequeña a un lado de Moon-C con el estado de la cuenta.</small>
-            </span>
-            <input type="checkbox" checked={showCrewModel} onChange={(e) => setShowCrewModel(e.target.checked)} />
-          </label>
         </section>
 
         <section className="drawer-section">

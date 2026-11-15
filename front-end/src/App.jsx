@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import ManeuverPanel from './components/ManeuverPanel'
+import { ENV_TO_MANEUVER, MANIOBRAS, explicitManeuver, suggestedManeuver } from './lib/maneuvers'
 import Scene from './components/Scene'
 import TopBar from './components/TopBar'
 import MenuDrawer from './components/MenuDrawer'
@@ -26,11 +28,9 @@ const QUICK_GENERAL = ['¿Cómo mido la saturación?', 'Emergencia médica', 'Ho
 const QUICK_CREW = ['¿Cómo mido mi temperatura?', 'Me siento raro', 'Dormí muy poco']
 
 export default function App() {
-  const [envId, setEnvId] = useLocalStorage('moonc.env', 'iss')
   const [accountId, setAccountId] = useLocalStorage('moonc.account', 'general')
   const [voiceOn, setVoiceOn] = useLocalStorage('moonc.voice', true)
   const [subtitleMode, setSubtitleMode] = useLocalStorage('moonc.subtitles', 'auto')
-  const [showCrewModel, setShowCrewModel] = useLocalStorage('moonc.showCrewModel', true)
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobilePanel, setMobilePanel] = useState(null)
   const [announcements, setAnnouncements] = useState(SEED_ANNOUNCEMENTS)
@@ -42,12 +42,17 @@ export default function App() {
   const [accessLog, setAccessLog] = useState({})
   const [vitalDetail, setVitalDetail] = useState(null)
   const [greeting, setGreeting] = useState(true)
+  const [maneuver, setManeuver] = useState(null) // { id, entorno, nonce }
+  const [mstate, setMstate] = useState(null)
+  const mctl = useRef(null)
+  const spoken = useRef(new Set())
 
   const sim = useCrewSimulation()
   const tts = useSpeechOutput(SPEECH_LANG)
   const backend = useBackendStatus()
 
-  const env = ENVIRONMENTS[envId] ?? ENVIRONMENTS.iss
+  const env = ENVIRONMENTS.home // la app usa siempre la sala (modo hogar)
+  const envId = env.id
   const account = accountId === 'general' ? null : crewById(accountId)
   const isGeneral = !account
   const audioAvailable = voiceOn && tts.supported && tts.hasVoices && tts.hasSpeakers !== false
@@ -65,6 +70,40 @@ export default function App() {
     [audioAvailable, tts],
   )
 
+  const startManeuver = useCallback(
+    (id, entorno) => {
+      spoken.current = new Set()
+      setMstate(null)
+      setManeuver({ id, entorno: entorno ?? ENV_TO_MANEUVER[envId] ?? 'iss', nonce: Date.now() })
+      setMenuOpen(false)
+      setMobilePanel(null)
+    },
+    [envId],
+  )
+  const stopManeuver = useCallback(() => {
+    setManeuver(null)
+    setMstate(null)
+  }, [])
+
+  // Avance de la maniobra (lo reporta el modelo 3D): paso, conteo, tiempo. Moon-C lee cada paso una sola vez.
+  const maneuverEvents = useRef({})
+  maneuverEvents.current = {
+    onPaso: (index, paso, pasos) => {
+      setMstate((s) => ({ ...s, index, paso, pasos, conteo: 0, tiempo: null }))
+      if (!spoken.current.has(paso.id)) {
+        spoken.current.add(paso.id)
+        say(`${paso.titulo}. ${paso.texto}`)
+      }
+    },
+    onConteo: (conteo, total) => setMstate((s) => ({ ...s, conteo, total })),
+    onTiempo: (tiempo) => setMstate((s) => (s?.tiempo === tiempo ? s : { ...s, tiempo })),
+    onReady: (m) => setMstate((s) => ({ ...s, soloManos: m.soloManos })),
+    onError: () => {
+      setManeuver(null)
+      setMstate(null)
+    },
+  }
+
   const appendLog = useCallback((key, entry) => {
     setLogs((l) => ({ ...l, [key]: [...(l[key] ?? []), { id: uid(), at: Date.now(), ...entry }] }))
   }, [])
@@ -74,6 +113,12 @@ export default function App() {
       const key = accountId
       appendLog(key, { who: 'user', name: account?.name ?? 'General', text: message })
       setSuggestions((s) => ({ ...s, [key]: [] }))
+      const asked = explicitManeuver(message)
+      if (asked) {
+        appendLog(key, { who: 'assistant', name: 'Moon-C', text: `Abro la guía 3D: ${MANIOBRAS[asked].titulo}.`, via: 'local' })
+        startManeuver(asked)
+        return
+      }
       setBusy(true)
       let res = null
       if (backend.online) {
@@ -94,6 +139,7 @@ export default function App() {
         protocol: res.protocol,
         category: res.category,
         via: res.via,
+        maneuver: suggestedManeuver({ protocol: res.protocol, message }),
       })
       setSuggestions((s) => ({ ...s, [key]: res.suggestions ?? [] }))
       setBusy(false)
@@ -102,7 +148,7 @@ export default function App() {
         sim.reportFromChat(account.crew_id, res.protocol?.title?.split(':')[0] ?? 'una emergencia')
       }
     },
-    [accountId, account, appendLog, backend, say, sim],
+    [accountId, account, appendLog, backend, say, sim, startManeuver],
   )
 
   const mic = useSpeechInput(SPEECH_LANG, send)
@@ -191,18 +237,18 @@ export default function App() {
   return (
     <div className={`app env-${env.id}`}>
       <Scene
+        maneuver={maneuver}
+        ctrlRef={mctl}
+        onManeuverEvent={{
+          onPaso: (...a) => maneuverEvents.current.onPaso(...a),
+          onConteo: (...a) => maneuverEvents.current.onConteo(...a),
+          onTiempo: (...a) => maneuverEvents.current.onTiempo(...a),
+          onReady: (...a) => maneuverEvents.current.onReady(...a),
+          onError: (...a) => maneuverEvents.current.onError(...a),
+        }}
         envId={env.id}
-        status={modelStatus}
         talking={talking}
         mood={assistantMood}
-        showCrew={showCrewModel}
-        crewLabel={
-          account
-            ? `${account.name} · ${STATUS_LABEL[modelStatus]}`
-            : sim.activeAlerts.length
-              ? `Tripulación · ${sim.activeAlerts.length} alerta${sim.activeAlerts.length > 1 ? 's' : ''}`
-              : 'Tripulación · Normal'
-        }
       />
 
       <TopBar
@@ -219,8 +265,23 @@ export default function App() {
 
       <AlertBanner alerts={visibleAlerts} isGeneral={isGeneral} onOpen={openEmergency} onAck={sim.acknowledge} />
 
-      <aside className={`panel panel-left ${mobilePanel === 'left' ? 'mobile-open' : ''}`}>
-        <Announcements items={announcements} canPost={isGeneral} onPost={postAnnouncement} limit={isGeneral ? undefined : 3} />
+      <aside className={`panel panel-left ${maneuver || mobilePanel === 'left' ? 'mobile-open' : ''}`}>
+        {maneuver ? (
+          <ManeuverPanel
+            id={maneuver.id}
+            entorno={maneuver.entorno}
+            state={mstate}
+            ctrlRef={mctl}
+            onEnv={(entorno) => startManeuver(maneuver.id, entorno)}
+            onSoloManos={(v) => {
+              if (mctl.current) mctl.current.soloManos = v
+              setMstate((s) => ({ ...s, soloManos: v }))
+            }}
+            onClose={stopManeuver}
+          />
+        ) : (
+          <Announcements items={announcements} canPost={isGeneral} onPost={postAnnouncement} limit={isGeneral ? undefined : 3} />
+        )}
       </aside>
 
       <aside className={`panel panel-right ${mobilePanel === 'right' ? 'mobile-open' : ''}`}>
@@ -255,6 +316,7 @@ export default function App() {
           suggestions={chips}
           busy={busy}
           onSend={send}
+          onManeuver={startManeuver}
           mic={mic}
           placeholder={isGeneral ? 'Escribe o usa el micrófono (cuenta General)' : `Escribe o usa el micrófono, ${account.name}`}
         />
@@ -273,8 +335,6 @@ export default function App() {
       <MenuDrawer
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
-        envId={env.id}
-        setEnvId={setEnvId}
         accountId={accountId}
         setAccountId={switchAccount}
         inEmergency={sim.inEmergency}
@@ -284,10 +344,9 @@ export default function App() {
           if (!v) tts.cancel()
         }}
         subtitleMode={subtitleMode}
-        showCrewModel={showCrewModel}
-        setShowCrewModel={setShowCrewModel}
         setSubtitleMode={setSubtitleMode}
         audio={tts}
+        onManeuver={startManeuver}
         onSimulate={(crewId, kind) => {
           sim.triggerEmergency(crewId, kind)
           setMenuOpen(false)
