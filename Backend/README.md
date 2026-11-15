@@ -134,6 +134,17 @@ The full contract, with schemas and examples, is at `/docs`. Responses use the l
 
 Indicators and units: `heart_rate` (bpm), `body_temperature` (°C), `spo2` (%), `sleep_hours` (h), `mood` (/5, whole numbers 1–5). Common unit spellings are accepted (`C`, `celsius`, `hours`, `1-5`…). Other units, such as °F, are rejected with 422 instead of being converted.
 
+The quickest way to talk to Moon-C is the terminal chat helper. Run it with the backend running, from `Backend/`, in a second terminal:
+
+```bash
+python scripts/chat.py                 # English, no crew member
+python scripts/chat.py --crew moises   # as Moisés (Spanish)
+```
+
+It prints each reply with its category, language, whether the AI was used and the response time. `/reset` clears the conversation and `/quit` exits.
+
+Your browser can only send GET requests, so opening `/chat` in the address bar returns `405 Method Not Allowed`. Use `/docs` (**Try it out**), the script above or curl:
+
 Quick try (bash; in PowerShell, use `curl.exe` or the `/docs` page):
 
 ```bash
