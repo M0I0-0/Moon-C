@@ -59,6 +59,7 @@ from .schemas import (
     Scenario,
     SessionResetRequest,
     SessionResetResponse,
+    SpeechRequest,
     SimulationEmergencyRequest,
     SimulationResetRequest,
     StatusResponse,
@@ -76,6 +77,7 @@ from .records import RecordStore
 from .sessions import SessionStore
 from .storage import AlreadyAssigned, MeasurementNotFound, MeasurementStore, now_utc, to_utc
 from .sync import EarthSync
+from .voice import MoonCVoice, VoiceUnavailable
 
 log = logging.getLogger("moon_c")
 
@@ -102,6 +104,7 @@ TAGS = [
     {"name": "alerts", "description": "On-board alerts: urgent readings, emergencies reported in the chat, maneuvers."},
     {"name": "vitals", "description": "Live vital signs from the simulated bracelets."},
     {"name": "simulation", "description": "Demo controls: simulated emergencies."},
+    {"name": "voice", "description": "Moon-C's own offline voice (Spanish)."},
     {"name": "maneuvers", "description": "Guided emergency maneuvers: alert on start, report for Earth."},
     {"name": "announcements", "description": "Messages from the General account to the crew."},
     {"name": "access", "description": "Who opened a crew member's data during an emergency."},
@@ -127,6 +130,7 @@ class Services:
     reports: RecordStore[ManeuverReport]
     access_log: RecordStore[AccessEntry]
     announcements: RecordStore[Announcement]
+    voice: MoonCVoice
     bracelets: SimulatedBracelets | None = None
     tasks: list[asyncio.Task] = field(default_factory=list)
 
@@ -178,6 +182,7 @@ class Services:
             reports=reports,
             access_log=access_log,
             announcements=announcements,
+            voice=MoonCVoice(settings.voice_dir, enabled=settings.voice),
             bracelets=bracelets,
         )
 
@@ -205,6 +210,8 @@ async def get_status(services: ServicesDep) -> StatusResponse:
         model=services.settings.ollama_model,
         model_available=available,
         earth_link=services.sync.link,
+        voice=services.voice.state,
+        voice_languages=list(services.voice.languages) if services.voice.state == "ready" else [],
         manual_version=services.manual.version,
         time=now_utc(),
     )
@@ -476,6 +483,33 @@ def reset_simulation(body: SimulationResetRequest, services: ServicesDep) -> lis
     return bracelets.vitals()
 
 
+# =========================================================================== voice
+@api.post(
+    "/tts",
+    response_class=Response,
+    responses={
+        200: {"content": {"audio/wav": {}}, "description": "WAV, mono, 22 050 Hz."},
+        422: {"model": ErrorResponse},
+        503: {"model": ErrorResponse},
+    },
+    tags=["voice"],
+    summary="Moon-C's voice: text to speech, offline",
+    description=(
+        "Spanish only for now. Returns 503 while the voice loads or if it is not installed; then use a local "
+        "browser voice. Units are read in full (bpm -> latidos por minuto). The text is never stored or logged."
+    ),
+)
+def text_to_speech(body: SpeechRequest, services: ServicesDep) -> Response:
+    voice = services.voice
+    if body.language not in voice.languages:
+        raise HTTPException(status_code=422, detail="Moon-C's voice only speaks Spanish for now.")
+    try:
+        audio = voice.wav(body.text)
+    except VoiceUnavailable as exc:
+        raise HTTPException(status_code=503, detail=f"Moon-C's voice is {voice.state}. {voice.detail}".strip()) from exc
+    return Response(content=audio, media_type="audio/wav", headers={"Cache-Control": "no-store"})
+
+
 # =========================================================================== maneuvers
 @api.post(
     "/maneuvers/start",
@@ -670,6 +704,8 @@ def create_app(
             services.tasks.append(asyncio.create_task(services.ai_client.warm_up()))
         services.tasks.append(asyncio.create_task(_sweep_sessions(services)))
         services.tasks.append(asyncio.create_task(services.sync.run(settings.sync_interval_s)))
+        if services.voice.state == "loading":  # loads the voice model (~3 s) without delaying startup
+            services.tasks.append(asyncio.create_task(asyncio.to_thread(services.voice.load)))
         if services.bracelets is not None:
             services.tasks.append(asyncio.create_task(services.bracelets.run(settings.sim_tick_s)))
         log.info("Moon-C %s ready (manual %s, model %s).", __version__, services.manual.version, settings.ollama_model)

@@ -1,0 +1,14 @@
+{
+  "alerta_pulso": {
+    "archivo": "alerta_pulso.mp3",
+    "texto": "Atención: tu pulso está alto. Siéntate y respira despacio conmigo."
+  },
+  "saludo": {
+    "archivo": "saludo.mp3",
+    "texto": "Hola, soy Moon-C. Vamos a revisar tus signos vitales. Respira profundo y mantén la calma."
+  },
+  "guia_rcp": {
+    "archivo": "guia_rcp.mp3",
+    "texto": "Coloca las manos en el centro del pecho y empuja fuerte y rápido."
+  }
+}

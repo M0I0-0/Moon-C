@@ -64,11 +64,15 @@ class Settings(BaseSettings):
     snapshot_interval_s: float = Field(900.0, gt=0, description="Seconds between stored snapshots of live signs")
     sim_seed: int | None = Field(None, description="Fixed random seed, for reproducible demos")
 
+    # Moon-C's own voice (offline text-to-speech, optional install: requirements-voice.txt).
+    voice: bool = True
+    voice_dir: Path = REPO_DIR / "moonc_voz"
+
     # CORS.
     cors_origins: str = DEFAULT_CORS_ORIGINS
     cors_origin_regex: str | None = DEFAULT_CORS_ORIGIN_REGEX
 
-    @field_validator("shared_dir", "storage_path", mode="after")
+    @field_validator("shared_dir", "storage_path", "voice_dir", mode="after")
     @classmethod
     def _resolve_relative(cls, value: Path) -> Path:
         return value if value.is_absolute() else (BACKEND_DIR / value).resolve()

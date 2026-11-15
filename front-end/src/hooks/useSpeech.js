@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { api } from '../lib/api'
+import { createMoonVoice } from '../lib/moonVoice'
 
 const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined
 const Recognition =
@@ -21,12 +23,24 @@ export function pickVoice(voices, lang) {
 
 /**
  * Salida de voz (text-to-speech) + detección de bocinas.
+ * Con `moonVoice` (voz propia del backend lista y texto en español) habla con la voz de Moon-C y
+ * manda el volumen a `onMouth` (0..1, o null al terminar) para mover la boca. Si esa voz falla,
+ * o el idioma es otro, usa una voz local del navegador.
  * hasSpeakers: true/false si el navegador lista dispositivos de salida, null si no lo sabe.
  */
-export function useSpeechOutput(lang) {
+export function useSpeechOutput(lang, { moonVoice = false, onMouth } = {}) {
   const [voices, setVoices] = useState(() => synth?.getVoices() ?? [])
   const [speaking, setSpeaking] = useState(false)
   const [hasSpeakers, setHasSpeakers] = useState(null)
+  const onMouthRef = useRef(onMouth)
+  const utterance = useRef(0)
+  const [player] = useState(() =>
+    createMoonVoice({ fetchAudio: (text) => api.tts(text, 'es'), onLevel: (v) => onMouthRef.current?.(v) }),
+  )
+
+  useEffect(() => {
+    onMouthRef.current = onMouth
+  }, [onMouth])
 
   useEffect(() => {
     if (!synth) return
@@ -57,8 +71,8 @@ export function useSpeechOutput(lang) {
     return () => md.removeEventListener?.('devicechange', check)
   }, [])
 
-  const speak = useCallback(
-    (text, { onEnd } = {}) => {
+  const speakWithBrowser = useCallback(
+    (text, onEnd) => {
       if (!synth) {
         onEnd?.()
         return
@@ -84,15 +98,45 @@ export function useSpeechOutput(lang) {
     [voices, lang],
   )
 
+  const speak = useCallback(
+    (text, { onEnd } = {}) => {
+      const id = ++utterance.current
+      if (!moonVoice) {
+        player.stop()
+        speakWithBrowser(text, onEnd)
+        return
+      }
+      synth?.cancel()
+      setSpeaking(true)
+      player
+        .speak(text)
+        .then(() => {
+          if (utterance.current !== id) return
+          setSpeaking(false)
+          onEnd?.()
+        })
+        .catch(() => {
+          // La voz de Moon-C no respondió: esta vez habla una voz local del navegador.
+          if (utterance.current !== id) return
+          setSpeaking(false)
+          speakWithBrowser(text, onEnd)
+        })
+    },
+    [moonVoice, player, speakWithBrowser],
+  )
+
   const cancel = useCallback(() => {
+    utterance.current += 1
+    player.stop()
     synth?.cancel()
     setSpeaking(false)
-  }, [])
+  }, [player])
 
   return {
-    supported: Boolean(synth),
-    // Hay voz local para el idioma actual; si no, la app muestra subtítulos.
-    hasVoices: Boolean(pickVoice(voices, lang)),
+    supported: moonVoice || Boolean(synth),
+    // Hay voz para el idioma actual (la de Moon-C o una local); si no, la app muestra subtítulos.
+    hasVoices: moonVoice || Boolean(pickVoice(voices, lang)),
+    moonVoice,
     hasSpeakers,
     speaking,
     speak,

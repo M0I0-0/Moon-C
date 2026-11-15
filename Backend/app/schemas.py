@@ -56,8 +56,17 @@ class StatusResponse(BaseModel):
     model: str = Field(description="Ollama model used for small talk.")
     model_available: bool = Field(description="The model is pulled in Ollama.")
     earth_link: EarthLink = Field(description="Simulated link with Earth.")
+    voice: Literal["disabled", "loading", "ready", "unavailable"] = Field(
+        "disabled", description="Moon-C's own voice (POST /tts). If not ready, use a local browser voice."
+    )
+    voice_languages: list[Language] = Field(default_factory=list, description="Languages Moon-C's voice speaks.")
     manual_version: str
     time: datetime
+
+
+class SpeechRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=1000, examples=["Hola, soy Moon-C."])
+    language: Language = "es"
 
 
 # --------------------------------------------------------------------------- manual

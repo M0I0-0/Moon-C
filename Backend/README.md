@@ -111,6 +111,8 @@ Every setting is optional. Use environment variables or copy `.env.example` to `
 | `MOON_C_SIM_TICK_S` | `2.5` | Seconds between simulated readings |
 | `MOON_C_SNAPSHOT_INTERVAL_S` | `900` | Seconds between stored snapshots of the live signs. Status changes are always stored |
 | `MOON_C_SIM_SEED` | random | Fixed seed for reproducible demos |
+| `MOON_C_VOICE` | `true` | Load Moon-C's own voice for `POST /tts` (optional install, see [Speech](#speech)) |
+| `MOON_C_VOICE_DIR` | `../moonc_voz` | Folder of the voice module and its model |
 | `MOON_C_CORS_ORIGINS` | localhost on ports 5173 and 3000 | Comma-separated frontend origins |
 | `MOON_C_CORS_ORIGIN_REGEX` | any `localhost` or `127.0.0.1` port | Extra origin pattern. Set it empty to disable |
 
@@ -120,7 +122,8 @@ The full contract, with schemas and examples, is at `/docs`. Responses use the l
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/status` | Backend ok, Ollama reachable, model name, `earth_link` state |
+| GET | `/status` | Backend ok, Ollama reachable, model name, `earth_link` state, `voice` state |
+| POST | `/tts` | `{text, language?}` → WAV spoken with Moon-C's own voice (Spanish only; 503 while loading or if not installed) |
 | POST | `/chat` | `{session_id, crew_id?, message, language?}` → `{category, reply, language, ai_used, protocol?, indicator?, source?, suggestions}` |
 | POST | `/session/reset` | `{session_id}`: forget that chat context |
 | POST | `/identify` | Simulated bracelet: `{bracelet_id, session_id?}` → crew profile; clears that session's context |
@@ -191,7 +194,20 @@ To change keywords, edit `shared/keywords.json` and restart the backend. To chan
 
 ## Speech
 
-Speech-to-text and text-to-speech are handled by the frontend for now. Replies are short, plain sentences that work with TTS. Future on-board versions could use local engines such as **Vosk** (speech-to-text) and **Piper** (text-to-speech), so voice also works offline.
+**Moon-C's own voice (text-to-speech, offline).** `POST /tts` speaks Spanish with the voice the voice team built in `moonc_voz/`: the Piper voice `es_MX-claude-high`, with pitch and timbre adjusted with Praat. See `moonc_voz/LEEME.md` for how to tune it. On the development laptop the model loads in about 3 s, in the background so it doesn't delay startup, and a sentence takes 0.2–0.5 s. Units are rewritten so they are read in full ("72 bpm" → "72 latidos por minuto", "Moon-C" → "Mun Si"); the list is `SPOKEN_FORMS_ES` in `app/voice.py`. The text is never stored or logged.
+
+It is an optional install:
+
+```bash
+git lfs pull                               # the 63 MB model is stored with Git LFS
+pip install -r requirements-voice.txt      # piper-tts, praat-parselmouth, numpy, scipy
+```
+
+Without it, `/status` reports `voice: "unavailable"` and the front-end uses a voice installed on the machine, or subtitles. English replies always use that local voice, because Moon-C's voice only speaks Spanish for now.
+
+> ⚠️ **License:** `piper-tts` 1.8 and `praat-parselmouth` are **GPL-3.0**. Distributing the backend with them installed means distributing it under GPL-compatible terms. An open hackathon project usually complies, but have someone who handles licenses confirm it.
+
+**Speech-to-text** is still done by the browser's dictation, which uses an online service. A future on-board version could use a local engine such as **Vosk** or **whisper.cpp**.
 
 ## Limitations
 

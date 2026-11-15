@@ -29,7 +29,20 @@ async function request(path, { method = 'GET', body, ms = 8000 } = {}) {
   return res.status === 204 ? null : res.json()
 }
 
+/** Voz propia de Moon-C: WAV (ArrayBuffer) del backend. Solo español por ahora. */
+async function tts(text, language = 'es') {
+  const res = await fetch(`${API_URL}/tts`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, language }),
+    signal: timeout(20000),
+  })
+  if (!res.ok) throw new ApiError(res.status, `Voz de Moon-C no disponible (HTTP ${res.status})`)
+  return res.arrayBuffer()
+}
+
 export const api = {
+  tts,
   // /status consulta a Ollama: si está apagado, Windows tarda ~2 s en rechazar la conexión.
   status: () => request('/status', { ms: 5000 }),
 

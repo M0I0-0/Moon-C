@@ -95,6 +95,7 @@ def settings(storage_path) -> Settings:
         ollama_warmup=False,
         earth_link="offline",
         simulation=False,  # tests that need the bracelets turn them on and advance them by hand
+        voice=False,  # voice tests use a fake voice module (or the real one, if installed)
     )
 
 

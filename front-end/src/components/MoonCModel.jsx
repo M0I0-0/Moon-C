@@ -28,7 +28,7 @@ function dispose(root) {
  * lleva la cámara hacia él y reporta el avance con `ctrlRef` (controlador) y `onEvent`.
  * Mientras carga, o si falla (sin WebGL2, archivo faltante), muestra `fallback`.
  */
-export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallback, maneuver, ctrlRef, onEvent, speaking = false }) {
+export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallback, maneuver, ctrlRef, onEvent, speaking = false, mouthRef }) {
   const [moon, setMoon] = useState(null)
   const [failed, setFailed] = useState(false)
   const aim = useRef({})
@@ -143,6 +143,8 @@ export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallb
   useFrame(({ camera }, dt) => {
     if (!moon) return
     const step = Math.min(dt, 0.05)
+    // Con la voz de Moon-C la boca sigue el volumen real del audio; null = animación normal.
+    moon.setMouth(mouthRef?.current ?? null)
     moon.update(step)
     const ctrl = ctrlRef?.current
     if (ctrl) {

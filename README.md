@@ -13,6 +13,7 @@ Everything runs offline on one machine. Ranges and protocols are **EXAMPLE VALUE
 | `Backend/` | FastAPI service: chat router, health manual, simulated bracelets, alerts, storage, Earth sync | [Backend/README.md](Backend/README.md) |
 | `front-end/` | React + Vite + react-three-fiber app with the 3D Moon-C assistant | [front-end/README.md](front-end/README.md) |
 | `Model3D/` | Moon-C character (rigged GLB, face shader) and the guided maneuvers | — |
+| `moonc_voz/` | Moon-C's own offline voice: Piper `es_MX-claude-high` + Praat. The model is stored with Git LFS | [moonc_voz/LEEME.md](moonc_voz/LEEME.md) |
 | `shared/` | Single source of truth read by backend and front-end: `protocols.json` (manual), `keywords.json`, `crew.json`, `router_cases.json` (test cases both sides must agree on) | — |
 
 ## Run everything
@@ -24,10 +25,12 @@ You need Python 3.11+, Node 20+ and [Ollama](https://ollama.com/download). Ollam
 ollama pull qwen3.5:4b
 
 # 2. Backend -> http://localhost:8000/docs
+git lfs pull                      # Moon-C's voice model (63 MB, Git LFS)
 cd Backend
 python -m venv .venv
 .venv\Scripts\activate            # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
+pip install -r requirements-voice.txt   # optional: Moon-C's own voice (GPL-3.0 libraries)
 uvicorn app.main:app --reload --port 8000
 
 # 3. Front-end -> http://localhost:5173 (second terminal)
@@ -43,6 +46,7 @@ On a slow laptop, put `MOON_C_OLLAMA_TIMEOUT_S=25` in `Backend/.env` so the mode
 - **Chat:** the front-end sends each message to `POST /chat` in the crew member's language. Emergencies and health questions are answered from the manual, and only small talk uses the local AI. Without the backend, the front-end still detects emergencies with the same keywords.
 - **Vital signs and alerts:** simulated bracelets in the backend produce the live signs (`/vitals`). Urgent values, emergencies detected in the chat and opened 3D maneuver guides raise on-board alerts (`/alerts`), and every screen sees the same ones.
 - **Maneuvers:** opening a guide alerts the medical officer. The "Report to Earth" step stores the summary, which is queued for the next contact with Earth (`/sync`).
+- **Voice:** Spanish replies are spoken with Moon-C's own offline voice (`POST /tts`). The front-end requests it sentence by sentence, so it starts talking right away, and moves her mouth with the real volume of the audio. English, or a backend without the voice installed, falls back to a voice installed on the machine.
 - **Privacy:** chat text and audio are never stored or logged. Only measurements and safety records (maneuver reports, access log, announcements) are stored, in `Backend/storage/`. That folder is gitignored, but OneDrive will still sync it if the repo lives there.
 
 ## Tests

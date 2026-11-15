@@ -35,8 +35,12 @@ La URL se cambia con `VITE_API_URL` en `.env.local` (ver `.env.example`).
 - **Cuenta individual**: signos vitales simulados en vivo, qué hacer según el manual y chat propio.
 - **Entrada** por texto o micrófono (Web Speech API; funciona en Chrome y Edge). Ojo: el dictado del
   navegador usa un servicio en internet y envía el audio a ese servicio; escribir funciona sin conexión.
-- **Salida** por voz (`speechSynthesis`, solo voces instaladas en el equipo) y subtítulos. En modo
-  automático los subtítulos aparecen si no hay bocinas, no hay voz local para el idioma o la voz está apagada.
+- **Salida** por voz y subtítulos. En español habla con la **voz propia de Moon-C** (backend `POST /tts`,
+  voz de `../moonc_voz`, sin internet). La pide oración por oración para empezar a hablar enseguida y mueve
+  la boca con el volumen real del audio (`src/lib/moonVoice.js`, basado en `moonc_voz/web/moonc-voz.js`).
+  En inglés, o si el backend no tiene la voz instalada, usa una voz instalada en el equipo (`speechSynthesis`,
+  nunca voces de red). En modo automático los subtítulos aparecen si no hay bocinas, no hay voz para el
+  idioma o la voz está apagada.
 - **Idioma**: chat y voz en el idioma de cada tripulante (`preferredLanguage` de `shared/crew.json`).
 
 Todos los datos de signos vitales son simulados y los rangos son de ejemplo, pendientes de validación médica.

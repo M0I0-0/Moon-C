@@ -68,8 +68,14 @@ export default function App() {
   const lang = account?.preferredLanguage ?? 'es'
   const speechLang = speechLangFor(lang)
 
-  const tts = useSpeechOutput(speechLang)
   const backend = useBackendStatus()
+  // Voz propia de Moon-C (backend /tts, español) con la boca siguiendo el volumen real del audio.
+  const mouthRef = useRef(null)
+  const setMouth = useCallback((level) => {
+    mouthRef.current = level
+  }, [])
+  const moonVoice = backend.online && backend.info?.voice === 'ready' && lang === 'es'
+  const tts = useSpeechOutput(speechLang, { moonVoice, onMouth: setMouth })
   // Signos y alertas: del backend (una sola fuente para todas las pantallas) o, sin enlace, simulados aquí.
   const localCrew = useCrewSimulation()
   const remoteCrew = useRemoteCrew(backend.online, lang)
@@ -356,6 +362,7 @@ export default function App() {
         envId={env.id}
         talking={talking}
         mood={assistantMood}
+        mouthRef={mouthRef}
       />
 
       <TopBar

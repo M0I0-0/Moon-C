@@ -1,0 +1,4 @@
+# Optional: Moon-C's own offline voice (POST /tts, Spanish).
+# These libraries are GPL-3.0 (piper-tts, praat-parselmouth): see moonc_voz/LEEME.md before distributing.
+# The model (moonc_voz/modelos/*.onnx) is stored with Git LFS: run `git lfs pull` after cloning.
+-r ../moonc_voz/requirements.txt

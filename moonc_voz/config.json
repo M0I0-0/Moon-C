@@ -1,0 +1,13 @@
+{
+  "tono_hz": 175,
+  "formante": 0.96,
+  "entonacion": 1.0,
+  "velocidad": 1.0,
+  "brillo_db": 0,
+  "calidez_db": 0,
+  "noise_w": 0.9,
+  "noise_scale": 0.667,
+  "length_scale": 1.05,
+  "silencio_oracion": 0.25,
+  "volumen": 0.9
+}
