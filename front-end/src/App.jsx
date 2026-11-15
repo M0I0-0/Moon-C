@@ -14,6 +14,7 @@ import Subtitles from './components/Subtitles'
 import VitalDetail from './components/VitalDetail'
 import { ENVIRONMENTS } from './data/environments'
 import { useAnnouncements } from './hooks/useAnnouncements'
+import { useSyncStatus } from './hooks/useSyncStatus'
 import { INDICATORS, STATUS_LABEL, classify, crewById, worstStatus } from './data/manual'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useCrewSimulation } from './hooks/useCrewSimulation'
@@ -75,6 +76,7 @@ export default function App() {
   const sim = backend.online && remoteCrew.ready ? remoteCrew : localCrew
   const refreshCrew = remoteCrew.refresh
   const board = useAnnouncements(backend.online)
+  const earth = useSyncStatus(backend.online)
   const reportSent = useRef(false)
 
   const env = ENVIRONMENTS.home // la app usa siempre la sala (modo hogar)
@@ -360,6 +362,7 @@ export default function App() {
         env={env}
         account={account}
         backendOnline={backend.online}
+        earth={earth.status}
         audioAvailable={audioAvailable}
         showSubs={showSubs}
         onMenu={() => setMenuOpen(true)}
@@ -452,6 +455,13 @@ export default function App() {
         setSubtitleMode={setSubtitleMode}
         audio={tts}
         onManeuver={startManeuver}
+        online={backend.online}
+        language={lang}
+        sync={earth.status}
+        onDataChanged={() => {
+          earth.refresh()
+          refreshCrew()
+        }}
         onSimulate={(crewId, kind) => {
           sim.triggerEmergency(crewId, kind)
           setMenuOpen(false)

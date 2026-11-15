@@ -255,6 +255,19 @@ ul, ol { list-style: none; }
 .sim-row { display: flex; gap: 8px; margin-bottom: 8px; }
 .sim-row select { flex: 1; height: 32px; border-radius: 6px; background: rgba(255,255,255,.05); border: 1px solid var(--line-strong); padding: 0 6px; }
 .sim-row select option { background: var(--panel-solid); }
+.sim-row a.btn { display: inline-flex; align-items: center; text-decoration: none; }
+
+/* Registrar lectura (MeasurementEntry) */
+.entry-input { flex: 1; min-width: 0; height: 32px; border-radius: 6px; background: rgba(255,255,255,.05); border: 1px solid var(--line-strong); padding: 0 8px; font-family: var(--mono); color: inherit; }
+.entry-unit { align-self: center; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.entry-result { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin: 6px 0 8px; font-size: 13px; }
+.entry-result ul { margin: 4px 0 0 16px; color: var(--muted); }
+.entry-status { margin-bottom: 4px; }
+.entry-status--attention { color: var(--warn); }
+.entry-status--urgent { color: var(--danger); font-weight: 600; }
+.entry-assign { flex-wrap: wrap; margin-top: 8px; }
+.entry-error { color: var(--danger); font-size: 13px; margin: 4px 0 8px; }
+.entry-pending { margin-top: 8px; }
 .drawer-foot { font-size: 11px; color: var(--faint); border-top: 1px solid var(--line); padding-top: 12px; }
 
 /* ---------------------------------------------------------------- responsive */

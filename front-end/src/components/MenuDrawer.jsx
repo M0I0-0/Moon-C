@@ -3,6 +3,8 @@ import { CREW } from '../data/manual'
 import { EMERGENCY_TYPES } from '../hooks/useCrewSimulation'
 import { CloseIcon } from './Icons'
 import { MANEUVER_LIST } from '../lib/maneuvers'
+import MeasurementEntry from './MeasurementEntry'
+import DataSection from './DataSection'
 
 export default function MenuDrawer({
   open,
@@ -18,9 +20,13 @@ export default function MenuDrawer({
   onSimulate,
   onReset,
   onManeuver,
+  online,
+  language,
+  sync,
+  onDataChanged,
 }) {
   const [simCrew, setSimCrew] = useState(CREW[3]?.crew_id ?? CREW[0].crew_id)
-  const [simKind, setSimKind] = useState('hypoxia')
+  const [simKind, setSimKind] = useState(Object.keys(EMERGENCY_TYPES)[0])
 
   useEffect(() => {
     if (!open) return
@@ -88,6 +94,11 @@ export default function MenuDrawer({
         </section>
 
         <section className="drawer-section">
+          <h3>Registrar lectura</h3>
+          <MeasurementEntry key={accountId} accountId={accountId} online={online} language={language} />
+        </section>
+
+        <section className="drawer-section">
           <h3>Audio y subtítulos</h3>
           <label className="row-toggle">
             <span>
@@ -152,6 +163,13 @@ export default function MenuDrawer({
           </div>
           <p className="fineprint">Los signos tardan unos segundos en llegar al rango urgente, como en una pulsera real.</p>
         </section>
+
+        {accountId === 'general' && (
+          <section className="drawer-section">
+            <h3>Datos y enlace con la Tierra</h3>
+            <DataSection online={online} sync={sync} onChanged={onDataChanged} />
+          </section>
+        )}
 
         <p className="drawer-foot">Datos simulados · rangos de ejemplo pendientes de validación médica.</p>
       </aside>

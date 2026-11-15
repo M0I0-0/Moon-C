@@ -214,3 +214,10 @@ def test_simulation_disabled(client):
     assert client.get("/vitals/moises").status_code == 409
     assert client.get("/simulation/scenarios").status_code == 409
     assert client.post("/simulation/reset", json={}).status_code == 409
+
+
+def test_scenario_ids_match_the_front_end():
+    # Keep in sync with EMERGENCY_TYPES in front-end/src/hooks/useCrewSimulation.js (and its test).
+    from app.bracelets import SCENARIOS
+
+    assert list(SCENARIOS) == ["low_oxygen", "high_heart_rate", "high_temperature", "high_blood_pressure", "solar_storm"]

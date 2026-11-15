@@ -85,3 +85,17 @@ describe('manual compartido', () => {
     expect(PROTOCOL_FOR_INDICATOR.body_temperature).toBe('feeling_unwell')
   })
 })
+
+describe('escenarios de simulación', () => {
+  it('el front usa los mismos escenarios que Backend/app/bracelets.py', async () => {
+    const { EMERGENCY_TYPES } = await import('../hooks/useCrewSimulation')
+    // Si cambia esta lista, actualiza también SCENARIOS en Backend/app/bracelets.py (y su test).
+    expect(Object.keys(EMERGENCY_TYPES)).toEqual([
+      'low_oxygen',
+      'high_heart_rate',
+      'high_temperature',
+      'high_blood_pressure',
+      'solar_storm',
+    ])
+  })
+})

@@ -10,7 +10,8 @@ function Clock() {
   return <span className="clock">UTC {now.toISOString().slice(11, 19)}</span>
 }
 
-export default function TopBar({ env, account, backendOnline, audioAvailable, showSubs, onMenu, mobilePanel, setMobilePanel, isGeneral }) {
+export default function TopBar({ env, account, backendOnline, earth, audioAvailable, showSubs, onMenu, mobilePanel, setMobilePanel, isGeneral }) {
+  const toSend = earth ? earth.pending + earth.pending_reports : 0
   const togglePanel = (p) => setMobilePanel(mobilePanel === p ? null : p)
   return (
     <header className="topbar">
@@ -36,6 +37,14 @@ export default function TopBar({ env, account, backendOnline, audioAvailable, sh
           <span className="dot" />
           {backendOnline ? 'Backend' : 'Sin enlace'}
         </span>
+        {earth && (
+          <span
+            className={`pill ${earth.earth_link === 'online' ? 'pill-ok' : ''}`}
+            title={`Enlace con la Tierra (simulado): ${earth.earth_link === 'online' ? 'en línea' : 'sin conexión'}. Por enviar: ${earth.pending} lecturas y ${earth.pending_reports} reportes.`}
+          >
+            Tierra{toSend > 0 ? ` · ${toSend} por enviar` : ''}
+          </span>
+        )}
         <span className="pill" title={audioAvailable ? 'Voz activa' : 'Sin audio: se muestran subtítulos'}>
           {audioAvailable ? <SpeakerIcon width={15} height={15} /> : <CaptionIcon width={15} height={15} />}
           {audioAvailable ? (showSubs ? 'Voz + subt.' : 'Voz') : 'Subtítulos'}

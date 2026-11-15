@@ -77,4 +77,17 @@ export const api = {
     request('/announcements', { method: 'POST', body: { text, priority, author } }),
   logAccess: ({ crewId, viewer = 'general', reason = null }) =>
     request('/access-log', { method: 'POST', body: { crew_id: crewId, viewer, reason } }),
+
+  // Lecturas registradas a mano y confirmación de las que llegaron sin tripulante.
+  createMeasurement: ({ crewId, indicator, value, unit, language }) =>
+    request('/measurements', { method: 'POST', body: { crew_id: crewId ?? null, indicator, value, unit, language } }),
+  unassignedMeasurements: () => request('/measurements?unassigned=true'),
+  assignMeasurement: (id, crewId) =>
+    request(`/measurements/${encodeURIComponent(id)}/assign`, { method: 'POST', body: { crew_id: crewId } }),
+
+  // Enlace con la Tierra (simulado), exportación y borrado por privacidad.
+  syncStatus: () => request('/sync/status', { ms: 5000 }),
+  syncSimulate: () => request('/sync/simulate', { method: 'POST' }),
+  exportUrl: (format) => `${API_URL}/export.${format}`,
+  deleteAllData: () => request('/data?confirm=true', { method: 'DELETE' }),
 }
