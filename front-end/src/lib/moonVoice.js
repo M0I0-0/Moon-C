@@ -136,10 +136,11 @@ export function createMoonVoice({ fetchAudio, onLevel, ganancia = 6, suavizado =
       const decoded = await next // el primer trozo puede fallar: el error sube a quien llamó
       if (mine !== token) return
       next = i + 1 < chunks.length ? buffer(chunks[i + 1]).catch(() => null) : null
-      if (!decoded) return // un trozo posterior falló: se corta aquí
+      if (!decoded) return false // un trozo posterior falló: se corta aquí (quien llama lo avisa)
       await play(decoded)
       if (mine !== token) return
     }
+    return true
   }
 
   return { speak, stop, get speaking() { return source !== null } }

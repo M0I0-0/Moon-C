@@ -57,6 +57,42 @@ export function suggestedManeuver({ protocol, message }) {
   return null
 }
 
+// Palabras inequívocas para abrir la guía sola (todo sobre texto normalizado, sin acentos).
+const NO_RESPONSE =
+  /\b(no (me )?(responde|respira|reacciona|despierta|tiene pulso|contesta)|ya no (respira|responde)|sin (respirar|respuesta|pulso|conocimiento)|inconsciente|paro (cardiaco|respiratorio|cardiorespiratorio)|un paro|en paro|unresponsive|not (breathing|responding)|isn'?t (breathing|responding)|no pulse|cardiac arrest)\b/
+const LIMB = /\b(brazos?|antebrazos?|piernas?|manos?|pies?|muslos?|extremidad(es)?|arms?|legs?|hands?|feet|foot|thighs?|limbs?)\b/
+const HEAVY_BLEED =
+  /\b(mucho|mucha|abundante|profus\w*|a chorros|arterial|no (para|se detiene|deja de)|won'?t stop|wont stop|spurting|gushing|heavy|severe|massive)\b/
+const MINOR_SITE = /\b(nariz|nasal|encias?|nose|gums?)\b/
+
+/**
+ * Decisión PURA de abrir la guía 3D sola desde el chat (solo con palabras inequívocas):
+ * RCP: protocolo de desmayo Y mensaje de falta de respuesta/respiración;
+ * torniquete: sangrado Y extremidad o sangrado fuerte (no sangrado de nariz);
+ * atragantamiento: igual que la sugerencia. Si no es inequívoco devuelve null (queda el botón).
+ */
+export function autoOpenManeuver({ category, protocol, message }) {
+  if (category !== 'emergency') return null
+  const guide = suggestedManeuver({ protocol, message })
+  const t = norm(message ?? '')
+  if (guide === 'rcp') return NO_RESPONSE.test(t) ? 'rcp' : null
+  if (guide === 'torniquete') {
+    const limb = LIMB.test(t)
+    if (MINOR_SITE.test(t) && !limb) return null
+    return limb || HEAVY_BLEED.test(t) ? 'torniquete' : null
+  }
+  return guide
+}
+
+/** Frase(s) de emergencia de una respuesta: lo que va antes del protocolo, o la primera oración. */
+export function replyIntro(reply, protocol) {
+  const text = String(reply ?? '').trim()
+  const cut = protocol?.title ? text.split(protocol.title)[0].trim() : ''
+  if (cut) return cut
+  const first = text.split(/(?<=[.!?…])\s+/)[0] ?? ''
+  return first.slice(0, 240)
+}
+
 const toInt = (n) => (Number.isFinite(n) ? Math.max(0, Math.round(n)) : null)
 const clip = (text, max) => (typeof text === 'string' ? text.slice(0, max) : null)
 

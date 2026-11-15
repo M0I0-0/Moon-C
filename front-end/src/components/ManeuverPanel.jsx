@@ -1,18 +1,21 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { tr } from '../lib/i18n'
 import { ENTORNOS, FUENTES, MANIOBRAS, MANEUVER_IMAGES } from '../lib/maneuvers'
 import { CloseIcon } from './Icons'
 
 // Estado del "Resumen para Tierra" que guarda el backend (lo pone App al llegar al paso "Reporta a Tierra").
-const REPORT_STATUS = {
-  sending: 'Guardando el resumen en Moon-C…',
-  queued: 'Resumen guardado en Moon-C. Se enviará a Tierra en la próxima ventana de comunicación.',
-  synced: 'Resumen guardado y enviado a Tierra.',
-  offline: 'Sin enlace con el backend: el resumen no se guardó. Anótalo a mano.',
-  error: 'No se pudo guardar el resumen. Anótalo a mano.',
+const REPORT_KEY = {
+  sending: 'reportSending',
+  queued: 'reportQueued',
+  synced: 'reportSynced',
+  offline: 'reportOffline',
+  error: 'reportError',
 }
 
+const typing = (el) => el && (/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable)
+
 /** Panel de una maniobra guiada: paso actual, conteo/tiempo, atajos y resumen para Tierra. */
-export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSoloManos, onClose }) {
+export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSoloManos, onClose, lang = 'es', notice = null }) {
   const [summary, setSummary] = useState(null)
   const def = MANIOBRAS[id]
   const ctrl = ctrlRef.current
@@ -24,20 +27,42 @@ export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSo
     fn()
   }
 
+  // Atajos de teclado: flechas cambian de paso, Esc cierra la guía (no si se escribe o el menú está abierto).
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || typing(e.target)) return
+      if (document.querySelector('.drawer.open')) return
+      const c = ctrlRef.current
+      if (e.key === 'Escape') onClose()
+      else if (e.key === 'ArrowRight' && c) go(() => c.siguiente())
+      else if (e.key === 'ArrowLeft' && c) go(() => c.anterior())
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [ctrlRef, onClose])
+
+  const reportStatus = state?.report?.status
+  // El texto del paso "Reporta a Tierra" afirma que se envió: solo se muestra si de verdad se guardó.
+  const stepText =
+    paso?.id === 'reporte' && reportStatus && reportStatus !== 'queued' && reportStatus !== 'synced'
+      ? tr(lang, REPORT_KEY[reportStatus])
+      : paso?.texto
+  const canFinish = id === 'rcp' && paso && paso.id !== 'reporte' && pasos.some((p) => p.id === 'reporte')
+
   return (
     <div className="maneuver">
       <div className="maneuver-head">
         <div>
-          <div className="maneuver-kicker">Guía 3D</div>
+          <div className="maneuver-kicker">{tr(lang, 'guideKicker')}</div>
           <h2>{def.titulo}</h2>
         </div>
-        <button className="icon-btn" onClick={onClose} aria-label="Salir de la guía">
+        <button className="icon-btn" onClick={onClose} aria-label={tr(lang, 'guideExit')}>
           <CloseIcon />
         </button>
       </div>
 
       <label className="maneuver-env">
-        <span>Entorno</span>
+        <span>{tr(lang, 'guideEnv')}</span>
         <select value={entorno} onChange={(e) => onEnv(e.target.value)}>
           {Object.entries(ENTORNOS).map(([key, e]) => (
             <option key={key} value={key}>
@@ -47,23 +72,36 @@ export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSo
         </select>
       </label>
 
+      {notice && (
+        <p className="maneuver-notice" role="alert">
+          {tr(lang, 'guideAutoNotice')}
+        </p>
+      )}
+
       {loading ? (
-        <p className="maneuver-loading">Preparando el maniquí…</p>
+        <>
+          <p className="maneuver-loading">{tr(lang, 'guideLoading')}</p>
+          {notice?.slow && (
+            <p className="maneuver-note" role="status">
+              {tr(lang, 'guideSlow')} {notice.reply}
+            </p>
+          )}
+        </>
       ) : (
         <>
-          <div className="maneuver-progress" aria-label={`Paso ${index + 1} de ${pasos.length}`}>
+          <div className="maneuver-progress" aria-label={tr(lang, 'guideStep', { n: index + 1, total: pasos.length })}>
             {pasos.map((p, i) => (
               <span key={p.id} className={i === index ? 'on' : i < index ? 'done' : ''} />
             ))}
           </div>
           <div className="maneuver-step">
             <div className="maneuver-step-n">
-              Paso {index + 1} de {pasos.length}
+              {tr(lang, 'guideStep', { n: index + 1, total: pasos.length })}
             </div>
             <h3>{paso.titulo}</h3>
-            <p>{paso.texto}</p>
+            <p>{stepText}</p>
             {paso.imagen && MANEUVER_IMAGES[paso.imagen] && (
-              <img className="maneuver-img" src={MANEUVER_IMAGES[paso.imagen]} alt={paso.imagenAlt ?? ''} />
+              <img className="maneuver-img" src={MANEUVER_IMAGES[paso.imagen]} alt={paso.imagenAlt ?? paso.titulo} />
             )}
             {paso.modo === 'conteo' && (
               <div className="maneuver-count" aria-live="polite">
@@ -85,12 +123,17 @@ export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSo
 
           <div className="maneuver-nav">
             <button className="btn btn-sm btn-ghost" onClick={() => go(() => ctrl?.anterior())} disabled={index <= 0}>
-              Anterior
+              {tr(lang, 'guidePrev')}
             </button>
             <button className="btn btn-sm btn-primary" onClick={() => go(() => ctrl?.siguiente())}>
-              Siguiente
+              {tr(lang, 'guideNext')}
             </button>
           </div>
+          {canFinish && (
+            <button className="btn btn-sm btn-block btn-danger" onClick={() => go(() => ctrl?.ir('reporte'))}>
+              {tr(lang, 'guideFinish')}
+            </button>
+          )}
 
           {ctrl?.atajos?.length > 0 && (
             <div className="maneuver-shortcuts">
@@ -109,12 +152,12 @@ export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSo
                 checked={soloManos}
                 onChange={(e) => onSoloManos(e.target.checked)}
               />
-              Solo compresiones (sin ventilaciones)
+              {tr(lang, 'soloCompressions')}
             </label>
           )}
 
           <button className="btn btn-sm btn-ghost btn-block" onClick={() => setSummary(summary ? null : ctrl?.paqueteTierra())}>
-            {summary ? 'Ocultar resumen' : 'Resumen para Tierra'}
+            {summary ? tr(lang, 'summaryHide') : tr(lang, 'summaryShow')}
           </button>
           {summary && (
             <pre className="maneuver-summary">
@@ -134,15 +177,16 @@ export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSo
           )}
           {state?.report && (
             <p className="maneuver-note" role="status">
-              {REPORT_STATUS[state.report.status]}
+              {tr(lang, REPORT_KEY[state.report.status])}
             </p>
           )}
         </>
       )}
 
       <p className="maneuver-note">
-        Apoyo a la decisión: no sustituye el criterio médico ni el entrenamiento. Los pasos marcados como{' '}
-        <strong>supuesto</strong> están pendientes de validación.
+        {tr(lang, 'guideDisclaimer')} <strong>{tr(lang, 'guideAssumption')}</strong> {tr(lang, 'guideDisclaimerEnd')}
+        <br />
+        {tr(lang, 'guideKeys')}
       </p>
     </div>
   )

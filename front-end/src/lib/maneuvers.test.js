@@ -1,5 +1,44 @@
 import { describe, expect, it } from 'vitest'
-import { toReportSummary } from './maneuvers'
+import { autoOpenManeuver, replyIntro, toReportSummary } from './maneuvers'
+
+const faint = { name: 'fainting_unresponsive' }
+const bleed = { name: 'bleeding' }
+const choke = { name: 'breathing_difficulty' }
+const open = (protocol, message, category = 'emergency') => autoOpenManeuver({ category, protocol, message })
+
+describe('autoOpenManeuver: solo con palabras inequívocas', () => {
+  it('RCP solo con falta de respuesta o respiración', () => {
+    expect(open(faint, 'Mi compañero no responde y no respira')).toBe('rcp')
+    expect(open(faint, 'Está inconsciente')).toBe('rcp')
+    expect(open(faint, 'He is not breathing')).toBe('rcp')
+    expect(open(faint, 'Se desmayó hace un momento')).toBeNull()
+    expect(open(faint, 'Me paro y me mareo')).toBeNull()
+  })
+
+  it('torniquete con extremidad o sangrado fuerte, no con la nariz', () => {
+    expect(open(bleed, 'Se cortó el brazo y sangra')).toBe('torniquete')
+    expect(open(bleed, 'Sangra mucho y no para')).toBe('torniquete')
+    expect(open(bleed, 'Bleeding from his leg')).toBe('torniquete')
+    expect(open(bleed, 'Sangra de la nariz')).toBeNull()
+    expect(open(bleed, 'Sangra mucho de la nariz')).toBeNull()
+    expect(open(bleed, 'Tiene una herida')).toBeNull()
+  })
+
+  it('atragantamiento como la sugerencia; nada fuera de emergencias', () => {
+    expect(open(choke, 'Se está atragantando')).toBe('atragantamiento')
+    expect(open(choke, 'Me falta el aire')).toBeNull()
+    expect(open(faint, 'no respira', 'info')).toBeNull()
+    expect(open(null, 'no respira')).toBeNull()
+  })
+})
+
+describe('replyIntro', () => {
+  it('toma lo anterior al protocolo o la primera oración', () => {
+    expect(replyIntro('Es una emergencia. Protocolo: X 1. a', { title: 'Protocolo: X' })).toBe('Es una emergencia.')
+    expect(replyIntro('Llama ya. Luego sigue.', null)).toBe('Llama ya.')
+    expect(replyIntro(undefined, null)).toBe('')
+  })
+})
 
 describe('toReportSummary', () => {
   it('convierte el "Resumen para Tierra" de Model3D al formato del backend', () => {

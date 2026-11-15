@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { tr } from '../lib/i18n'
 import { MenuIcon, SpeakerIcon, CaptionIcon } from './Icons'
 
 function Clock() {
@@ -10,7 +11,7 @@ function Clock() {
   return <span className="clock">UTC {now.toISOString().slice(11, 19)}</span>
 }
 
-export default function TopBar({ env, account, backendOnline, earth, audioAvailable, showSubs, onMenu, mobilePanel, setMobilePanel, isGeneral }) {
+export default function TopBar({ env, account, backendOnline, earth, audioAvailable, showSubs, onMenu, mobilePanel, setMobilePanel, isGeneral, lang = 'es' }) {
   const toSend = earth ? earth.pending + earth.pending_reports : 0
   const togglePanel = (p) => setMobilePanel(mobilePanel === p ? null : p)
   return (
@@ -56,7 +57,7 @@ export default function TopBar({ env, account, backendOnline, earth, audioAvaila
           Anuncios
         </button>
         <button className={mobilePanel === 'right' ? 'active' : ''} onClick={() => togglePanel('right')}>
-          {isGeneral ? 'Tripulación' : 'Mis signos'}
+          {isGeneral ? 'Tripulación' : tr(lang, 'mySigns')}
         </button>
       </div>
     </header>

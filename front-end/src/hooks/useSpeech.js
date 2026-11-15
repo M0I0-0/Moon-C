@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api'
 import { createMoonVoice } from '../lib/moonVoice'
+import { tr } from '../lib/i18n'
 
 const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined
 const Recognition =
@@ -71,16 +72,28 @@ export function useSpeechOutput(lang, { moonVoice = false, onMouth } = {}) {
     return () => md.removeEventListener?.('devicechange', check)
   }, [])
 
+  // onEnd de la frase en curso: se ejecuta una sola vez, al terminar o al ser interrumpida (cancel / frase nueva).
+  const pending = useRef(null)
+  const settle = useCallback(() => {
+    const fn = pending.current
+    pending.current = null
+    fn?.()
+  }, [])
+  const finish = useCallback(
+    (id) => {
+      if (utterance.current !== id) return // frase obsoleta: ya la resolvió quien la interrumpió
+      setSpeaking(false)
+      settle()
+    },
+    [settle],
+  )
+
   const speakWithBrowser = useCallback(
-    (text, onEnd) => {
-      if (!synth) {
-        onEnd?.()
-        return
-      }
-      const voice = pickVoice(voices, lang)
+    (text, id, forLang = lang) => {
+      const voice = synth ? pickVoice(voices, forLang) : null
       if (!voice) {
         // Sin voz local para este idioma no se habla (el navegador elegiría una voz de red).
-        onEnd?.()
+        finish(id)
         return
       }
       synth.cancel()
@@ -88,41 +101,44 @@ export function useSpeechOutput(lang, { moonVoice = false, onMouth } = {}) {
       u.voice = voice
       u.lang = voice.lang
       u.rate = 1.02
-      u.onstart = () => setSpeaking(true)
-      u.onend = u.onerror = () => {
-        setSpeaking(false)
-        onEnd?.()
+      u.onstart = () => {
+        if (utterance.current === id) setSpeaking(true)
       }
+      u.onend = u.onerror = () => finish(id)
       synth.speak(u)
     },
-    [voices, lang],
+    [voices, lang, finish],
   )
 
+  // `lang` por frase: Moon-C contesta en el idioma del mensaje, que puede no ser el de la cuenta.
+  // `onEnd` se llama siempre (también si otra frase o cancel() la interrumpe); `onPartial` si la voz propia se corta.
   const speak = useCallback(
-    (text, { onEnd } = {}) => {
+    (text, { onEnd, onPartial, lang: forLang = lang } = {}) => {
+      settle() // la frase anterior queda interrumpida
       const id = ++utterance.current
-      if (!moonVoice) {
+      pending.current = onEnd ?? null
+      if (!moonVoice || !forLang.startsWith('es')) {
         player.stop()
-        speakWithBrowser(text, onEnd)
+        speakWithBrowser(text, id, forLang)
         return
       }
       synth?.cancel()
       setSpeaking(true)
       player
         .speak(text)
-        .then(() => {
+        .then((complete) => {
           if (utterance.current !== id) return
-          setSpeaking(false)
-          onEnd?.()
+          if (complete === false) onPartial?.()
+          finish(id)
         })
         .catch(() => {
           // La voz de Moon-C no respondió: esta vez habla una voz local del navegador.
           if (utterance.current !== id) return
           setSpeaking(false)
-          speakWithBrowser(text, onEnd)
+          speakWithBrowser(text, id, forLang)
         })
     },
-    [moonVoice, player, speakWithBrowser],
+    [moonVoice, lang, player, speakWithBrowser, finish, settle],
   )
 
   const cancel = useCallback(() => {
@@ -130,12 +146,13 @@ export function useSpeechOutput(lang, { moonVoice = false, onMouth } = {}) {
     player.stop()
     synth?.cancel()
     setSpeaking(false)
-  }, [player])
+    settle()
+  }, [player, settle])
 
   return {
     supported: moonVoice || Boolean(synth),
-    // Hay voz para el idioma actual (la de Moon-C o una local); si no, la app muestra subtítulos.
-    hasVoices: moonVoice || Boolean(pickVoice(voices, lang)),
+    // Hay voz para el idioma actual (la de Moon-C, solo español, o una local); si no, la app muestra subtítulos.
+    hasVoices: (moonVoice && lang.startsWith('es')) || Boolean(pickVoice(voices, lang)),
     moonVoice,
     hasSpeakers,
     speaking,
@@ -145,12 +162,15 @@ export function useSpeechOutput(lang, { moonVoice = false, onMouth } = {}) {
 }
 
 const RECOGNITION_ERRORS = {
-  'not-allowed': 'No hay permiso para usar el micrófono.',
-  'service-not-allowed': 'El navegador bloqueó el dictado.',
-  'no-speech': 'No escuché nada. Intenta de nuevo.',
-  'audio-capture': 'No se encontró un micrófono.',
-  network: 'El dictado del navegador necesita conexión. Escribe tu mensaje.',
+  'not-allowed': 'errNotAllowed',
+  'service-not-allowed': 'errServiceNotAllowed',
+  'no-speech': 'errNoSpeech',
+  'audio-capture': 'errAudioCapture',
+  network: 'errNetwork',
 }
+
+/** Mensaje de error del dictado en el idioma de reconocimiento (es-MX, en-US…). */
+export const recognitionError = (code, lang) => tr(lang, RECOGNITION_ERRORS[code] ?? 'errMic')
 
 /** Entrada por micrófono (speech-to-text del navegador). */
 export function useSpeechInput(lang, onFinal) {
@@ -189,7 +209,7 @@ export function useSpeechInput(lang, onFinal) {
         onFinalRef.current?.(finalText.trim())
       }
     }
-    rec.onerror = (e) => setError(RECOGNITION_ERRORS[e.error] ?? 'No se pudo usar el micrófono.')
+    rec.onerror = (e) => setError(recognitionError(e.error, lang))
     rec.onend = () => {
       setListening(false)
       setInterim('')

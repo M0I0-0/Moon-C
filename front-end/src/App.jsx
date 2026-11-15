@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ManeuverPanel from './components/ManeuverPanel'
-import { ENV_TO_MANEUVER, MANIOBRAS, explicitManeuver, suggestedManeuver, toReportSummary } from './lib/maneuvers'
+import { ENV_TO_MANEUVER, MANIOBRAS, autoOpenManeuver, explicitManeuver, replyIntro, suggestedManeuver, toReportSummary } from './lib/maneuvers'
+import { QUICK_GENERAL, baseLang, tr } from './lib/i18n'
 import Scene from './components/Scene'
 import TopBar from './components/TopBar'
 import MenuDrawer from './components/MenuDrawer'
@@ -24,6 +25,7 @@ import { useBackendStatus } from './hooks/useBackendStatus'
 import { askBackend, askLocal } from './lib/assistant'
 import { api } from './lib/api'
 import { speechLangFor } from './config'
+import { detectLanguage } from './lib/language'
 
 let seq = 0
 const uid = () => `${Date.now()}-${++seq}`
@@ -34,14 +36,13 @@ const DEVICE_ID = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}${Math.ran
 const sessionFor = (accountId) => `${DEVICE_ID}-${accountId}`
 // Igual que el backend (MOON_C_SESSION_TTL_S): la conversación se borra tras 10 min sin actividad.
 const CHAT_TTL_MS = 10 * 60 * 1000
-const QUICK_GENERAL = ['¿Cómo mido la saturación?', 'Emergencia médica', 'Hola, Moon-C']
 const QUICK_CREW = {
   es: ['¿Cómo mido mi temperatura?', 'Me siento raro', 'Dormí muy poco'],
   en: ['How do I measure my temperature?', 'I feel weird', 'I barely slept'],
 }
 
 export default function App() {
-  const [accountId, setAccountId] = useLocalStorage('moonc.account', 'general')
+  const [storedAccount, setAccountId] = useLocalStorage('moonc.account', 'general')
   const [voiceOn, setVoiceOn] = useLocalStorage('moonc.voice', true)
   const [subtitleMode, setSubtitleMode] = useLocalStorage('moonc.subtitles', 'auto')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -56,17 +57,35 @@ export default function App() {
   const [greeting, setGreeting] = useState(true)
   const [maneuver, setManeuver] = useState(null) // { id, entorno, nonce }
   const [mstate, setMstate] = useState(null)
+  const [autoGuide, setAutoGuide] = useState(null) // guía abierta sola por una emergencia: { nonce, reply, lang, slow }
+  const autoGuideRef = useRef(null)
+  const mstateRef = useRef(null)
+  const maneuverLoaded = useRef(false)
+  const resumeRef = useRef(null) // paso a restaurar tras cambiar de entorno
+  const epochRef = useRef(0) // cambia al cambiar de cuenta o reiniciar por inactividad
+  const sayRef = useRef(null)
   const mctl = useRef(null)
+  const maneuverRef = useRef(null)
   const spoken = useRef(new Set())
 
   const lastActivity = useRef(Date.now())
   const logsRef = useRef(logs)
 
-  const account = accountId === 'general' ? null : crewById(accountId)
+  // Una cuenta inválida en localStorage cae a General en todo (estado, sesión y logs).
+  const account = storedAccount === 'general' ? null : (crewById(storedAccount) ?? null)
+  const accountId = account ? storedAccount : 'general'
   const isGeneral = !account
+  const accountRef = useRef(accountId)
+  accountRef.current = accountId
+  useEffect(() => {
+    if (storedAccount !== accountId) setAccountId(accountId)
+  }, [storedAccount, accountId, setAccountId])
   // Chat y voz en el idioma del tripulante (la cuenta General usa español).
   const lang = account?.preferredLanguage ?? 'es'
-  const speechLang = speechLangFor(lang)
+  // Idioma de la conversación: el último en que habló la persona (por cuenta); empieza en el de la cuenta.
+  const [talkLang, setTalkLang] = useState({})
+  const convLang = talkLang[accountId] ?? lang
+  const speechLang = speechLangFor(convLang)
 
   const backend = useBackendStatus()
   // Voz propia de Moon-C (backend /tts, español) con la boca siguiendo el volumen real del audio.
@@ -74,7 +93,7 @@ export default function App() {
   const setMouth = useCallback((level) => {
     mouthRef.current = level
   }, [])
-  const moonVoice = backend.online && backend.info?.voice === 'ready' && lang === 'es'
+  const moonVoice = backend.online && backend.info?.voice === 'ready'
   const tts = useSpeechOutput(speechLang, { moonVoice, onMouth: setMouth })
   // Signos y alertas: del backend (una sola fuente para todas las pantallas) o, sin enlace, simulados aquí.
   const localCrew = useCrewSimulation()
@@ -88,30 +107,49 @@ export default function App() {
   const env = ENVIRONMENTS.home // la app usa siempre la sala (modo hogar)
   const envId = env.id
   const audioAvailable = voiceOn && tts.supported && tts.hasVoices && tts.hasSpeakers !== false
-  const showSubs = subtitleMode === 'on' || (subtitleMode === 'auto' && !audioAvailable)
+  const showSubs = subtitleMode === 'on' || (subtitleMode === 'auto' && !audioAvailable) || Boolean(caption?.cut)
 
   const say = useCallback(
-    (text, speaker = 'Moon-C') => {
+    (text, speaker = 'Moon-C', spokenLang = convLang) => {
       const id = uid()
       const clear = () => setCaption((c) => (c?.id === id ? null : c))
       setCaption({ id, speaker, text })
       const readMs = Math.max(4000, text.split(/\s+/).length * 420)
-      if (audioAvailable) tts.speak(text, { onEnd: () => setTimeout(clear, 1200) })
+      if (audioAvailable) {
+        tts.speak(text, {
+          lang: spokenLang,
+          onEnd: () => setTimeout(clear, 1200),
+          // La voz propia se cortó a la mitad: se muestra el texto completo aunque los subtítulos estén en automático.
+          onPartial: () => {
+            setCaption({ id, speaker, text, cut: true })
+            setTimeout(clear, readMs)
+          },
+        })
+      }
       setTimeout(clear, audioAvailable ? readMs * 2 : readMs)
     },
-    [audioAvailable, tts],
+    [audioAvailable, tts, convLang],
   )
+  sayRef.current = say
 
   const startManeuver = useCallback(
-    (id, entorno) => {
-      spoken.current = new Set()
-      reportSent.current = false
-      setMstate(null)
+    (id, entorno, { notify = true, resume = false, auto = null } = {}) => {
+      maneuverLoaded.current = false
+      if (resume) {
+        // Cambio de entorno: se vuelve a montar el maniquí pero se conserva el paso y lo ya hablado.
+        resumeRef.current = mstateRef.current?.paso?.id ?? null
+      } else {
+        spoken.current = new Set()
+        reportSent.current = false
+        resumeRef.current = null
+        setMstate(null)
+        setAutoGuide(auto ? { nonce: Date.now(), ...auto, slow: false } : null)
+      }
       setManeuver({ id, entorno: entorno ?? ENV_TO_MANEUVER[envId] ?? 'iss', nonce: Date.now() })
       setMenuOpen(false)
       setMobilePanel(null)
       // Prioridad 2: abrir una guía de emergencia avisa a la tripulación y al oficial médico.
-      if (backend.online) {
+      if (notify && backend.online) {
         api
           .startManeuver({ crewId: account?.crew_id ?? null, maneuver: id, language: lang })
           .then(() => refreshCrew())
@@ -136,18 +174,25 @@ export default function App() {
       .catch(() => setMstate((s) => ({ ...s, report: { status: 'error' } })))
   }
   const stopManeuver = useCallback(() => {
+    maneuverRef.current = null
     setManeuver(null)
     setMstate(null)
+    setAutoGuide(null)
   }, [])
 
   // Avance de la maniobra (lo reporta el modelo 3D): paso, conteo, tiempo. Moon-C lee cada paso una sola vez.
   const maneuverEvents = useRef({})
+  mstateRef.current = mstate
+  autoGuideRef.current = autoGuide
   maneuverEvents.current = {
     onPaso: (index, paso, pasos) => {
       setMstate((s) => ({ ...s, index, paso, pasos, conteo: 0, tiempo: null }))
+      if (resumeRef.current) return // remontaje por cambio de entorno: onReady restaura el paso sin repetir la voz
       if (!spoken.current.has(paso.id)) {
         spoken.current.add(paso.id)
-        say(`${paso.titulo}. ${paso.texto}`)
+        // Los pasos vienen de Model3D en español; "Reporta a Tierra" no afirma un envío que no ocurrió.
+        const text = paso.id === 'reporte' && !backend.online ? tr('es', 'reportOffline') : paso.texto
+        say(`${paso.titulo}. ${text}`, 'Moon-C', 'es')
       }
       if (paso.id === 'reporte' && !reportSent.current) {
         reportSent.current = true
@@ -156,10 +201,26 @@ export default function App() {
     },
     onConteo: (conteo, total) => setMstate((s) => ({ ...s, conteo, total })),
     onTiempo: (tiempo) => setMstate((s) => (s?.tiempo === tiempo ? s : { ...s, tiempo })),
-    onReady: (m) => setMstate((s) => ({ ...s, soloManos: m.soloManos })),
+    onReady: (m) => {
+      maneuverLoaded.current = true
+      const wasSolo = Boolean(mstateRef.current?.soloManos)
+      if (resumeRef.current && wasSolo) m.soloManos = true
+      setMstate((s) => ({ ...s, soloManos: m.soloManos }))
+      const target = resumeRef.current
+      resumeRef.current = null
+      if (!target) return
+      if (m.pasos.some((p) => p.id === target)) m.ir(target)
+      else if (m.paso && !spoken.current.has(m.paso.id)) {
+        spoken.current.add(m.paso.id)
+        say(`${m.paso.titulo}. ${m.paso.texto}`, 'Moon-C', 'es')
+      }
+    },
     onError: () => {
-      setManeuver(null)
-      setMstate(null)
+      const auto = autoGuideRef.current
+      stopManeuver()
+      // Sin guía no hay quien hable: se lee y se muestra la respuesta completa (si no se había leído ya).
+      if (auto && !auto.slow) say(auto.reply, 'Moon-C', auto.lang)
+      appendLog(accountRef.current, { who: 'system', text: tr(lang, 'guideFailed') })
     },
   }
 
@@ -167,54 +228,94 @@ export default function App() {
     setLogs((l) => ({ ...l, [key]: [...(l[key] ?? []), { id: uid(), at: Date.now(), ...entry }] }))
   }, [])
 
+  // Al cambiar de cuenta o reiniciar por inactividad: lo que está en curso de la sesión saliente se descarta.
+  const cancelTts = tts.cancel
+  const dropContext = useCallback(
+    (id) => {
+      epochRef.current += 1 // invalida las respuestas en vuelo (send compara tras el await)
+      cancelTts()
+      setCaption(null)
+      setBusy(false)
+      stopManeuver()
+      setTalkLang((t) => {
+        if (!(id in t)) return t
+        const next = { ...t }
+        delete next[id]
+        return next
+      })
+    },
+    [cancelTts, stopManeuver],
+  )
+
   const send = useCallback(
     async (message) => {
       const key = accountId
+      const epoch = epochRef.current
+      const stale = () => epochRef.current !== epoch
       lastActivity.current = Date.now()
       appendLog(key, { who: 'user', name: account?.name ?? 'General', text: message })
       setSuggestions((s) => ({ ...s, [key]: [] }))
       const asked = explicitManeuver(message)
       if (asked) {
-        appendLog(key, { who: 'assistant', name: 'Moon-C', text: `Abro la guía 3D: ${MANIOBRAS[asked].titulo}.` })
+        appendLog(key, { who: 'assistant', name: 'Moon-C', text: tr(lang, 'guideOpening', { name: MANIOBRAS[asked].titulo }) })
         startManeuver(asked)
         return
       }
       setBusy(true)
-      let res = null
-      if (backend.online) {
-        try {
-          res = await askBackend({
-            message,
-            crewId: account?.crew_id ?? null,
-            sessionId: sessionFor(key),
-            language: lang,
-          })
-        } catch {
-          backend.markOffline()
+      try {
+        // El mensaje manda: si se nota otro idioma, se contesta (y se escucha) en ese.
+        const msgLang = detectLanguage(message) ?? convLang
+        let res = null
+        if (backend.online) {
+          try {
+            res = await askBackend({
+              message,
+              crewId: account?.crew_id ?? null,
+              sessionId: sessionFor(key),
+              language: msgLang,
+            })
+          } catch {
+            backend.markOffline()
+          }
         }
-      }
-      if (!res) {
-        await new Promise((r) => setTimeout(r, 350))
-        res = askLocal({ message, language: lang })
-      }
-      lastActivity.current = Date.now()
-      appendLog(key, {
-        who: 'assistant',
-        name: 'Moon-C',
-        text: res.reply,
-        protocol: res.protocol,
-        category: res.category,
-        via: res.via,
-        maneuver: suggestedManeuver({ protocol: res.protocol, message }),
-      })
-      setSuggestions((s) => ({ ...s, [key]: res.suggestions ?? [] }))
-      setBusy(false)
-      say(res.reply)
-      if (res.category === 'emergency' && account) {
-        sim.reportFromChat(account.crew_id, res.protocol?.title?.split(':')[0] ?? 'una emergencia')
+        if (stale()) return // la cuenta cambió con la respuesta en vuelo: se descarta
+        if (!res) {
+          await new Promise((r) => setTimeout(r, 350))
+          if (stale()) return
+          res = askLocal({ message, language: msgLang })
+        }
+        lastActivity.current = Date.now()
+        appendLog(key, {
+          who: 'assistant',
+          name: 'Moon-C',
+          text: res.reply,
+          protocol: res.protocol,
+          category: res.category,
+          via: res.via,
+          maneuver: suggestedManeuver({ protocol: res.protocol, message }),
+        })
+        setSuggestions((s) => ({ ...s, [key]: res.suggestions ?? [] }))
+        const replyLang = res.language ?? msgLang
+        setTalkLang((t) => (t[key] === replyLang ? t : { ...t, [key]: replyLang }))
+        // Guía 3D solo con palabras inequívocas (ver autoOpenManeuver); si no, queda el botón en la bitácora.
+        // Con una guía ya abierta no se reemplaza. El backend ya avisó a la tripulación cuando hay cuenta.
+        const guide = autoOpenManeuver({ category: res.category, protocol: res.protocol, message })
+        if (guide && !maneuverRef.current) {
+          startManeuver(guide, undefined, { notify: !account, auto: { reply: res.reply, lang: replyLang } })
+          say(replyIntro(res.reply, res.protocol), 'Moon-C', replyLang) // la frase de emergencia; luego habla la guía
+        } else {
+          say(res.reply, 'Moon-C', replyLang)
+        }
+        if (res.category === 'emergency' && account) {
+          sim.reportFromChat(account.crew_id, res.protocol?.title?.split(':')[0] ?? 'una emergencia')
+        }
+      } catch {
+        if (!stale()) appendLog(key, { who: 'system', text: tr(lang, 'answerFailed') })
+      } finally {
+        if (!stale()) setBusy(false)
       }
     },
-    [accountId, account, lang, appendLog, backend, say, sim, startManeuver],
+    [accountId, account, lang, convLang, appendLog, backend, say, sim, startManeuver],
   )
 
   const mic = useSpeechInput(speechLang, send)
@@ -224,18 +325,40 @@ export default function App() {
     logsRef.current = logs
   }, [logs])
   useEffect(() => {
+    maneuverRef.current = maneuver
+  }, [maneuver])
+  useEffect(() => {
     const t = setInterval(() => {
       const current = logsRef.current[accountId] ?? []
       if (Date.now() - lastActivity.current < CHAT_TTL_MS || !current.some((e) => e.who !== 'system')) return
+      // Una guía abierta cuenta como actividad: no se cierra en pleno procedimiento.
+      if (maneuverRef.current) {
+        lastActivity.current = Date.now()
+        return
+      }
+      dropContext(accountId)
       api.resetSession(sessionFor(accountId)).catch(() => {})
       setLogs((l) => ({
         ...l,
-        [accountId]: [{ id: uid(), at: Date.now(), who: 'system', text: 'Conversación borrada tras 10 min sin actividad.' }],
+        [accountId]: [{ id: uid(), at: Date.now(), who: 'system', text: tr(lang, 'chatCleared') }],
       }))
       setSuggestions((s) => ({ ...s, [accountId]: [] }))
     }, 30000)
     return () => clearInterval(t)
-  }, [accountId])
+  }, [accountId, lang, dropContext])
+
+  // Guía abierta sola: si el modelo 3D no carga en ~8 s, se lee y se muestra la respuesta completa.
+  const autoNonce = autoGuide?.nonce
+  useEffect(() => {
+    if (!autoNonce) return undefined
+    const t = setTimeout(() => {
+      const auto = autoGuideRef.current
+      if (maneuverLoaded.current || !auto) return
+      setAutoGuide((g) => (g ? { ...g, slow: true } : g))
+      sayRef.current?.(auto.reply, 'Moon-C', auto.lang)
+    }, 8000)
+    return () => clearTimeout(t)
+  }, [autoNonce])
 
   // Anunciar alertas nuevas (voz y/o subtítulos) a la cuenta que corresponda.
   const announced = useRef(new Set())
@@ -243,9 +366,9 @@ export default function App() {
     for (const a of sim.alerts) {
       if (announced.current.has(a.id)) continue
       announced.current.add(a.id)
-      if (isGeneral || a.crewId === accountId) say(alertText(a), 'Alerta')
+      if (isGeneral || a.crewId === accountId) say(alertText(a), 'Alerta', lang)
     }
-  }, [sim.alerts, isGeneral, accountId, say])
+  }, [sim.alerts, isGeneral, accountId, lang, say])
 
   // Moon-C saluda al abrir la app y al cambiar de cuenta.
   useEffect(() => {
@@ -256,29 +379,33 @@ export default function App() {
 
   // Al cambiar de cuenta se cierra cualquier vista de emergencia abierta.
   const switchAccount = useCallback(
-    (id) => {
-      const prev = accountId
-      setAccountId(id)
+    (requested) => {
+      const id = requested === 'general' || crewById(requested) ? requested : 'general'
       setEmergencyView(null)
       setVitalDetail(null)
       setMobilePanel(null)
-      if (prev !== id) {
-        // Privacidad: la conversación de la cuenta anterior se borra aquí y en el backend.
-        setLogs((l) => {
-          const next = { ...l }
-          delete next[prev]
-          return next
-        })
-        setSuggestions((s) => ({ ...s, [prev]: [] }))
-        api.resetSession(sessionFor(prev)).catch(() => {})
-      }
+      const prev = accountId
+      if (prev === id) return // misma cuenta: no hay sesión nueva
+      dropContext(prev)
+      setAccountId(id)
+      // Privacidad: la conversación de la cuenta anterior se borra aquí y en el backend.
+      setLogs((l) => {
+        const next = { ...l }
+        delete next[prev]
+        return next
+      })
+      setSuggestions((s) => ({ ...s, [prev]: [] }))
+      api.resetSession(sessionFor(prev)).catch(() => {})
       const crew = crewById(id)
       // Pulsera simulada: identifica al tripulante y empieza un contexto limpio para esta sesión.
       if (crew) api.identify({ braceletId: crew.bracelet_id, sessionId: sessionFor(id) }).catch(() => {})
       lastActivity.current = Date.now()
-      appendLog(id, { who: 'system', text: `Sesión iniciada · ${crew ? crew.name : 'General'}` })
+      appendLog(id, {
+        who: 'system',
+        text: tr(crew?.preferredLanguage ?? 'es', 'sessionStarted', { name: crew ? crew.name : 'General' }),
+      })
     },
-    [accountId, setAccountId, appendLog],
+    [accountId, setAccountId, appendLog, dropContext],
   )
 
   const openEmergency = (crewId) => {
@@ -308,7 +435,7 @@ export default function App() {
 
   const postAnnouncement = ({ text, priority, readAloud }) => {
     board.post({ text, priority })
-    if (readAloud) say(text, 'Anuncio')
+    if (readAloud) say(text, 'Anuncio', lang)
   }
 
   const member = account ? sim.members[account.crew_id] : null
@@ -344,7 +471,7 @@ export default function App() {
     : log.length
       ? []
       : isGeneral
-        ? QUICK_GENERAL
+        ? QUICK_GENERAL[baseLang(lang)]
         : (QUICK_CREW[lang] ?? QUICK_CREW.es)
 
   return (
@@ -376,6 +503,7 @@ export default function App() {
         mobilePanel={mobilePanel}
         setMobilePanel={setMobilePanel}
         isGeneral={isGeneral}
+        lang={lang}
       />
 
       <AlertBanner alerts={visibleAlerts} isGeneral={isGeneral} onOpen={openEmergency} onAck={sim.acknowledge} />
@@ -387,12 +515,18 @@ export default function App() {
             entorno={maneuver.entorno}
             state={mstate}
             ctrlRef={mctl}
-            onEnv={(entorno) => startManeuver(maneuver.id, entorno)}
+            onEnv={(entorno) => {
+              // Sin remontar el maniquí si la guía ya lo permite (conserva paso, conteo y tiempo).
+              if (mctl.current?.cambiarEntorno?.(entorno)) setManeuver((m) => (m ? { ...m, entorno } : m))
+              else startManeuver(maneuver.id, entorno, { notify: false, resume: true })
+            }}
             onSoloManos={(v) => {
               if (mctl.current) mctl.current.soloManos = v
               setMstate((s) => ({ ...s, soloManos: v }))
             }}
             onClose={stopManeuver}
+            lang={lang}
+            notice={autoGuide}
           />
         ) : (
           <Announcements items={board.items} canPost={isGeneral} onPost={postAnnouncement} limit={isGeneral ? undefined : 3} />
@@ -417,7 +551,7 @@ export default function App() {
         ) : (
           <VitalsPanel
             member={member}
-            title="Mis signos"
+            title={tr(lang, 'mySigns')}
             subtitle={`${account.name} · pulsera ${account.bracelet_id}`}
             onSelect={(indicator) => setVitalDetail({ crewId: account.crew_id, indicator })}
           />
@@ -433,7 +567,8 @@ export default function App() {
           onSend={send}
           onManeuver={startManeuver}
           mic={mic}
-          placeholder={isGeneral ? 'Escribe o usa el micrófono (cuenta General)' : `Escribe o usa el micrófono, ${account.name}`}
+          lang={lang}
+          placeholder={isGeneral ? tr(lang, 'placeholderGeneral') : tr(lang, 'placeholderCrew', { name: account.name })}
         />
       </div>
 

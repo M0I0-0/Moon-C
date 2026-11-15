@@ -1,5 +1,5 @@
-import { useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { useEffect, useRef } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { Backdrop } from './Backdrops'
 import ModelSlot from './ModelSlot'
@@ -9,6 +9,32 @@ import { ASSISTANT_MODEL_URL, ASSISTANT_MODEL_YAW } from '../config'
 
 const ACCENT = { iss: '#8fc1e3', moon: '#e6d6ad', mars: '#f2a477', home: '#d9895b' }
 const BASE = { home: '#e8dccb' }
+
+/**
+ * La bitácora tapa la parte baja de la pantalla: corre la imagen hacia arriba la mitad de su alto
+ * para que Moon-C quede centrada en el espacio libre y se vea completa, sea cual sea el tamaño de la ventana.
+ */
+function DockOffset() {
+  const { camera, size } = useThree()
+  useEffect(() => {
+    const dock = document.querySelector('.dock')
+    if (!dock) return undefined
+    const apply = () => {
+      const h = Math.min(dock.offsetHeight + 12, size.height * 0.55)
+      camera.setViewOffset(size.width, size.height, 0, h / 2, size.width, size.height)
+      camera.updateProjectionMatrix()
+    }
+    apply()
+    const ro = new ResizeObserver(apply)
+    ro.observe(dock)
+    return () => {
+      ro.disconnect()
+      camera.clearViewOffset()
+      camera.updateProjectionMatrix()
+    }
+  }, [camera, size])
+  return null
+}
 
 function Platform({ color, base }) {
   return (
@@ -76,6 +102,7 @@ export default function Scene({ envId, talking, mood, maneuver, ctrlRef, onManeu
   return (
     <div className="scene" aria-hidden="true">
       <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.5, 5.4], fov: 40, near: 0.3, far: 80 }}>
+        <DockOffset />
         <Backdrop />
         <Platform color={accent} base={base} />
         <Assistant
@@ -93,7 +120,7 @@ export default function Scene({ envId, talking, mood, maneuver, ctrlRef, onManeu
           enablePan={false}
           minDistance={1}
           maxDistance={9}
-          minPolarAngle={Math.PI / 4}
+          minPolarAngle={Math.PI / 2.7}
           maxPolarAngle={Math.PI / 2.05}
           enableDamping
         />

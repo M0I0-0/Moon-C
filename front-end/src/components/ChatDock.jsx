@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { MicIcon, SendIcon, ChevronIcon } from './Icons'
 import { MANIOBRAS } from '../lib/maneuvers'
+import { localeFor, tr } from '../lib/i18n'
 
-const time = (ms) => new Date(ms).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+const time = (ms, lang) => new Date(ms).toLocaleTimeString(localeFor(lang), { hour: '2-digit', minute: '2-digit' })
 
-function Entry({ e, onManeuver }) {
+function Entry({ e, onManeuver, lang }) {
   if (e.who === 'system') return <li className="log-system">{e.text}</li>
   const steps = e.protocol?.steps
   const intro = steps && e.protocol.title ? e.text.split(e.protocol.title)[0].trim() : null
@@ -12,8 +13,8 @@ function Entry({ e, onManeuver }) {
     <li className={`log-entry log-entry--${e.who} ${e.category === 'emergency' ? 'log-entry--emergency' : ''}`}>
       <div className="log-meta">
         <span className="log-name">{e.name}</span>
-        <span>{time(e.at)}</span>
-        {e.via === 'local' && <span className="log-via">sin enlace</span>}
+        <span>{time(e.at, lang)}</span>
+        {e.via === 'local' && <span className="log-via">{tr(lang, 'offlineTag')}</span>}
       </div>
       {steps ? (
         <div className="log-text">
@@ -30,14 +31,14 @@ function Entry({ e, onManeuver }) {
       )}
       {e.maneuver && onManeuver && (
         <button className="chip-btn maneuver-open" onClick={() => onManeuver(e.maneuver)}>
-          Abrir guía 3D: {MANIOBRAS[e.maneuver].titulo}
+          {tr(lang, 'openGuide', { name: MANIOBRAS[e.maneuver].titulo })}
         </button>
       )}
     </li>
   )
 }
 
-export default function ChatDock({ log, suggestions, busy, onSend, onManeuver, mic, placeholder }) {
+export default function ChatDock({ log, suggestions, busy, onSend, onManeuver, mic, placeholder, lang = 'es' }) {
   const [text, setText] = useState('')
   const [open, setOpen] = useState(true)
   const listRef = useRef(null)
@@ -55,18 +56,18 @@ export default function ChatDock({ log, suggestions, busy, onSend, onManeuver, m
   }
 
   return (
-    <section className="dock" aria-label="Conversación con Moon-C">
+    <section className="dock" aria-label={tr(lang, 'chatLabel')}>
       <button className="dock-toggle" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         <ChevronIcon width={14} height={14} className={open ? 'rot-90' : ''} />
-        Bitácora {log.length > 0 && <span className="count">{log.filter((l) => l.who !== 'system').length}</span>}
+        {tr(lang, 'logTitle')} {log.length > 0 && <span className="count">{log.filter((l) => l.who !== 'system').length}</span>}
       </button>
       {open && (
         <ol className="log" ref={listRef}>
-          {log.length === 0 && <li className="log-system">Sin mensajes todavía.</li>}
+          {log.length === 0 && <li className="log-system">{tr(lang, 'noMessages')}</li>}
           {log.map((e) => (
-            <Entry key={e.id} e={e} onManeuver={onManeuver} />
+            <Entry key={e.id} e={e} onManeuver={onManeuver} lang={lang} />
           ))}
-          {busy && <li className="log-system">Moon-C está respondiendo…</li>}
+          {busy && <li className="log-system">{tr(lang, 'responding')}</li>}
         </ol>
       )}
       {suggestions.length > 0 && (
@@ -85,12 +86,8 @@ export default function ChatDock({ log, suggestions, busy, onSend, onManeuver, m
           onClick={mic.listening ? mic.stop : mic.start}
           disabled={!mic.supported}
           aria-pressed={mic.listening}
-          aria-label={mic.listening ? 'Detener micrófono' : 'Hablar'}
-          title={
-            mic.supported
-              ? 'Hablar (el dictado del navegador usa internet y envía el audio a ese servicio)'
-              : 'Este navegador no permite dictado. Usa Chrome o Edge, o escribe.'
-          }
+          aria-label={mic.listening ? tr(lang, 'micStop') : tr(lang, 'mic')}
+          title={mic.supported ? tr(lang, 'micTitleOk') : tr(lang, 'micTitleNo')}
         >
           <MicIcon />
         </button>
@@ -98,16 +95,16 @@ export default function ChatDock({ log, suggestions, busy, onSend, onManeuver, m
           ref={inputRef}
           value={mic.listening ? mic.interim || text : text}
           onChange={(e) => setText(e.target.value)}
-          placeholder={mic.listening ? 'Escuchando…' : placeholder}
-          aria-label="Mensaje"
+          placeholder={mic.listening ? tr(lang, 'listening') : placeholder}
+          aria-label={tr(lang, 'messageLabel')}
           maxLength={2000}
         />
-        <button type="submit" className="send" disabled={!text.trim() || busy} aria-label="Enviar">
+        <button type="submit" className="send" disabled={!text.trim() || busy} aria-label={tr(lang, 'send')}>
           <SendIcon />
         </button>
       </form>
       {(mic.error || !mic.supported) && (
-        <p className="composer-note">{mic.error || 'Dictado no disponible en este navegador: puedes escribir.'}</p>
+        <p className="composer-note">{mic.error || tr(lang, 'micNoSupport')}</p>
       )}
     </section>
   )
