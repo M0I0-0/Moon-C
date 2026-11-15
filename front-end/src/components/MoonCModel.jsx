@@ -17,7 +17,10 @@ function dispose(root) {
   root.traverse((o) => {
     if (!o.isMesh) return
     o.geometry?.dispose()
-    for (const m of [].concat(o.material ?? [])) m.dispose()
+    for (const m of [].concat(o.material ?? [])) {
+      for (const v of Object.values(m)) if (v && v.isTexture) v.dispose()
+      m.dispose()
+    }
   })
 }
 
@@ -84,6 +87,12 @@ export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallb
   const mId = maneuver?.id
   const mEnv = maneuver?.entorno
   const mNonce = maneuver?.nonce
+  // El entorno inicial se lee al montar; los cambios posteriores los aplica `cambiarEntorno` sin remontar el maniquí.
+  const envRef = useRef(mEnv)
+  envRef.current = mEnv
+  useEffect(() => {
+    ctrlRef?.current?.cambiarEntorno?.(mEnv)
+  }, [mEnv, ctrlRef])
   useEffect(() => {
     const group = holder.current
     if (!moon || !mId || !group) return undefined
@@ -104,7 +113,7 @@ export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallb
       scene: group,
       moon,
       archivos: MANEUVER_FILES,
-      entorno: mEnv,
+      entorno: envRef.current,
       onPaso: (i, paso, pasos) => emit('onPaso', i, paso, pasos),
       onConteo: (n, total) => emit('onConteo', n, total),
       onTiempo: (s) => emit('onTiempo', s),
@@ -138,7 +147,7 @@ export default function MoonCModel({ mood = 'atenta', height = 1.55, root, fallb
       moon.setState(moodRef.current)
       cam.current = { pos: HOME_CAM.pos.clone(), target: HOME_CAM.target.clone() }
     }
-  }, [moon, mId, mEnv, mNonce, ctrlRef])
+  }, [moon, mId, mNonce, ctrlRef])
 
   useFrame(({ camera }, dt) => {
     if (!moon) return

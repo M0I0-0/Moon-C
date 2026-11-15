@@ -426,7 +426,23 @@ export async function crearManiobra(id, { THREE, scene, moon, base = './', archi
     anterior() { if (activo) entrar(i - 1); },
     ir(pid) { if (activo) entrar(typeof pid === 'number' ? pid : idx(pid)); },
     detener() { activo = false; escena.soltar && escena.soltar(); moon.setState('atenta'); },
-    ocultar() { this.detener(); grupo.visible = false; moon.setState('tranquila'); },
+    // Cambia de entorno SIN reiniciar la maniobra: vuelve a filtrar los pasos y conserva el actual
+    // (si ese paso no existe en el nuevo entorno, pasa al siguiente que sí exista). Devuelve false si no existe el entorno.
+    cambiarEntorno(v) {
+      if (!ENTORNOS[v]) return false;
+      if (v === env) return true;
+      env = v;
+      if (!activo) { pasos = filtrar(); return true; }
+      const actual = pasos[i] && pasos[i].id, orden = def.pasos.map(p => p.id);
+      pasos = filtrar(); anotar('Entorno: ' + ENTORNOS[env].nombre);
+      let k = idx(actual);
+      if (k < 0) { for (let j = orden.indexOf(actual) + 1; j < orden.length && k < 0; j++) k = idx(orden[j]); }
+      if (k < 0) k = pasos.length - 1;
+      if (pasos[k].id === actual) { i = k; onPaso && onPaso(i, pasos[i], pasos); } else entrar(k);   // mismo paso: sigue el conteo/tiempo
+      return true;
+    },
+    irA(pid) { if (!activo) return false; const k = idx(pid); if (k < 0) return false; entrar(k); return true; },
+    ocultar() { this.detener(); grupo.visible = false; moon.setState('tranquila'); if (ctxAudio) { try { ctxAudio.close(); } catch (e) {} ctxAudio = null; } },
     update(dt) {
       if (!activo) return;
       tPaso += dt; tReloj += dt; const p = pasos[i]; let comp = 0;
@@ -437,7 +453,13 @@ export async function crearManiobra(id, { THREE, scene, moon, base = './', archi
         const f = a ? a.time / periodo : 0; comp = (0.5 - 0.5 * Math.cos(2 * Math.PI * f)) * w; const fr = f % 1;
         if (ultimaFase < 0.5 && fr >= 0.5 && w > 0.5) {
           conteo++; total.compresiones++; onConteo && onConteo(conteo, tot); tic(conteo % 10 === 0 || conteo === tot);
-          if (conteo >= tot) { total.ciclos++; despues(); }
+          if (conteo >= tot) {
+            if (soloManos && def.ciclo && def.ciclo[p.id] === 'ventila') {   // solo compresiones: sin ventilaciones, no hay ciclos; rota por tiempo
+              const r = def.rotacion;
+              if (r && tReloj - tUltRotacion >= r.cada && idx(r.paso) >= 0) { tUltRotacion = tReloj; entrar(idx(r.paso)); }
+              else { conteo = 0; onConteo && onConteo(0, tot); }
+            } else { total.ciclos++; despues(); }
+          }
         }
         ultimaFase = fr;
       }
