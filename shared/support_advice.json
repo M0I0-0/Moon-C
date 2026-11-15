@@ -1,0 +1,166 @@
+{
+  "_comment": "Moon-C support advice: small, concrete tips for low mood and a guided response for a moment of very high anxiety. Every tip points to a source in 'sources' that was opened and read; where none could be verified the tip says so. Moon-C does not diagnose and does not replace the medical officer or professional care. No diagnostic labels in user-facing text. Numeric values come from a source or are flagged 'note: Moon-C design value'. See shared/REFERENCES_SUPPORT.md.",
+  "version": "0.1.0",
+  "translation_note": "ru/de translations are a draft produced by an AI assistant: validate with a native speaker with mental-health or medical training before any use with a crew.",
+  "last_reviewed": "2026-11-15",
+  "estado": "supuesto: validar con profesional de salud mental",
+
+  "sources": [
+    {"n": 1, "title": "Low mood and depression (Every Mind Matters)", "institution": "NHS (England)", "year": "n.d. (page shown without review date)", "url": "https://www.nhs.uk/every-mind-matters/mental-health-issues/low-mood/", "accessed": "2026-11-15", "verified": "opened; the section headings and first sentences were read, not the full text of every section"},
+    {"n": 2, "title": "Breathing exercises for stress", "institution": "NHS (England)", "year": "2026 (last reviewed 12 June 2026)", "url": "https://www.nhs.uk/mental-health/self-help/guides-tools-and-activities/breathing-exercises-for-stress/", "accessed": "2026-11-15", "verified": "opened and read"},
+    {"n": 3, "title": "How Breath-Control Can Change Your Life: A Systematic Review on Psycho-Physiological Correlates of Slow Breathing", "institution": "Frontiers in Human Neuroscience (Zaccaro et al.)", "year": "2018", "url": "https://www.frontiersin.org/journals/human-neuroscience/articles/10.3389/fnhum.2018.00353/full", "accessed": "2026-11-15", "verified": "opened; first 100,000 of ~170,000 characters read (abstract, Table 3 and discussion)"},
+    {"n": 4, "title": "Evidence Report: Risk of Adverse Cognitive or Behavioral Changes and Psychiatric Disorders Leading to In-Mission Health and Performance and Long-Term Health Effects", "institution": "NASA Human Research Program, Human Factors and Behavioral Performance Element", "year": "2025 (approved 10 Feb 2025)", "url": "https://ntrs.nasa.gov/api/citations/20250001454/downloads/BMed%20Evidence%20Report%20final%202-10-25.docx", "accessed": "2026-11-15", "verified": "opened (downloaded and searched locally); relevant sections read"},
+    {"n": 5, "title": "Grounding techniques to help with anxiety (patient leaflet, April 2026)", "institution": "Royal Berkshire NHS Foundation Trust, Respiratory Medicine", "year": "2026", "url": "https://www.royalberkshire.nhs.uk/media/0ptda3ym/grounding-techniques-to-help-with-anxiety_apr26.pdf", "accessed": "2026-11-15", "verified": "opened and read in full"},
+    {"n": 6, "title": "5-4-3-2-1 Grounding Technique (patient handout)", "institution": "Hull and East Yorkshire Hospitals NHS Trust (publisher inferred from the hey.nhs.uk domain; the PDF metadata names only the Canva author)", "year": "2021-2023 (file metadata 2021; uploaded 2023)", "url": "https://www.hey.nhs.uk/wp/wp-content/uploads/2023/02/HEY1318-2022-5-4-3-2-1-Grounding-Technique.pdf", "accessed": "2026-11-15", "verified": "opened and read in full"}
+  ],
+
+  "low_mood": {
+    "intro": {
+      "es": "Gracias por contármelo. Sentir el ánimo bajo allá afuera es comprensible: estás lejos de casa y el día a día es muy exigente. Vamos con algo pequeño.",
+      "en": "Thank you for telling me. Feeling low out there is understandable: you are far from home and the days are demanding. Let's start with something small.", "ru": "Спасибо, что сказали мне. Сниженное настроение там, вдали, понятно: вы далеко от дома, и дни очень напряжённые. Начнём с чего-нибудь небольшого.", "de": "Danke, dass du es mir sagst. Sich da draußen gedrückt zu fühlen ist verständlich: Du bist weit weg von zu Hause, und die Tage sind fordernd. Fangen wir mit etwas Kleinem an."
+    },
+    "tips": [
+      {
+        "id": "small_activity",
+        "text": {
+          "es": "Elige una sola actividad pequeña y fácil para hoy (algo que normalmente disfrutas o que te importa) y hazla. Mañana, otra. No tiene que salir perfecta.",
+          "en": "Pick one small, easy activity for today (something you usually enjoy or that matters to you) and do it. Tomorrow, another one. It doesn't have to be perfect.", "ru": "Выберите на сегодня одно небольшое, лёгкое занятие (то, что вам обычно нравится или что для вас важно) и сделайте его. Завтра — другое. Оно не обязано получиться идеально.", "de": "Such dir für heute eine kleine, leichte Aktivität aus (etwas, das dir sonst Freude macht oder das dir wichtig ist) und mach sie. Morgen die nächste. Sie muss nicht perfekt werden."
+        },
+        "source": 1,
+        "source_note": "NHS: low mood can stop us doing important or enjoyable activities; start with easier ones and mood should improve as you progress. 'One a day' is Moon-C's simplification."
+      },
+      {
+        "id": "movement",
+        "text": {
+          "es": "Usa tu sesión de ejercicio como un respiro para el ánimo: ponle música o algo que te guste. Si hoy cuesta, basta con un poco.",
+          "en": "Treat your exercise session as a lift for your mood: add music or something you like. If today is hard, a little is enough.", "ru": "Используйте тренировку как передышку для настроения: включите музыку или что-то, что вам нравится. Если сегодня тяжело, достаточно немного.", "de": "Nutze dein Training als Aufheller für die Stimmung: Mach Musik an oder etwas, das du magst. Wenn es heute schwerfällt, reicht ein bisschen."
+        },
+        "source": 4,
+        "also_sources": [1],
+        "source_note": "NASA HRP: exercise is an effective way to maintain positive mood; astronauts pair exercise with movies and music. NHS: doing little things every day to be more active can lift mood."
+      },
+      {
+        "id": "sleep_routine",
+        "text": {
+          "es": "El ánimo bajo y el cansancio se alimentan entre sí. Cuida tu rutina de sueño todo lo que permita la misión: horarios lo más regulares posible y un cierre tranquilo antes de dormir.",
+          "en": "Low mood and tiredness feed each other. Protect your sleep routine as much as the mission allows: schedules as regular as possible and a calm wind-down before bed.", "ru": "Сниженное настроение и усталость подпитывают друг друга. Берегите режим сна, насколько позволяет миссия: как можно более регулярный график и спокойное завершение дня перед сном.", "de": "Gedrückte Stimmung und Müdigkeit verstärken sich gegenseitig. Achte auf deine Schlafroutine, so weit die Mission es zulässt: möglichst regelmäßige Zeiten und ein ruhiger Ausklang vor dem Schlafen."
+        },
+        "source": 1,
+        "source_note": "NHS: low mood can make us feel tired, and tiredness can also affect mood. The advice on regular times and a calm wind-down is NOT in the opened text of the source (only seen in search summaries): no verified source for that part. Light/circadian advice was left out: no verified source."
+      },
+      {
+        "id": "talk_connect",
+        "text": {
+          "es": "No te aísles: platica con un compañero de confianza o con el oficial médico. Cuando haya enlace, escríbele o llama a alguien de casa; no hace falta que sea una conversación larga.",
+          "en": "Don't withdraw: talk with a crewmate you trust or with the medical officer. When there is a link, write to or call someone at home; it doesn't have to be a long conversation.", "ru": "Не замыкайтесь: поговорите с надёжным членом экипажа или с медицинским офицером. Когда будет связь, напишите кому-нибудь из близких дома или позвоните; разговор не обязан быть долгим.", "de": "Zieh dich nicht zurück: Sprich mit einem vertrauten Crewmitglied oder dem Medical Officer. Sobald es eine Verbindung gibt, schreib jemandem zu Hause oder ruf an; das Gespräch muss nicht lang sein."
+        },
+        "source": 1,
+        "also_sources": [4],
+        "source_note": "NHS: trusted friends, family and colleagues can help when we are struggling. NASA HRP: social support is beneficial and contact with family and friends is part of in-flight support; isolation and confinement are linked to low-mood symptoms. NASA also notes that seeking support depends on individual style and team climate."
+      },
+      {
+        "id": "pleasant_pause",
+        "text": {
+          "es": "Date un momento que te guste a propósito: música, una película, mirar y fotografiar la Tierra, tiempo personal sin pendientes.",
+          "en": "Give yourself a moment you like on purpose: music, a film, looking at and photographing Earth, personal time with nothing pending.", "ru": "Подарите себе приятный момент — намеренно: музыка, фильм, возможность смотреть на Землю и фотографировать её, личное время без дел.", "de": "Gönn dir bewusst einen schönen Moment: Musik, ein Film, die Erde ansehen und fotografieren, Zeit für dich ohne offene Aufgaben."
+        },
+        "source": 4,
+        "source_note": "NASA HRP: leisure choices (music, movies, looking at and photographing Earth) and personal time are tools that help prevent behavioral-health distress."
+      }
+    ],
+    "when_to_get_help": {
+      "es": "Habla con el oficial médico si este ánimo bajo dura más de unas 2 semanas, si te está afectando en tus tareas, tu sueño o tu día a día, o si te causa mucho malestar. Si sientes que no puedes con ello o que no puedes mantenerte a salvo, díselo a él o a un compañero ahora mismo.",
+      "en": "Talk to the medical officer if this low mood lasts more than about 2 weeks, if it is affecting your tasks, your sleep or your day, or if it causes you a lot of distress. If you feel you can't cope or can't keep yourself safe, tell them or a crewmate right now.", "ru": "Поговорите с медицинским офицером, если это сниженное настроение длится дольше примерно 2 недель, если оно мешает вашим задачам, сну или повседневной жизни, или если вызывает сильный дискомфорт. Если чувствуете, что не справляетесь или не можете оставаться в безопасности, скажите об этом медицинскому офицеру или члену экипажа прямо сейчас.", "de": "Sprich mit dem Medical Officer, wenn diese gedrückte Stimmung länger als etwa 2 Wochen anhält, wenn sie deine Aufgaben, deinen Schlaf oder deinen Alltag beeinträchtigt oder wenn sie dich stark belastet. Wenn du das Gefühl hast, nicht klarzukommen oder dich nicht sicher halten zu können, sag es dem Medical Officer oder einem Crewmitglied sofort.",
+      "source": 1,
+      "source_note": "NHS: low mood should lift after a few days; if it lasts longer than about 2 weeks, or affects daily life or causes distress, talk to a clinician; if you cannot wait and cannot cope or keep yourself safe, get support. Moon-C replaces 'NHS 111 / GP' with the on-board medical officer. The line about thoughts of self-harm links to the emotional_crisis protocol.",
+      "open_protocol_if_self_harm": "emotional_crisis"
+    },
+    "suggestions": {
+      "es": ["Una actividad pequeña hoy", "Quiero hablar con alguien", "Avisar al oficial médico"],
+      "en": ["One small activity today", "I want to talk to someone", "Tell the medical officer"], "ru": ["Одно небольшое дело сегодня", "Хочу поговорить с кем-нибудь", "Сообщить медицинскому офицеру"], "de": ["Heute eine kleine Aktivität", "Ich möchte mit jemandem reden", "Medical Officer benachrichtigen"]
+    }
+  },
+
+  "anxiety_crisis": {
+    "first_response": {
+      "es": "Estoy contigo. Esto pasa y no estás solo. Vamos a respirar juntos, despacio.",
+      "en": "I'm with you. This will pass and you are not alone. Let's breathe together, slowly.", "ru": "Я с вами. Это пройдёт, вы не одни. Давайте подышим вместе, медленно.", "de": "Ich bin bei dir. Das geht vorbei, und du bist nicht allein. Lass uns zusammen atmen, ganz langsam."
+    },
+    "safety_check": {
+      "question": {
+        "es": "¿Tienes dolor de pecho, ganas de desmayarte o falta de aire que no mejora?",
+        "en": "Do you have chest pain, feel like you might faint, or have shortness of breath that isn't easing?", "ru": "Есть ли у вас боль в груди, ощущение, что вы можете потерять сознание, или нехватка воздуха, которая не проходит?", "de": "Hast du Schmerzen in der Brust, das Gefühl, ohnmächtig zu werden, oder Atemnot, die nicht nachlässt?"
+      },
+      "suggestions": {"es": ["Sí", "No"], "en": ["Yes", "No"], "ru": ["Да", "Нет"], "de": ["Ja", "Nein"]},
+      "if_yes": {
+        "action": "open_protocol",
+        "protocols": ["chest_pain", "breathing_difficulty", "fainting_unresponsive"],
+        "also": "alert_cmo",
+        "es": "Eso hay que revisarlo ahora. Te abro los pasos y avisamos al oficial médico.",
+        "en": "That needs checking right now. I'm opening the steps and we alert the medical officer.", "ru": "Это нужно проверить прямо сейчас. Открываю шаги, и мы оповестим медицинского офицера.", "de": "Das muss jetzt sofort angeschaut werden. Ich öffne dir die Schritte, und wir benachrichtigen den Medical Officer."
+      },
+      "if_no": {
+        "es": "Gracias. Seguimos con la respiración.",
+        "en": "Thank you. Let's keep going with the breathing.", "ru": "Спасибо. Продолжаем дышать.", "de": "Danke. Wir atmen weiter."
+      },
+      "source": null,
+      "source_note": "sin fuente verificada: ruling out physical causes before treating the moment as anxiety is a Moon-C safety design choice. The NHS leaflet [5] only says that breathlessness from anxiety can be mistaken for a lung or heart problem, which is a reason not to dismiss it."
+    },
+    "breathing": {
+      "inhale_s": 4,
+      "pause_s": 0,
+      "exhale_s": 6,
+      "cycles": 6,
+      "max_cycles": 30,
+      "cues": {
+        "inhale": {"es": "Inhala suave por la nariz", "en": "Breathe in gently through your nose", "ru": "Вдох — мягко, через нос", "de": "Einatmen – sanft durch die Nase"},
+        "pause": {"es": "", "en": "", "ru": "", "de": ""},
+        "exhale": {"es": "Suelta el aire despacio por la boca", "en": "Let the air out slowly through your mouth", "ru": "Выдох — медленно, через рот", "de": "Ausatmen – langsam durch den Mund"},
+        "done": {"es": "Muy bien. ¿Quieres seguir un poco más?", "en": "Well done. Do you want to keep going a little longer?", "ru": "Очень хорошо. Хотите продолжить ещё немного?", "de": "Sehr gut. Möchtest du noch ein bisschen weitermachen?"}
+      },
+      "source": 2,
+      "also_sources": [3, 5],
+      "note": "Source-backed: slow breathing near 6 breaths/min with inspiration:expiration ratios such as 4:6 and 5:5 appear in the reviewed studies [3] (4 s + 6 s = 6 breaths/min); breathe in through the nose and out through the mouth, belly breathing, and repeat for at least 5 minutes [2]; focusing on the exhalation brings relief [5]. Moon-C design value, not from a guideline: the exact 4 s in / 6 s out split with no pause, and the 6-cycle (about 1 minute) first round, chosen to be short for a moment of high anxiety. 'max_cycles' 30 = 5 minutes at 10 s per cycle, from the NHS 'at least 5 minutes' [2]. The NHS page counts 1 to 5 and gives no seconds, and no source fixes a hold (pause) so it is 0."
+    },
+    "grounding": {
+      "steps": [
+        {"sense": "see",   "count": 5, "seconds": 12, "text": {"es": "Mira a tu alrededor y nombra 5 cosas que ves.", "en": "Look around and name 5 things you can see.", "ru": "Оглянитесь и назовите 5 вещей, которые вы видите.", "de": "Sieh dich um und nenne 5 Dinge, die du siehst."}},
+        {"sense": "touch", "count": 4, "seconds": 10, "text": {"es": "Nota 4 cosas que puedes tocar: tus manos, la ropa, la superficie en la que te apoyas.", "en": "Notice 4 things you can touch: your hands, your clothes, the surface you are resting on.", "ru": "Заметьте 4 вещи, которых вы можете коснуться: ваши руки, одежду, поверхность, на которую вы опираетесь.", "de": "Spüre 4 Dinge, die du berühren kannst: deine Hände, deine Kleidung, die Fläche, auf der du aufliegst."}},
+        {"sense": "hear",  "count": 3, "seconds": 8,  "text": {"es": "Escucha 3 sonidos: el sistema de la nave, una voz, tu respiración.", "en": "Listen for 3 sounds: the vehicle systems, a voice, your breathing.", "ru": "Прислушайтесь к 3 звукам: системам корабля, голосу, вашему дыханию.", "de": "Lausche auf 3 Geräusche: die Systeme des Raumfahrzeugs, eine Stimme, deinen Atem."}},
+        {"sense": "smell", "count": 2, "seconds": 6,  "text": {"es": "Busca 2 olores que puedas notar.", "en": "Find 2 things you can smell.", "ru": "Найдите 2 запаха, которые вы можете уловить.", "de": "Finde 2 Gerüche, die du wahrnehmen kannst."}},
+        {"sense": "taste", "count": 1, "seconds": 5,  "text": {"es": "Nota 1 sabor (o imagina el de tu comida favorita).", "en": "Notice 1 taste (or imagine your favorite food).", "ru": "Заметьте 1 вкус (или представьте вкус вашей любимой еды).", "de": "Nimm 1 Geschmack wahr (oder stell dir den deines Lieblingsessens vor)."}}
+      ],
+      "source": 5,
+      "also_sources": [6],
+      "note": "Source-backed: the 5-4-3-2-1 senses sequence, with the 'imagine the taste of your favourite food' variant [5, 6]. 'seconds' per step are a Moon-C design value, not from a guideline: neither handout gives timings. Examples of things to notice were adapted to the spacecraft context by Moon-C."
+    },
+    "stay_with_me": {
+      "es": ["Estoy aquí contigo.", "Esto es muy incómodo, pero va a pasar.", "No tienes que hacer nada más que respirar.", "Lo estás haciendo bien. Sigue soltando el aire despacio.", "Tu cuerpo está alarmado, pero estás a salvo."],
+      "en": ["I'm here with you.", "This is very uncomfortable, but it will pass.", "You don't have to do anything except breathe.", "You're doing well. Keep letting the air out slowly.", "Your body is on alert, but you are safe."], "ru": ["Я здесь, с вами.", "Это очень неприятно, но пройдёт.", "Вам не нужно ничего делать, только дышать.", "У вас хорошо получается. Продолжайте медленно выдыхать.", "Ваше тело встревожено, но вы в безопасности."], "de": ["Ich bin hier bei dir.", "Das ist sehr unangenehm, aber es geht vorbei.", "Du musst nichts weiter tun, als zu atmen.", "Du machst das gut. Atme weiter langsam aus.", "Dein Körper ist in Alarmbereitschaft, aber du bist sicher."],
+      "source": 5,
+      "source_note": "NHS leaflet [5] suggests gentle reminders such as 'I am safe' and 'This too shall pass'. The other phrases are Moon-C wording in the same spirit. 'You are safe' must only be said after the safety_check came back negative."
+    },
+    "after": {
+      "es": "Lo hiciste muy bien. Lo que sentiste es una reacción del cuerpo y es más común de lo que parece. Toma agua y descansa un momento. ¿Quieres que avisemos al oficial médico para que sepa cómo estás?",
+      "en": "You did very well. What you felt is a reaction of the body and it's more common than it seems. Drink some water and rest for a moment. Do you want us to let the medical officer know how you are?", "ru": "У вас очень хорошо получилось. То, что вы почувствовали, — реакция тела, и это бывает чаще, чем кажется. Выпейте воды и немного отдохните. Хотите, мы сообщим медицинскому офицеру, как вы себя чувствуете?", "de": "Das hast du sehr gut gemacht. Was du gespürt hast, ist eine Reaktion des Körpers, und sie ist häufiger, als es scheint. Trink etwas Wasser und ruh dich einen Moment aus. Möchtest du, dass wir den Medical Officer wissen lassen, wie es dir geht?",
+      "suggestions": {"es": ["Sí, avisa al oficial médico", "Ahora no", "Quiero seguir hablando"], "en": ["Yes, tell the medical officer", "Not now", "I want to keep talking"], "ru": ["Да, сообщите медицинскому офицеру", "Не сейчас", "Хочу продолжить разговор"], "de": ["Ja, benachrichtige den Medical Officer", "Jetzt nicht", "Ich möchte weiterreden"]},
+      "source": null,
+      "source_note": "sin fuente verificada: the water/rest suggestion and the offer to inform the medical officer are Moon-C design. Normalizing wording is consistent with [5]."
+    },
+    "escalate_if": {
+      "source": null,
+      "source_note": "sin fuente verificada: no opened source fixes these triggers. They are Moon-C design values and feed an automatic notice to the CMO; they need clinical review.",
+      "triggers": [
+        {"id": "physical_symptoms", "when": {"es": "Responde que sí a dolor de pecho, desmayo o falta de aire.", "en": "Answers yes to chest pain, fainting or shortness of breath.", "ru": "Отвечает «да» на боль в груди, обморок или нехватку воздуха.", "de": "Antwortet mit Ja auf Brustschmerzen, Ohnmacht oder Atemnot."}, "action": {"es": "Abrir protocolo de emergencia correspondiente y avisar al oficial médico ya.", "en": "Open the matching emergency protocol and alert the medical officer now.", "ru": "Открыть соответствующий аварийный протокол и немедленно оповестить медицинского офицера.", "de": "Das passende Notfallprotokoll öffnen und den Medical Officer sofort benachrichtigen."}, "notify_cmo": true, "urgency": "now"},
+        {"id": "not_improving", "when": {"es": "Tras 2 rondas de respiración y el anclaje, sigue igual o peor (valor de diseño de Moon-C).", "en": "After 2 breathing rounds and the grounding, still the same or worse (Moon-C design value).", "ru": "После 2 раундов дыхания и заземления состояние то же или хуже (расчётное значение Moon-C).", "de": "Nach 2 Atemrunden und der Erdung unverändert oder schlechter (Moon-C-Designwert)."}, "action": {"es": "Pedirle que no se quede solo, llamar a un compañero y avisar al oficial médico.", "en": "Ask them not to stay alone, call a crewmate and alert the medical officer.", "ru": "Попросить не оставаться одному, позвать члена экипажа и оповестить медицинского офицера.", "de": "Bitten, nicht allein zu bleiben, ein Crewmitglied rufen und den Medical Officer benachrichtigen."}, "notify_cmo": true, "urgency": "now"},
+        {"id": "self_harm_words", "when": {"es": "Menciona hacerse daño o no querer seguir.", "en": "Mentions hurting themselves or not wanting to go on.", "ru": "Упоминает намерение навредить себе или нежелание продолжать.", "de": "Erwähnt, sich wehtun zu wollen oder nicht weitermachen zu wollen."}, "action": {"es": "Abrir el protocolo emotional_crisis y avisar al oficial médico ya.", "en": "Open the emotional_crisis protocol and alert the medical officer now.", "ru": "Открыть протокол emotional_crisis и немедленно оповестить медицинского офицера.", "de": "Das Protokoll emotional_crisis öffnen und den Medical Officer sofort benachrichtigen."}, "notify_cmo": true, "urgency": "now", "open_protocol": "emotional_crisis"},
+        {"id": "repeated_episodes", "when": {"es": "Es la 2.ª vez o más en pocos días (valor de diseño de Moon-C).", "en": "Second time or more within a few days (Moon-C design value).", "ru": "Это 2-й раз или больше за несколько дней (расчётное значение Moon-C).", "de": "Zum 2. Mal oder öfter innerhalb weniger Tage (Moon-C-Designwert)."}, "action": {"es": "Sugerir hablar con el oficial médico hoy y avisarle.", "en": "Suggest talking to the medical officer today and notify them.", "ru": "Предложить поговорить с медицинским офицером сегодня и уведомить его.", "de": "Vorschlagen, heute mit dem Medical Officer zu sprechen, und ihn benachrichtigen."}, "notify_cmo": true, "urgency": "today"},
+        {"id": "user_asks", "when": {"es": "Pide hablar con alguien.", "en": "Asks to talk to someone.", "ru": "Просит поговорить с кем-нибудь.", "de": "Bittet darum, mit jemandem zu sprechen."}, "action": {"es": "Avisar al oficial médico.", "en": "Notify the medical officer.", "ru": "Оповестить медицинского офицера.", "de": "Den Medical Officer benachrichtigen."}, "notify_cmo": true, "urgency": "now"}
+      ]
+    },
+    "suggestions": {
+      "es": ["Respirar juntos", "Anclaje de 5 sentidos", "Avisar al oficial médico", "Estoy mejor"],
+      "en": ["Breathe together", "5-senses grounding", "Tell the medical officer", "I'm feeling better"], "ru": ["Дышать вместе", "Заземление по 5 чувствам", "Сообщить медицинскому офицеру", "Мне лучше"], "de": ["Gemeinsam atmen", "5-Sinne-Erdung", "Medical Officer benachrichtigen", "Mir geht es besser"]
+    }
+  }
+}

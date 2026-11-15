@@ -1,76 +1,77 @@
 {
   "_comment": "Moon-C emotional support guide: what Moon-C says in key mental-health moments. Generic replies for every crew member; a personal support profile (shared/profiles/<crew_id>.json, private) can replace them with personalized ones. The keywords that detect each moment live in keywords.json ('support'). No diagnostic language. Thoughts of self-harm are not handled here: they open the emotional_crisis emergency protocol in protocols.json.",
   "version": "0.1.0",
+  "translation_note": "ru/de translations are a draft produced by an AI assistant: validate with a native speaker with mental-health or medical training before any use with a crew.",
   "last_reviewed": "2026-11-15",
   "source": "Moon-C support guide v0.1 – supportive listening principles; not clinically validated",
 
   "moments": {
     "stress": {
-      "label": {"en": "Stress or pressure", "es": "Estrés o presión"},
+      "label": {"en": "Stress or pressure", "ru": "Стресс или напряжение", "de": "Stress oder Druck", "es": "Estrés o presión"},
       "reply": {
-        "en": "Thank you for telling me. When everything piles up, it helps to say it out loud: what's weighing on you the most right now? If you like, we can split it into smaller parts and decide what comes first.",
+        "en": "Thank you for telling me. When everything piles up, it helps to say it out loud: what's weighing on you the most right now? If you like, we can split it into smaller parts and decide what comes first.", "ru": "Спасибо, что сказали мне. Когда всё наваливается разом, помогает проговорить это вслух: что сейчас давит на вас сильнее всего? Если хотите, мы разделим всё на небольшие части и решим, что идёт первым.", "de": "Danke, dass du es mir sagst. Wenn sich alles anhäuft, hilft es, es laut auszusprechen: Was belastet dich gerade am meisten? Wenn du magst, teilen wir es in kleinere Teile auf und entscheiden, was zuerst kommt.",
         "es": "Gracias por decírmelo. Cuando todo se junta, ayuda decirlo en voz alta: ¿qué es lo que más te pesa ahora? Si quieres, lo partimos en partes más pequeñas y vemos qué va primero."
       },
-      "suggestions": {"en": ["I want to talk about it", "Let's split it up", "I'd rather take a break"], "es": ["Quiero contarte", "Vamos por partes", "Prefiero una pausa"]}
+      "suggestions": {"en": ["I want to talk about it", "Let's split it up", "I'd rather take a break"], "ru": ["Хочу рассказать", "Давайте по частям", "Лучше сделаю паузу"], "de": ["Ich möchte darüber reden", "Teilen wir es auf", "Ich mache lieber eine Pause"], "es": ["Quiero contarte", "Vamos por partes", "Prefiero una pausa"]}
     },
     "frustration": {
-      "label": {"en": "Frustration or feeling stuck", "es": "Frustración o bloqueo"},
+      "label": {"en": "Frustration or feeling stuck", "ru": "Раздражение или ощущение тупика", "de": "Frust oder das Gefühl, festzustecken", "es": "Frustración o bloqueo"},
       "reply": {
-        "en": "That sounds frustrating, and it's normal to feel that way. A short break away from the task often helps you come back with a clearer head. I'm here when you want to pick it up again.",
+        "en": "That sounds frustrating, and it's normal to feel that way. A short break away from the task often helps you come back with a clearer head. I'm here when you want to pick it up again.", "ru": "Звучит досадно, и это нормально — так себя чувствовать. Короткая пауза вдали от задачи часто помогает вернуться с более ясной головой. Я здесь, когда захотите вернуться к ней.", "de": "Das klingt frustrierend, und es ist normal, sich so zu fühlen. Eine kurze Pause von der Aufgabe hilft oft, mit klarerem Kopf zurückzukommen. Ich bin da, wenn du sie wieder aufnehmen möchtest.",
         "es": "Suena frustrante, y es normal sentirse así. Una pausa corta lejos de la tarea suele ayudar a volver con la cabeza más despejada. Aquí sigo cuando quieras retomarlo."
       },
-      "suggestions": {"en": ["I'll take a break", "Help me look at it again"], "es": ["Me tomo una pausa", "Ayúdame a verlo otra vez"]}
+      "suggestions": {"en": ["I'll take a break", "Help me look at it again"], "ru": ["Сделаю паузу", "Помогите мне взглянуть на это снова"], "de": ["Ich mache eine Pause", "Hilf mir, es noch einmal anzusehen"], "es": ["Me tomo una pausa", "Ayúdame a verlo otra vez"]}
     },
     "mistake": {
-      "label": {"en": "A mistake or something that went wrong", "es": "Un error o algo que salió mal"},
+      "label": {"en": "A mistake or something that went wrong", "ru": "Ошибка или что-то пошло не так", "de": "Ein Fehler oder etwas, das schiefgelaufen ist", "es": "Un error o algo que salió mal"},
       "reply": {
-        "en": "Mistakes are part of learning, and saying it already shows you care. If you want, we can go over what happened step by step and see what you'd do differently next time.",
+        "en": "Mistakes are part of learning, and saying it already shows you care. If you want, we can go over what happened step by step and see what you'd do differently next time.", "ru": "Ошибки — часть обучения, и то, что вы об этом говорите, уже показывает, что вам не всё равно. Если хотите, мы вместе разберём, что произошло, шаг за шагом, и посмотрим, что вы сделали бы иначе в следующий раз.", "de": "Fehler gehören zum Lernen, und dass du es ansprichst, zeigt schon, dass es dir wichtig ist. Wenn du magst, gehen wir gemeinsam Schritt für Schritt durch, was passiert ist, und überlegen, was du beim nächsten Mal anders machen würdest.",
         "es": "Equivocarse es parte de aprender, y que lo digas ya muestra que te importa. Si quieres, repasamos juntos qué pasó, paso a paso, y vemos qué harías distinto la próxima vez."
       },
-      "suggestions": {"en": ["Let's go over it", "Not now"], "es": ["Repasémoslo", "Ahora no"]}
+      "suggestions": {"en": ["Let's go over it", "Not now"], "ru": ["Давайте разберём", "Не сейчас"], "de": ["Gehen wir es durch", "Jetzt nicht"], "es": ["Repasémoslo", "Ahora no"]}
     },
     "conflict": {
-      "label": {"en": "A disagreement with a crewmate", "es": "Un desacuerdo con un compañero"},
+      "label": {"en": "A disagreement with a crewmate", "ru": "Разногласие с членом экипажа", "de": "Eine Meinungsverschiedenheit mit einem Crewmitglied", "es": "Un desacuerdo con un compañero"},
       "reply": {
-        "en": "Thank you for telling me; living in a small space makes disagreements feel bigger. When you're ready, talk about what happened rather than about the person, and listen to their side too. Do you want to prepare that conversation together?",
+        "en": "Thank you for telling me; living in a small space makes disagreements feel bigger. When you're ready, talk about what happened rather than about the person, and listen to their side too. Do you want to prepare that conversation together?", "ru": "Спасибо, что рассказали; в таком тесном пространстве разногласия кажутся больше. Когда будете готовы, говорите о том, что произошло, а не о человеке, и выслушайте также его версию. Хотите, подготовим этот разговор вместе?", "de": "Danke, dass du es mir erzählst; auf so engem Raum fühlen sich Meinungsverschiedenheiten größer an. Wenn du so weit bist, sprich über das, was passiert ist, nicht über die Person, und hör auch ihre Sicht an. Möchtest du, dass wir das Gespräch gemeinsam vorbereiten?",
         "es": "Gracias por contármelo; en un espacio tan pequeño los desacuerdos se sienten más grandes. Cuando quieras, habla de lo que pasó y no de la persona, y escucha también su versión. ¿Quieres que preparemos esa conversación juntos?"
       },
-      "suggestions": {"en": ["Yes, let's prepare it", "I need some time first"], "es": ["Sí, preparémosla", "Primero necesito tiempo"]}
+      "suggestions": {"en": ["Yes, let's prepare it", "I need some time first"], "ru": ["Да, давайте подготовим", "Сначала мне нужно время"], "de": ["Ja, bereiten wir es vor", "Ich brauche zuerst etwas Zeit"], "es": ["Sí, preparémosla", "Primero necesito tiempo"]}
     },
     "homesick": {
-      "label": {"en": "Missing home", "es": "Extrañar la casa"},
+      "label": {"en": "Missing home", "ru": "Тоска по дому", "de": "Heimweh", "es": "Extrañar la casa"},
       "reply": {
-        "en": "It's natural to miss the people you love; it shows how much they matter. When there's a link with Earth, send them a message or ask for a call. Meanwhile, sharing a moment with the crew can help too.",
+        "en": "It's natural to miss the people you love; it shows how much they matter. When there's a link with Earth, send them a message or ask for a call. Meanwhile, sharing a moment with the crew can help too.", "ru": "Это естественно — скучать по тем, кого вы любите; это показывает, как они вам дороги. Когда будет связь с Землёй, отправьте им сообщение или попросите о звонке. А пока общение с экипажем тоже может помочь.", "de": "Es ist natürlich, die Menschen zu vermissen, die man liebt; es zeigt, wie viel sie dir bedeuten. Sobald es eine Verbindung zur Erde gibt, schreib ihnen oder bitte um einen Anruf. In der Zwischenzeit kann es auch helfen, einen Moment mit der Crew zu verbringen.",
         "es": "Es natural extrañar a quienes quieres; muestra lo mucho que te importan. Cuando haya enlace con la Tierra, mándales un mensaje o pide una llamada. Mientras tanto, compartir un momento con la tripulación también ayuda."
       },
-      "suggestions": {"en": ["Tell me more", "When is the next link?"], "es": ["Te cuento", "¿Cuándo es el próximo enlace?"]}
+      "suggestions": {"en": ["I'll tell you", "When is the next link?"], "ru": ["Расскажу вам", "Когда следующая связь?"], "de": ["Ich erzähle dir davon", "Wann ist die nächste Verbindung?"], "es": ["Te cuento", "¿Cuándo es el próximo enlace?"]}
     },
     "lonely": {
-      "label": {"en": "Feeling lonely", "es": "Soledad"},
+      "label": {"en": "Feeling lonely", "ru": "Чувство одиночества", "de": "Einsamkeit", "es": "Soledad"},
       "reply": {
-        "en": "Thank you for telling me. Feeling alone out here is part of being so far away, and it doesn't have to stay that way. Do you want to chat with me for a while, or look for a crewmate to share something with?",
+        "en": "Thank you for telling me. Feeling alone out here is part of being so far away, and it doesn't have to stay that way. Do you want to chat with me for a while, or look for a crewmate to share something with?", "ru": "Спасибо, что сказали мне. Чувство одиночества здесь связано с тем, что вы так далеко, и так необязательно будет всегда. Хотите немного поговорить со мной или найти кого-нибудь из экипажа, с кем можно чем-то поделиться?", "de": "Danke, dass du es mir sagst. Sich hier allein zu fühlen gehört dazu, wenn man so weit weg ist, und es muss nicht so bleiben. Möchtest du eine Weile mit mir plaudern, oder sollen wir jemanden aus der Crew suchen, mit dem du etwas teilen kannst?",
         "es": "Gracias por decírmelo. Sentir soledad aquí es parte de estar tan lejos, y no tiene por qué quedarse así. ¿Platicamos un rato, o buscamos a alguien de la tripulación para compartir algo?"
       },
-      "suggestions": {"en": ["Let's chat", "I'll find a crewmate"], "es": ["Platiquemos", "Buscaré a un compañero"]}
+      "suggestions": {"en": ["Let's chat", "I'll find a crewmate"], "ru": ["Давайте поговорим", "Найду кого-нибудь из экипажа"], "de": ["Lass uns plaudern", "Ich suche ein Crewmitglied"], "es": ["Platiquemos", "Buscaré a un compañero"]}
     },
     "low_mood": {
-      "label": {"en": "Low mood", "es": "Ánimo bajo"},
+      "label": {"en": "Low mood", "ru": "Сниженное настроение", "de": "Gedrückte Stimmung", "es": "Ánimo bajo"},
       "reply": {
-        "en": "Thank you for telling me; it takes courage. You don't have to carry this alone: talking with a crewmate you trust or with the on-board medical officer can help. If you want to talk, I'm here.",
+        "en": "Thank you for telling me; it takes courage. You don't have to carry this alone: talking with a crewmate you trust or with the on-board medical officer can help. If you want to talk, I'm here.", "ru": "Спасибо, что сказали мне; для этого нужна смелость. Вам не нужно нести это в одиночку: разговор с надёжным членом экипажа или с бортовым медицинским офицером может помочь. Если хотите поговорить, я здесь.", "de": "Danke, dass du es mir sagst; das braucht Mut. Du musst das nicht allein tragen: Ein Gespräch mit einem vertrauten Crewmitglied oder dem Medical Officer an Bord kann helfen. Wenn du reden möchtest, bin ich da.",
         "es": "Gracias por contármelo; hace falta valor. No tienes que cargar con esto sin ayuda: hablar con un compañero de confianza o con el oficial médico a bordo puede ayudar. Si quieres hablar, aquí estoy."
       },
-      "suggestions": {"en": ["I want to talk", "I'll talk to someone"], "es": ["Quiero hablar", "Hablaré con alguien"]}
+      "suggestions": {"en": ["I want to talk", "I'll talk to someone"], "ru": ["Хочу поговорить", "Поговорю с кем-нибудь"], "de": ["Ich möchte reden", "Ich spreche mit jemandem"], "es": ["Quiero hablar", "Hablaré con alguien"]}
     }
   },
 
   "safety_line": {
-    "en": "If at any moment you think about hurting yourself, tell me or a crewmate right away.",
+    "en": "If at any moment you think about hurting yourself, tell me or a crewmate right away.", "ru": "Если в какой-то момент вы подумаете о том, чтобы навредить себе, сразу скажите мне или члену экипажа.", "de": "Wenn du irgendwann daran denkst, dir wehzutun, sag es mir oder einem Crewmitglied sofort.",
     "es": "Si en algún momento piensas en hacerte daño, dímelo a mí o a un compañero de inmediato."
   },
 
   "continue": {
     "_comment": "Used to keep a support conversation going when the local AI is not available or its reply is discarded.",
-    "en": ["I'm listening. Take your time.", "Thank you for trusting me with this. Tell me more whenever you want.", "I'm here with you. What else is on your mind?"],
+    "en": ["I'm listening. Take your time.", "Thank you for trusting me with this. Tell me more whenever you want.", "I'm here with you. What else is on your mind?"], "ru": ["Я слушаю. Не торопитесь.", "Спасибо, что доверили мне это. Расскажите больше, когда захотите.", "Я рядом с вами. Что ещё у вас на уме?"], "de": ["Ich höre dir zu. Lass dir Zeit.", "Danke, dass du mir das anvertraust. Erzähl mir mehr, wann immer du magst.", "Ich bin bei dir. Was beschäftigt dich noch?"],
     "es": ["Te escucho. Tómate tu tiempo.", "Gracias por confiarme esto. Cuéntame más cuando quieras.", "Aquí estoy contigo. ¿Qué más traes en mente?"]
   }
 }

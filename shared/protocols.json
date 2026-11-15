@@ -1,9 +1,11 @@
 {
   "_comment": "Moon-C health manual: the single source of truth for indicators, ranges and protocols. Content in English ('en') with Spanish translation ('es'). No diagnostic language.",
   "_warning": "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts",
+  "translation_note": {"en": "ru/de translations are a draft produced by an AI assistant: validate with a medical translator before any use with a crew.", "es": "Las traducciones al ruso y alemán son un borrador producido por un asistente de IA: deben validarse con un traductor médico antes de cualquier uso con una tripulación.", "ru": "Переводы на русский и немецкий языки — черновик, подготовленный ИИ-ассистентом: перед любым использованием с экипажем их необходимо проверить у медицинского переводчика.", "de": "Die Übersetzungen ins Russische und Deutsche sind ein von einem KI-Assistenten erstellter Entwurf: Vor jeder Verwendung mit einer Besatzung müssen sie von einem medizinischen Übersetzer geprüft werden."},
+  "translation_status": "ru/de pending validation by a medical translator",
 
   "manual": {
-    "title": {"en": "Moon-C on-board health manual", "es": "Manual de salud a bordo de Moon-C"},
+    "title": {"en": "Moon-C on-board health manual", "es": "Manual de salud a bordo de Moon-C", "ru": "Бортовое руководство по здоровью Moon-C", "de": "Gesundheitshandbuch an Bord von Moon-C"},
     "version": "0.2.0",
     "last_reviewed": "2026-11-15",
     "review_status": "sourced from published guidelines and NASA standards; pending medical review",
@@ -11,15 +13,21 @@
     "ranges_warning": "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts",
     "mission": {
       "en": "Moon-C supports the crew on board so they can monitor their health and act in time, without waiting for Earth. Moon-C does not diagnose.",
-      "es": "Moon-C apoya a la tripulación a bordo para que pueda vigilar su salud y actuar a tiempo, sin esperar a la Tierra. Moon-C no diagnostica."
+      "es": "Moon-C apoya a la tripulación a bordo para que pueda vigilar su salud y actuar a tiempo, sin esperar a la Tierra. Moon-C no diagnostica.",
+      "ru": "Moon-C помогает экипажу на борту следить за своим здоровьем и действовать вовремя, не дожидаясь Земли. Moon-C не ставит диагнозы.",
+      "de": "Moon-C unterstützt die Besatzung an Bord dabei, die eigene Gesundheit zu überwachen und rechtzeitig zu handeln, ohne auf die Erde zu warten. Moon-C stellt keine Diagnosen."
     },
     "disclaimer": {
       "en": "Moon-C does not diagnose. The ranges in this manual come from published clinical guidelines and NASA standards, are meant for healthy adults at rest and must still be validated by medical experts for this crew. When in doubt, contact the on-board medical officer.",
-      "es": "Moon-C no diagnostica. Los rangos de este manual vienen de guías clínicas publicadas y estándares de la NASA, son para adultos sanos en reposo y aún deben ser validados por expertos médicos para esta tripulación. Ante cualquier duda, contacta al oficial médico a bordo."
+      "es": "Moon-C no diagnostica. Los rangos de este manual vienen de guías clínicas publicadas y estándares de la NASA, son para adultos sanos en reposo y aún deben ser validados por expertos médicos para esta tripulación. Ante cualquier duda, contacta al oficial médico a bordo.",
+      "ru": "Moon-C не ставит диагнозы. Диапазоны в этом руководстве взяты из опубликованных клинических рекомендаций и стандартов NASA, предназначены для здоровых взрослых в покое и всё равно должны быть проверены медицинскими экспертами для данного экипажа. При любых сомнениях обратитесь к медицинскому офицеру на борту.",
+      "de": "Moon-C stellt keine Diagnosen. Die Bereiche in diesem Handbuch stammen aus veröffentlichten klinischen Leitlinien und NASA-Standards, gelten für gesunde Erwachsene in Ruhe und müssen für diese Besatzung noch von medizinischen Fachleuten überprüft werden. Wenden Sie sich bei Zweifeln an den medizinischen Offizier an Bord."
     },
     "gap_policy": {
       "en": "Any value that is neither normal nor urgent is treated as attention, including values that fall between the bands.",
-      "es": "Cualquier valor que no sea normal ni urgente se trata como atención, incluidos los valores que caen entre las bandas."
+      "es": "Cualquier valor que no sea normal ni urgente se trata como atención, incluidos los valores que caen entre las bandas.",
+      "ru": "Любое значение, которое не является ни нормальным, ни срочным, считается требующим внимания, включая значения, попадающие между диапазонами.",
+      "de": "Jeder Wert, der weder normal noch dringend ist, wird als Stufe „Aufmerksamkeit“ behandelt, einschließlich Werten, die zwischen den Bereichen liegen."
     }
   },
 
@@ -30,14 +38,18 @@
       "unit_aliases": ["bpm", "beats/min", "beats per minute", "/min", "lpm", "latidos por minuto"],
       "valid_range": {"min": 1, "max": 300},
       "integer_only": false,
-      "name": {"en": "Heart rate", "es": "Frecuencia cardiaca"},
+      "name": {"en": "Heart rate", "es": "Frecuencia cardiaca", "ru": "Частота сердечных сокращений", "de": "Herzfrequenz"},
       "explanation": {
         "en": "The number of times your heart beats per minute (bpm), measured at rest.",
-        "es": "El número de veces que late tu corazón por minuto (bpm), medido en reposo."
+        "es": "El número de veces que late tu corazón por minuto (bpm), medido en reposo.",
+        "ru": "Сколько раз ваше сердце сокращается за минуту (уд/мин), измеренное в покое.",
+        "de": "Wie oft Ihr Herz pro Minute schlägt (Schläge/min), in Ruhe gemessen."
       },
       "why_it_matters_in_space": {
         "en": "In orbit, resting heart rate stays close to its value on Earth, but body fluids shift toward the head, blood pressure drops by about 8–10 mmHg and the heart pumps more blood with each beat. The bigger change comes when gravity returns (landing on Earth, the Moon or Mars): standing up can make the heart race and cause dizziness. Exercise, stress and poor sleep also raise it, so compare resting readings with your own usual values.",
-        "es": "En órbita, la frecuencia cardiaca en reposo se mantiene cerca de su valor en la Tierra, pero los líquidos del cuerpo se desplazan hacia la cabeza, la presión baja unos 8–10 mmHg y el corazón bombea más sangre en cada latido. El cambio más grande llega al volver a la gravedad (al aterrizar en la Tierra, la Luna o Marte): al ponerse de pie el corazón puede acelerarse y causar mareo. El ejercicio, el estrés y el mal descanso también la suben, así que compara tus lecturas en reposo con tus valores habituales."
+        "es": "En órbita, la frecuencia cardiaca en reposo se mantiene cerca de su valor en la Tierra, pero los líquidos del cuerpo se desplazan hacia la cabeza, la presión baja unos 8–10 mmHg y el corazón bombea más sangre en cada latido. El cambio más grande llega al volver a la gravedad (al aterrizar en la Tierra, la Luna o Marte): al ponerse de pie el corazón puede acelerarse y causar mareo. El ejercicio, el estrés y el mal descanso también la suben, así que compara tus lecturas en reposo con tus valores habituales.",
+        "ru": "На орбите частота пульса в покое остаётся близкой к земной, но жидкости организма смещаются к голове, артериальное давление снижается примерно на 8–10 мм рт. ст., а сердце выбрасывает больше крови за каждое сокращение. Более заметные изменения наступают при возвращении силы тяжести (посадка на Землю, Луну или Марс): при вставании сердце может учащённо биться, возможно головокружение. Нагрузка, стресс и плохой сон тоже повышают пульс, поэтому сравнивайте показания в покое со своими обычными значениями.",
+        "de": "Im Orbit bleibt die Ruheherzfrequenz nahe am Wert auf der Erde, aber die Körperflüssigkeiten verlagern sich zum Kopf, der Blutdruck sinkt um etwa 8–10 mmHg und das Herz pumpt mit jedem Schlag mehr Blut. Die größere Veränderung kommt, wenn die Schwerkraft zurückkehrt (Landung auf der Erde, dem Mond oder dem Mars): Beim Aufstehen kann das Herz rasen und Schwindel auftreten. Sport, Stress und schlechter Schlaf erhöhen sie ebenfalls; vergleichen Sie Ruhemessungen deshalb mit Ihren eigenen üblichen Werten."
       },
       "how_to_measure": {
         "en": [
@@ -51,6 +63,18 @@
           "Usa el sensor de frecuencia cardiaca o el pulsioxímetro en un dedo, o coloca dos dedos en la cara interna de la muñeca.",
           "Cuenta los latidos durante 30 segundos y multiplica por 2, o lee el valor en el dispositivo.",
           "Registra el valor en Moon-C en bpm."
+        ],
+        "ru": [
+          "Спокойно отдохните 5 минут, закрепившись на месте.",
+          "Используйте датчик пульса или пульсоксиметр на пальце либо приложите два пальца к внутренней стороне запястья.",
+          "Считайте удары 30 секунд и умножьте на 2 либо прочитайте значение на приборе.",
+          "Запишите значение в Moon-C в уд/мин."
+        ],
+        "de": [
+          "Ruhen Sie 5 Minuten ruhig und gesichert an Ihrem Platz.",
+          "Verwenden Sie den Herzfrequenzsensor oder das Pulsoximeter am Finger, oder legen Sie zwei Finger auf die Innenseite des Handgelenks.",
+          "Zählen Sie die Schläge 30 Sekunden lang und multiplizieren Sie mit 2, oder lesen Sie den Wert am Gerät ab.",
+          "Tragen Sie den Wert in Moon-C in Schläge/min ein."
         ]
       },
       "ranges": {
@@ -62,7 +86,9 @@
       "what_to_do": {
         "normal": {
           "en": ["No action needed. Keep logging regular resting readings."],
-          "es": ["No hace falta hacer nada. Sigue registrando lecturas en reposo con regularidad."]
+          "es": ["No hace falta hacer nada. Sigue registrando lecturas en reposo con regularidad."],
+          "ru": ["Действий не требуется. Продолжайте регулярно записывать показания в покое."],
+          "de": ["Keine Maßnahmen nötig. Erfassen Sie weiterhin regelmäßig Ruhewerte."]
         },
         "attention": {
           "en": [
@@ -74,6 +100,16 @@
             "Descansa 10 minutos y vuelve a medir.",
             "Anota lo que pueda explicarlo, como ejercicio reciente, cafeína, estrés o mal descanso.",
             "Si la siguiente lectura sigue fuera del rango normal, avisa al oficial médico a bordo."
+          ],
+          "ru": [
+            "Отдохните 10 минут и измерьте снова.",
+            "Отметьте всё, что может это объяснить: недавняя нагрузка, кофеин, стресс или плохой сон.",
+            "Если следующее измерение всё ещё вне нормального диапазона, сообщите медицинскому офицеру на борту."
+          ],
+          "de": [
+            "Ruhen Sie 10 Minuten und messen Sie erneut.",
+            "Notieren Sie alles, was es erklären könnte, etwa kürzlichen Sport, Koffein, Stress oder schlechten Schlaf.",
+            "Liegt die nächste Messung weiterhin außerhalb des Normalbereichs, informieren Sie den medizinischen Offizier an Bord."
           ]
         },
         "urgent": {
@@ -88,6 +124,18 @@
             "Avisa ahora al oficial médico a bordo.",
             "Vuelve a medir y registra los signos vitales cada 5 minutos.",
             "Si notas dolor de pecho, dificultad para respirar o sensación de desmayo, dilo: Moon-C abrirá el protocolo de emergencia."
+          ],
+          "ru": [
+            "Прекратите то, что делаете, оставайтесь неподвижно и закрепитесь на месте.",
+            "Немедленно сообщите медицинскому офицеру на борту.",
+            "Измеряйте снова и записывайте жизненные показатели каждые 5 минут.",
+            "Если почувствуете боль в груди, затруднение дыхания или слабость, близкую к обмороку, скажите об этом: Moon-C откроет протокол экстренной помощи."
+          ],
+          "de": [
+            "Unterbrechen Sie Ihre Tätigkeit, bleiben Sie ruhig und sichern Sie sich an Ihrem Platz.",
+            "Informieren Sie sofort den medizinischen Offizier an Bord.",
+            "Messen Sie erneut und erfassen Sie die Vitalwerte alle 5 Minuten.",
+            "Wenn Sie Brustschmerzen, Atemnot oder ein Ohnmachtsgefühl bemerken, sagen Sie es: Moon-C öffnet das Notfallprotokoll."
           ]
         }
       },
@@ -102,14 +150,18 @@
       "unit_aliases": ["°C", "ºC", "C", "deg C", "celsius", "grados", "grados celsius"],
       "valid_range": {"min": 25, "max": 45},
       "integer_only": false,
-      "name": {"en": "Body temperature", "es": "Temperatura corporal"},
+      "name": {"en": "Body temperature", "es": "Temperatura corporal", "ru": "Температура тела", "de": "Körpertemperatur"},
       "explanation": {
         "en": "Your body temperature in degrees Celsius (°C).",
-        "es": "Tu temperatura corporal en grados Celsius (°C)."
+        "es": "Tu temperatura corporal en grados Celsius (°C).",
+        "ru": "Температура вашего тела в градусах Цельсия (°C).",
+        "de": "Ihre Körpertemperatur in Grad Celsius (°C)."
       },
       "why_it_matters_in_space": {
         "en": "On long missions, the resting core temperature of ISS crews rose by about 1 °C over the first 2–3 months and stayed there, and during exercise it rose faster and higher than on Earth, sometimes above 40 °C. The normal range in this manual already allows for that rise. A reading above it deserves attention, especially during or after exercise, when the body sheds heat less easily in microgravity.",
-        "es": "En misiones largas, la temperatura central en reposo de las tripulaciones de la ISS subió cerca de 1 °C en los primeros 2–3 meses y se quedó ahí, y durante el ejercicio subió más rápido y más alto que en la Tierra, a veces por encima de 40 °C. El rango normal de este manual ya contempla esa subida. Una lectura por encima merece atención, sobre todo durante o después del ejercicio, cuando en microgravedad el cuerpo libera peor el calor."
+        "es": "En misiones largas, la temperatura central en reposo de las tripulaciones de la ISS subió cerca de 1 °C en los primeros 2–3 meses y se quedó ahí, y durante el ejercicio subió más rápido y más alto que en la Tierra, a veces por encima de 40 °C. El rango normal de este manual ya contempla esa subida. Una lectura por encima merece atención, sobre todo durante o después del ejercicio, cuando en microgravedad el cuerpo libera peor el calor.",
+        "ru": "В длительных миссиях температура ядра тела в покое у экипажей МКС повышалась примерно на 1 °C за первые 2–3 месяца и оставалась на этом уровне, а при физической нагрузке росла быстрее и выше, чем на Земле, иногда превышая 40 °C. Нормальный диапазон в этом руководстве уже учитывает такой рост. Показание выше него требует внимания, особенно во время или после нагрузки, когда в микрогравитации организм хуже отдаёт тепло.",
+        "de": "Bei langen Missionen stieg die Körperkerntemperatur in Ruhe bei ISS-Besatzungen in den ersten 2–3 Monaten um etwa 1 °C und blieb dort, und bei Belastung stieg sie schneller und höher als auf der Erde, manchmal über 40 °C. Der Normalbereich in diesem Handbuch berücksichtigt diesen Anstieg bereits. Ein Wert darüber verdient Aufmerksamkeit, besonders während oder nach dem Sport, wenn der Körper in Mikrogravitation Wärme schlechter abgibt."
       },
       "how_to_measure": {
         "en": [
@@ -123,6 +175,18 @@
           "Usa el termómetro de a bordo según sus instrucciones (por ejemplo, bajo la lengua o en el oído).",
           "Mantenlo en su lugar hasta que indique que la lectura terminó.",
           "Registra el valor en Moon-C en °C."
+        ],
+        "ru": [
+          "Подождите не менее 30 минут после нагрузки, еды или питья.",
+          "Используйте бортовой термометр согласно его инструкции (например, под языком или в ухе).",
+          "Держите его на месте, пока он не сообщит, что измерение завершено.",
+          "Запишите значение в Moon-C в °C."
+        ],
+        "de": [
+          "Warten Sie nach Sport, Essen oder Trinken mindestens 30 Minuten.",
+          "Verwenden Sie das Bordthermometer gemäß seiner Anleitung (zum Beispiel unter der Zunge oder im Ohr).",
+          "Lassen Sie es an Ort und Stelle, bis es meldet, dass die Messung abgeschlossen ist.",
+          "Tragen Sie den Wert in Moon-C in °C ein."
         ]
       },
       "ranges": {
@@ -134,7 +198,9 @@
       "what_to_do": {
         "normal": {
           "en": ["No action needed. Keep logging when you feel unwell or when the routine asks for it."],
-          "es": ["No hace falta hacer nada. Sigue registrando cuando te sientas mal o cuando la rutina lo pida."]
+          "es": ["No hace falta hacer nada. Sigue registrando cuando te sientas mal o cuando la rutina lo pida."],
+          "ru": ["Действий не требуется. Записывайте показания, когда плохо себя чувствуете или когда этого требует распорядок."],
+          "de": ["Keine Maßnahmen nötig. Erfassen Sie Werte, wenn Sie sich unwohl fühlen oder wenn der Ablauf es verlangt."]
         },
         "attention": {
           "en": [
@@ -146,6 +212,16 @@
             "Descansa, bebe agua y vuelve a medir en 30 minutos.",
             "Revisa la temperatura de la cabina y tu ropa.",
             "Si sigue fuera del rango normal o te sientes mal, avisa al oficial médico a bordo."
+          ],
+          "ru": [
+            "Отдохните, пейте воду и измерьте снова через 30 минут.",
+            "Проверьте температуру в кабине и количество слоёв одежды.",
+            "Если значение остаётся вне нормального диапазона или вы плохо себя чувствуете, сообщите медицинскому офицеру на борту."
+          ],
+          "de": [
+            "Ruhen Sie sich aus, trinken Sie Wasser und messen Sie in 30 Minuten erneut.",
+            "Prüfen Sie die Kabinentemperatur und Ihre Kleidungsschichten.",
+            "Bleibt der Wert außerhalb des Normalbereichs oder fühlen Sie sich unwohl, informieren Sie den medizinischen Offizier an Bord."
           ]
         },
         "urgent": {
@@ -160,6 +236,18 @@
             "Avisa ahora al oficial médico a bordo.",
             "Vuelve a medir y registra los signos vitales cada 5 minutos.",
             "Sigue las indicaciones del oficial médico; no tomes medicamentos por tu cuenta salvo que te lo indique."
+          ],
+          "ru": [
+            "Прекратите деятельность и отдохните в безопасном месте.",
+            "Немедленно сообщите медицинскому офицеру на борту.",
+            "Измеряйте снова и записывайте жизненные показатели каждые 5 минут.",
+            "Следуйте указаниям медицинского офицера; не принимайте лекарства самостоятельно, если он этого не разрешил."
+          ],
+          "de": [
+            "Unterbrechen Sie Ihre Tätigkeit und ruhen Sie sich an einem sicheren Ort aus.",
+            "Informieren Sie sofort den medizinischen Offizier an Bord.",
+            "Messen Sie erneut und erfassen Sie die Vitalwerte alle 5 Minuten.",
+            "Befolgen Sie die Anweisungen des medizinischen Offiziers; nehmen Sie keine Medikamente auf eigene Faust ein, außer er sagt es Ihnen."
           ]
         }
       },
@@ -174,14 +262,18 @@
       "unit_aliases": ["%", "percent", "pct", "porcentaje", "por ciento"],
       "valid_range": {"min": 1, "max": 100},
       "integer_only": false,
-      "name": {"en": "Oxygen saturation (SpO2)", "es": "Saturación de oxígeno (SpO2)"},
+      "name": {"en": "Oxygen saturation (SpO2)", "es": "Saturación de oxígeno (SpO2)", "ru": "Насыщение крови кислородом (SpO₂)", "de": "Sauerstoffsättigung (SpO₂)"},
       "explanation": {
         "en": "The percentage of oxygen carried by your blood, measured with a pulse oximeter on a finger.",
-        "es": "El porcentaje de oxígeno que transporta tu sangre, medido con un pulsioxímetro en un dedo."
+        "es": "El porcentaje de oxígeno que transporta tu sangre, medido con un pulsioxímetro en un dedo.",
+        "ru": "Процент кислорода, переносимого вашей кровью, измеряется пульсоксиметром на пальце.",
+        "de": "Der Prozentsatz an Sauerstoff, den Ihr Blut transportiert, gemessen mit einem Pulsoximeter am Finger."
       },
       "why_it_matters_in_space": {
         "en": "On the ISS the cabin air is like sea level, so normal values are the same as on Earth. Lunar and Mars habitats will likely use a lower-pressure, oxygen-richer atmosphere (NASA's exploration atmosphere: 8.2 psi with 34% oxygen), which the body feels like being at about 1,200 m of altitude; saturation should still stay in the normal range. A low reading can come from your body, the sensor or the cabin air, so check all three.",
-        "es": "En la ISS el aire de la cabina es como a nivel del mar, así que los valores normales son los mismos que en la Tierra. Los hábitats en la Luna y Marte probablemente usarán una atmósfera con menos presión y más oxígeno (la atmósfera de exploración de la NASA: 8.2 psi con 34% de oxígeno), que el cuerpo siente como estar a unos 1,200 m de altura; la saturación debería seguir en el rango normal. Una lectura baja puede venir de tu cuerpo, del sensor o del aire de la cabina, así que revisa los tres."
+        "es": "En la ISS el aire de la cabina es como a nivel del mar, así que los valores normales son los mismos que en la Tierra. Los hábitats en la Luna y Marte probablemente usarán una atmósfera con menos presión y más oxígeno (la atmósfera de exploración de la NASA: 8.2 psi con 34% de oxígeno), que el cuerpo siente como estar a unos 1,200 m de altura; la saturación debería seguir en el rango normal. Una lectura baja puede venir de tu cuerpo, del sensor o del aire de la cabina, así que revisa los tres.",
+        "ru": "На МКС воздух в кабине соответствует уровню моря, поэтому нормальные значения такие же, как на Земле. Лунные и марсианские базы, вероятно, будут использовать атмосферу с меньшим давлением и повышенным содержанием кислорода (атмосфера для освоения космоса по NASA: 8,2 psi при 34 % кислорода), которую организм воспринимает как пребывание на высоте около 1 200 м; насыщение всё равно должно оставаться в нормальном диапазоне. Низкое показание может быть связано с вашим организмом, датчиком или воздухом в кабине, поэтому проверьте все три.",
+        "de": "Auf der ISS entspricht die Kabinenluft dem Meeresspiegel, daher sind die Normalwerte dieselben wie auf der Erde. Mond- und Marshabitate werden voraussichtlich eine Atmosphäre mit niedrigerem Druck und mehr Sauerstoff nutzen (NASA-Explorationsatmosphäre: 8,2 psi mit 34 % Sauerstoff), die der Körper wie eine Höhe von etwa 1.200 m empfindet; die Sättigung sollte trotzdem im Normalbereich bleiben. Ein niedriger Wert kann von Ihrem Körper, vom Sensor oder von der Kabinenluft kommen; prüfen Sie daher alle drei."
       },
       "how_to_measure": {
         "en": [
@@ -195,6 +287,18 @@
           "Retira el esmalte o cualquier cubierta del dedo que vas a usar.",
           "Coloca el pulsioxímetro en el dedo y espera a que la lectura se estabilice (unos 30 segundos).",
           "Registra el valor en Moon-C en %."
+        ],
+        "ru": [
+          "Отдохните 5 минут, держите руку тёплой и неподвижной.",
+          "Снимите лак или любое покрытие с ногтя пальца, который будете использовать.",
+          "Наденьте пульсоксиметр на палец и дождитесь стабильного показания (около 30 секунд).",
+          "Запишите значение в Moon-C в %."
+        ],
+        "de": [
+          "Ruhen Sie 5 Minuten und halten Sie Ihre Hand warm und still.",
+          "Entfernen Sie Nagellack oder jede Beschichtung vom Finger, den Sie verwenden.",
+          "Setzen Sie das Pulsoximeter auf den Finger und warten Sie, bis der Wert stabil ist (etwa 30 Sekunden).",
+          "Tragen Sie den Wert in Moon-C in % ein."
         ]
       },
       "ranges": {
@@ -206,7 +310,9 @@
       "what_to_do": {
         "normal": {
           "en": ["No action needed. Keep logging when the routine asks for it."],
-          "es": ["No hace falta hacer nada. Sigue registrando cuando la rutina lo pida."]
+          "es": ["No hace falta hacer nada. Sigue registrando cuando la rutina lo pida."],
+          "ru": ["Действий не требуется. Записывайте показания, когда этого требует распорядок."],
+          "de": ["Keine Maßnahmen nötig. Erfassen Sie Werte, wenn der Ablauf es verlangt."]
         },
         "attention": {
           "en": [
@@ -218,6 +324,16 @@
             "Descansa, respira con calma y vuelve a medir en 5 minutos, comprobando que el sensor esté bien colocado.",
             "Revisa las lecturas y alarmas de calidad del aire de la cabina.",
             "Si sigue por debajo del rango normal, avisa al oficial médico a bordo."
+          ],
+          "ru": [
+            "Отдохните, дышите спокойно и измерьте снова через 5 минут, убедившись, что датчик надет правильно.",
+            "Проверьте показания и сигналы тревоги качества воздуха в кабине.",
+            "Если значение остаётся ниже нормального диапазона, сообщите медицинскому офицеру на борту."
+          ],
+          "de": [
+            "Ruhen Sie sich aus, atmen Sie ruhig und messen Sie in 5 Minuten erneut; prüfen Sie dabei, ob der Sensor richtig sitzt.",
+            "Prüfen Sie die Luftqualitätswerte und Alarme der Kabine.",
+            "Bleibt der Wert unter dem Normalbereich, informieren Sie den medizinischen Offizier an Bord."
           ]
         },
         "urgent": {
@@ -232,6 +348,18 @@
             "Avisa ahora al oficial médico a bordo y revisa las alarmas de la atmósfera de la cabina.",
             "Sigue el procedimiento de emergencia del vehículo si el aire de la cabina está afectado.",
             "Vuelve a medir y registra los signos vitales cada 5 minutos."
+          ],
+          "ru": [
+            "Прекратите деятельность и оставайтесь неподвижно в безопасном месте.",
+            "Немедленно сообщите медицинскому офицеру на борту и проверьте сигналы тревоги атмосферы кабины.",
+            "Если воздух в кабине нарушен, следуйте аварийной процедуре аппарата.",
+            "Измеряйте снова и записывайте жизненные показатели каждые 5 минут."
+          ],
+          "de": [
+            "Unterbrechen Sie Ihre Tätigkeit und bleiben Sie ruhig an einem sicheren Ort.",
+            "Informieren Sie sofort den medizinischen Offizier an Bord und prüfen Sie die Atmosphärenalarme der Kabine.",
+            "Wenn die Kabinenluft beeinträchtigt ist, folgen Sie dem Notfallverfahren des Fahrzeugs.",
+            "Messen Sie erneut und erfassen Sie die Vitalwerte alle 5 Minuten."
           ]
         }
       },
@@ -246,14 +374,18 @@
       "unit_aliases": ["h", "hr", "hrs", "hour", "hours", "hora", "horas"],
       "valid_range": {"min": 0, "max": 24},
       "integer_only": false,
-      "name": {"en": "Sleep", "es": "Sueño"},
+      "name": {"en": "Sleep", "es": "Sueño", "ru": "Сон", "de": "Schlaf"},
       "explanation": {
         "en": "How many hours you slept in your last main sleep period.",
-        "es": "Cuántas horas dormiste en tu último periodo principal de sueño."
+        "es": "Cuántas horas dormiste en tu último periodo principal de sueño.",
+        "ru": "Сколько часов вы проспали в последний основной период сна.",
+        "de": "Wie viele Stunden Sie in Ihrer letzten Hauptschlafphase geschlafen haben."
       },
       "why_it_matters_in_space": {
         "en": "Astronauts sleep about 6 hours a night on average, even with 8.5 hours scheduled, and many use sleep medication. Without a natural day and night (the ISS sees about 16 sunrises a day and daylight on the Moon lasts about two weeks), with noise, light and busy schedules, sleep gets shorter and lighter. A week of 6-hour nights can affect performance as much as a full night without sleep, which matters in critical tasks.",
-        "es": "Los astronautas duermen en promedio unas 6 horas por noche, aunque tengan 8.5 horas programadas, y muchos usan medicamentos para dormir. Sin día y noche naturales (la ISS ve unos 16 amaneceres al día y en la Luna la luz del día dura unas dos semanas), con ruido, luz y agendas exigentes, el sueño se vuelve más corto y ligero. Una semana durmiendo 6 horas puede afectar el desempeño tanto como una noche entera sin dormir, y eso importa en tareas críticas."
+        "es": "Los astronautas duermen en promedio unas 6 horas por noche, aunque tengan 8.5 horas programadas, y muchos usan medicamentos para dormir. Sin día y noche naturales (la ISS ve unos 16 amaneceres al día y en la Luna la luz del día dura unas dos semanas), con ruido, luz y agendas exigentes, el sueño se vuelve más corto y ligero. Una semana durmiendo 6 horas puede afectar el desempeño tanto como una noche entera sin dormir, y eso importa en tareas críticas.",
+        "ru": "Астронавты спят в среднем около 6 часов в сутки, даже когда запланировано 8,5 часа, и многие принимают снотворное. Без естественной смены дня и ночи (на МКС около 16 восходов в сутки, а лунный день длится около двух недель), при шуме, свете и напряжённом графике сон становится короче и поверхностнее. Неделя ночей по 6 часов может ухудшать работоспособность так же, как целая ночь без сна, а это важно при выполнении критических задач.",
+        "de": "Astronauten schlafen im Durchschnitt etwa 6 Stunden pro Nacht, obwohl 8,5 Stunden vorgesehen sind, und viele nehmen Schlafmittel. Ohne natürlichen Tag und Nacht (die ISS erlebt etwa 16 Sonnenaufgänge pro Tag, und der Tag auf dem Mond dauert etwa zwei Wochen), mit Lärm, Licht und vollen Zeitplänen wird der Schlaf kürzer und leichter. Eine Woche mit 6-Stunden-Nächten kann die Leistungsfähigkeit so stark beeinträchtigen wie eine ganze Nacht ohne Schlaf, und das ist bei kritischen Aufgaben wichtig."
       },
       "how_to_measure": {
         "en": [
@@ -265,6 +397,16 @@
           "Anota la hora en que te dormiste y la hora en que despertaste, o lee el valor de tu registro de sueño.",
           "Resta los periodos largos que pasaste despierto durante la noche.",
           "Registra el total en Moon-C en horas (por ejemplo 6.5)."
+        ],
+        "ru": [
+          "Запишите время, когда вы заснули, и время пробуждения, либо прочитайте значение в своём трекере сна.",
+          "Вычтите длительные периоды бодрствования ночью.",
+          "Запишите итог в Moon-C в часах (например, 6,5)."
+        ],
+        "de": [
+          "Notieren Sie die Zeit, zu der Sie eingeschlafen sind, und die Zeit, zu der Sie aufgewacht sind, oder lesen Sie den Wert von Ihrem Schlaftracker ab.",
+          "Ziehen Sie längere Wachphasen in der Nacht ab.",
+          "Tragen Sie die Summe in Moon-C in Stunden ein (zum Beispiel 6,5)."
         ]
       },
       "ranges": {
@@ -276,7 +418,9 @@
       "what_to_do": {
         "normal": {
           "en": ["No action needed. Keep a regular sleep window."],
-          "es": ["No hace falta hacer nada. Mantén un horario de sueño regular."]
+          "es": ["No hace falta hacer nada. Mantén un horario de sueño regular."],
+          "ru": ["Действий не требуется. Соблюдайте регулярный режим сна."],
+          "de": ["Keine Maßnahmen nötig. Halten Sie ein regelmäßiges Schlaffenster ein."]
         },
         "attention": {
           "en": [
@@ -288,6 +432,16 @@
             "Planifica un horario de sueño regular esta noche y, si la agenda lo permite, un descanso corto hoy.",
             "Reduce la luz y el ruido en tu estación de descanso y evita pantallas y cafeína antes de dormir.",
             "Si se repite varios días, habla con el oficial médico a bordo."
+          ],
+          "ru": [
+            "Запланируйте на эту ночь регулярное время сна и, если позволяет график, короткий отдых сегодня.",
+            "Уменьшите свет и шум в вашем спальном отсеке, избегайте экранов и кофеина перед сном.",
+            "Если это повторяется несколько дней, поговорите с медицинским офицером на борту."
+          ],
+          "de": [
+            "Planen Sie für heute Nacht ein regelmäßiges Schlaffenster und, wenn der Zeitplan es erlaubt, heute eine kurze Ruhepause.",
+            "Verringern Sie Licht und Lärm in Ihrer Schlafstation und meiden Sie vor dem Schlafen Bildschirme und Koffein.",
+            "Wenn es mehrere Tage anhält, sprechen Sie mit dem medizinischen Offizier an Bord."
           ]
         },
         "urgent": {
@@ -300,6 +454,16 @@
             "Evita tareas críticas o peligrosas hasta haber descansado y avisa al comandante.",
             "Avisa hoy al oficial médico a bordo.",
             "Planifica un descanso en cuanto la agenda lo permita."
+          ],
+          "ru": [
+            "Избегайте критических и опасных задач, пока не отдохнёте, и сообщите командиру.",
+            "Сегодня же сообщите медицинскому офицеру на борту.",
+            "Запланируйте отдых, как только позволит график."
+          ],
+          "de": [
+            "Vermeiden Sie kritische oder gefährliche Aufgaben, bis Sie ausgeruht sind, und informieren Sie den Kommandanten.",
+            "Informieren Sie heute den medizinischen Offizier an Bord.",
+            "Planen Sie Ruhe, sobald der Zeitplan es erlaubt."
           ]
         }
       },
@@ -314,14 +478,18 @@
       "unit_aliases": ["/5", "1-5", "1–5", "score", "points", "scale", "puntos", "escala", "puntuacion", "puntuación"],
       "valid_range": {"min": 1, "max": 5},
       "integer_only": true,
-      "name": {"en": "Mood", "es": "Estado de ánimo"},
+      "name": {"en": "Mood", "es": "Estado de ánimo", "ru": "Настроение", "de": "Stimmung"},
       "explanation": {
         "en": "A self-report of how you feel emotionally, from 1 (very low) to 5 (very good).",
-        "es": "Una autoevaluación de cómo te sientes emocionalmente, de 1 (muy bajo) a 5 (muy bien)."
+        "es": "Una autoevaluación de cómo te sientes emocionalmente, de 1 (muy bajo) a 5 (muy bien).",
+        "ru": "Самооценка того, как вы чувствуете себя эмоционально, от 1 (очень плохо) до 5 (очень хорошо).",
+        "de": "Eine Selbsteinschätzung, wie Sie sich emotional fühlen, von 1 (sehr schlecht) bis 5 (sehr gut)."
       },
       "why_it_matters_in_space": {
         "en": "Isolation, confinement, a small crew, delays to talk with Earth (seconds from the Moon, up to about 20 minutes each way from Mars) and distance from family affect everyone. In the 520-day Mars-500 simulation, sleep and activity changed for most of the crew and one member reported low mood in most weeks. Noticing changes early makes it easier to ask for support.",
-        "es": "El aislamiento, el confinamiento, una tripulación pequeña, la demora para hablar con la Tierra (segundos desde la Luna, hasta unos 20 minutos de ida desde Marte) y la distancia de la familia afectan a todos. En la simulación Mars-500, de 520 días, el sueño y la actividad cambiaron en casi toda la tripulación y una persona reportó ánimo bajo la mayoría de las semanas. Notar los cambios a tiempo facilita pedir apoyo."
+        "es": "El aislamiento, el confinamiento, una tripulación pequeña, la demora para hablar con la Tierra (segundos desde la Luna, hasta unos 20 minutos de ida desde Marte) y la distancia de la familia afectan a todos. En la simulación Mars-500, de 520 días, el sueño y la actividad cambiaron en casi toda la tripulación y una persona reportó ánimo bajo la mayoría de las semanas. Notar los cambios a tiempo facilita pedir apoyo.",
+        "ru": "Изоляция, замкнутое пространство, малочисленный экипаж, задержка связи с Землёй (секунды с Луны, до 20 минут в одну сторону с Марса) и удалённость от семьи влияют на каждого. В 520-дневной симуляции «Марс-500» сон и активность изменились у большинства членов экипажа, а один участник сообщал о сниженном настроении большую часть недель. Если замечать перемены вовремя, проще попросить поддержки.",
+        "de": "Isolation, Enge, eine kleine Besatzung, Verzögerungen bei der Kommunikation mit der Erde (Sekunden vom Mond, bis zu etwa 20 Minuten pro Richtung vom Mars) und die Entfernung von der Familie betreffen jeden. In der 520-tägigen Simulation Mars-500 veränderten sich Schlaf und Aktivität bei den meisten Besatzungsmitgliedern, und ein Mitglied berichtete in den meisten Wochen von gedrückter Stimmung. Wer Veränderungen früh bemerkt, bittet leichter um Unterstützung."
       },
       "how_to_measure": {
         "en": [
@@ -333,6 +501,16 @@
           "Tómate un momento para pensar cómo te has sentido hoy.",
           "Elige un número: 1 muy bajo, 2 bajo, 3 regular, 4 bien, 5 muy bien.",
           "Regístralo en Moon-C. No hay respuestas incorrectas."
+        ],
+        "ru": [
+          "Найдите минуту и подумайте, как вы чувствовали себя сегодня.",
+          "Выберите число: 1 очень плохо, 2 плохо, 3 нормально, 4 хорошо, 5 очень хорошо.",
+          "Запишите его в Moon-C. Неправильных ответов не бывает."
+        ],
+        "de": [
+          "Nehmen Sie sich einen Moment und denken Sie darüber nach, wie Sie sich heute gefühlt haben.",
+          "Wählen Sie eine Zahl: 1 sehr schlecht, 2 schlecht, 3 in Ordnung, 4 gut, 5 sehr gut.",
+          "Tragen Sie sie in Moon-C ein. Es gibt keine falschen Antworten."
         ]
       },
       "ranges": {
@@ -344,7 +522,9 @@
       "what_to_do": {
         "normal": {
           "en": ["Thanks for checking in. Keep doing what helps you feel well."],
-          "es": ["Gracias por registrarlo. Sigue haciendo lo que te ayuda a sentirte bien."]
+          "es": ["Gracias por registrarlo. Sigue haciendo lo que te ayuda a sentirte bien."],
+          "ru": ["Спасибо, что отметились. Продолжайте делать то, что помогает вам чувствовать себя хорошо."],
+          "de": ["Danke fürs Einchecken. Machen Sie weiter mit dem, was Ihnen guttut."]
         },
         "attention": {
           "en": [
@@ -356,6 +536,16 @@
             "Gracias por compartirlo. Tómate un descanso haciendo algo que disfrutes.",
             "Considera hablar con un compañero de confianza.",
             "Si continúa, el oficial médico a bordo y el equipo de apoyo están para ti."
+          ],
+          "ru": [
+            "Спасибо, что поделились. Сделайте перерыв и займитесь тем, что вам нравится.",
+            "Подумайте о том, чтобы поговорить с членом экипажа, которому вы доверяете.",
+            "Если это продолжается, медицинский офицер на борту и группа поддержки готовы помочь вам."
+          ],
+          "de": [
+            "Danke, dass Sie das teilen. Machen Sie eine Pause und tun Sie etwas, das Ihnen Freude macht.",
+            "Überlegen Sie, mit einem Crewmitglied Ihres Vertrauens zu sprechen.",
+            "Wenn es anhält, sind der medizinische Offizier an Bord und das Unterstützungsteam für Sie da."
           ]
         },
         "urgent": {
@@ -368,6 +558,16 @@
             "Gracias por decírmelo. No estás solo en esto.",
             "Por favor, habla hoy con un compañero o con el oficial médico a bordo; pedir apoyo es una muestra de fortaleza.",
             "También puedes pedir al oficial médico que programe una llamada privada de apoyo con la Tierra cuando haya enlace."
+          ],
+          "ru": [
+            "Спасибо, что сказали мне. Вы не одни.",
+            "Пожалуйста, сегодня же поговорите с членом экипажа или с медицинским офицером на борту; обратиться за поддержкой — это проявление силы.",
+            "Вы также можете попросить медицинского офицера организовать приватный сеанс поддержки с Землёй, когда появится связь."
+          ],
+          "de": [
+            "Danke, dass Sie es mir gesagt haben. Sie sind nicht allein.",
+            "Bitte sprechen Sie heute mit einem Crewmitglied oder dem medizinischen Offizier an Bord; sich Hilfe zu holen ist ein Zeichen von Stärke.",
+            "Sie können den medizinischen Offizier auch bitten, einen privaten Unterstützungsanruf mit der Erde zu vereinbaren, sobald eine Verbindung besteht."
           ]
         }
       },
@@ -382,14 +582,18 @@
       "unit_aliases": ["mmHg", "mm Hg"],
       "valid_range": {"min": 40, "max": 300},
       "integer_only": false,
-      "name": {"en": "Blood pressure (systolic)", "es": "Presión arterial (sistólica)"},
+      "name": {"en": "Blood pressure (systolic)", "es": "Presión arterial (sistólica)", "ru": "Артериальное давление (систолическое)", "de": "Blutdruck (systolisch)"},
       "explanation": {
         "en": "The higher number of a blood pressure reading: the pressure in your arteries each time the heart beats, in millimetres of mercury (mmHg).",
-        "es": "El número más alto de una lectura de presión arterial: la presión en tus arterias cada vez que late el corazón, en milímetros de mercurio (mmHg)."
+        "es": "El número más alto de una lectura de presión arterial: la presión en tus arterias cada vez que late el corazón, en milímetros de mercurio (mmHg).",
+        "ru": "Верхнее число при измерении артериального давления: давление в ваших артериях при каждом сокращении сердца, в миллиметрах ртутного столба (мм рт. ст.).",
+        "de": "Die höhere Zahl einer Blutdruckmessung: der Druck in Ihren Arterien bei jedem Herzschlag, in Millimeter Quecksilbersäule (mmHg)."
       },
       "why_it_matters_in_space": {
         "en": "In microgravity, fluids shift toward the head and blood vessels relax: in ISS crews, 24-hour blood pressure fell by about 8–10 mmHg while the heart pumped more blood per beat, so values a little lower than on Earth are expected. The risk comes when gravity returns: on landing day, 4 of 6 long-mission crew members in a NASA study could not complete 10 minutes of upright tilt. Measure before and after standing up.",
-        "es": "En microgravedad los líquidos se desplazan hacia la cabeza y los vasos sanguíneos se relajan: en tripulaciones de la ISS, la presión de 24 horas bajó unos 8–10 mmHg mientras el corazón bombeaba más sangre por latido, así que es esperable que sea un poco más baja que en la Tierra. El riesgo llega al volver a la gravedad: el día del aterrizaje, 4 de 6 tripulantes de misiones largas en un estudio de la NASA no completaron 10 minutos de inclinación de pie. Mide antes y después de ponerte de pie."
+        "es": "En microgravedad los líquidos se desplazan hacia la cabeza y los vasos sanguíneos se relajan: en tripulaciones de la ISS, la presión de 24 horas bajó unos 8–10 mmHg mientras el corazón bombeaba más sangre por latido, así que es esperable que sea un poco más baja que en la Tierra. El riesgo llega al volver a la gravedad: el día del aterrizaje, 4 de 6 tripulantes de misiones largas en un estudio de la NASA no completaron 10 minutos de inclinación de pie. Mide antes y después de ponerte de pie.",
+        "ru": "В микрогравитации жидкости смещаются к голове, а сосуды расслабляются: у экипажей МКС суточное артериальное давление снижалось примерно на 8–10 мм рт. ст., при этом сердце выбрасывало больше крови за одно сокращение, поэтому значения чуть ниже, чем на Земле, ожидаемы. Риск возникает при возвращении силы тяжести: в день посадки 4 из 6 членов экипажей длительных миссий в исследовании NASA не смогли выдержать 10 минут стояния на наклонном столе. Измеряйте до и после вставания.",
+        "de": "In Mikrogravitation verlagern sich die Flüssigkeiten zum Kopf und die Blutgefäße entspannen sich: Bei ISS-Besatzungen sank der 24-Stunden-Blutdruck um etwa 8–10 mmHg, während das Herz pro Schlag mehr Blut pumpte; daher sind etwas niedrigere Werte als auf der Erde zu erwarten. Das Risiko kommt, wenn die Schwerkraft zurückkehrt: Am Landetag konnten in einer NASA-Studie 4 von 6 Besatzungsmitgliedern langer Missionen 10 Minuten aufrechtes Stehen auf dem Kipptisch nicht durchhalten. Messen Sie vor und nach dem Aufstehen."
       },
       "how_to_measure": {
         "en": [
@@ -403,6 +607,18 @@
           "Coloca el brazalete sobre la piel del brazo, 2–3 cm por encima del codo.",
           "Quédate quieto y en silencio mientras el monitor mide.",
           "Registra en Moon-C el número más alto (sistólica) y el más bajo (diastólica) en mmHg."
+        ],
+        "ru": [
+          "Отдохните 5 минут, закрепившись на месте, рука опирается на уровне сердца.",
+          "Наденьте манжету на голое плечо, на 2–3 см выше локтя.",
+          "Оставайтесь неподвижны и молчите, пока прибор измеряет.",
+          "Запишите в Moon-C верхнее число (систолическое) и нижнее число (диастолическое) в мм рт. ст."
+        ],
+        "de": [
+          "Ruhen Sie 5 Minuten, gesichert an Ihrem Platz, den Arm in Herzhöhe abgestützt.",
+          "Legen Sie die Manschette auf den bloßen Oberarm, 2–3 cm oberhalb des Ellenbogens.",
+          "Bleiben Sie still und sprechen Sie nicht, während das Gerät misst.",
+          "Tragen Sie in Moon-C die höhere Zahl (systolisch) und die niedrigere Zahl (diastolisch) in mmHg ein."
         ]
       },
       "ranges": {
@@ -414,7 +630,9 @@
       "what_to_do": {
         "normal": {
           "en": ["No action needed. Keep logging when the routine asks for it."],
-          "es": ["No hace falta hacer nada. Sigue registrando cuando la rutina lo pida."]
+          "es": ["No hace falta hacer nada. Sigue registrando cuando la rutina lo pida."],
+          "ru": ["Действий не требуется. Записывайте показания, когда этого требует распорядок."],
+          "de": ["Keine Maßnahmen nötig. Erfassen Sie Werte, wenn der Ablauf es verlangt."]
         },
         "attention": {
           "en": [
@@ -428,6 +646,18 @@
             "Si sientes mareo, sobre todo al ponerte de pie o después de aterrizar, siéntate o recuéstate y sujétate antes de volver a medir.",
             "Evita cafeína y esfuerzo antes de la siguiente lectura.",
             "Si sigue fuera del rango normal, avisa al oficial médico a bordo."
+          ],
+          "ru": [
+            "Спокойно отдохните 5 минут и измерьте снова.",
+            "Если почувствуете головокружение, особенно после вставания или после посадки, сядьте или лягте и закрепитесь, прежде чем измерять снова.",
+            "Избегайте кофеина и физических усилий перед следующим измерением.",
+            "Если значение остаётся вне нормального диапазона, сообщите медицинскому офицеру на борту."
+          ],
+          "de": [
+            "Ruhen Sie 5 Minuten in Ruhe und messen Sie erneut.",
+            "Wenn Ihnen schwindelig wird, besonders nach dem Aufstehen oder nach der Landung, setzen oder legen Sie sich hin und sichern Sie sich, bevor Sie erneut messen.",
+            "Vermeiden Sie vor der nächsten Messung Koffein und Anstrengung.",
+            "Bleibt der Wert außerhalb des Normalbereichs, informieren Sie den medizinischen Offizier an Bord."
           ]
         },
         "urgent": {
@@ -442,6 +672,18 @@
             "Avisa ahora al oficial médico a bordo.",
             "Vuelve a medir y registra los signos vitales cada 5 minutos.",
             "Si notas dolor de pecho o dificultad para respirar, dilo: Moon-C abrirá el protocolo de emergencia."
+          ],
+          "ru": [
+            "Прекратите то, что делаете, и отдохните, закрепившись на месте.",
+            "Немедленно сообщите медицинскому офицеру на борту.",
+            "Измеряйте снова и записывайте жизненные показатели каждые 5 минут.",
+            "Если почувствуете боль в груди или затруднение дыхания, скажите об этом: Moon-C откроет протокол экстренной помощи."
+          ],
+          "de": [
+            "Unterbrechen Sie, was Sie tun, und ruhen Sie sich gesichert an Ihrem Platz aus.",
+            "Informieren Sie sofort den medizinischen Offizier an Bord.",
+            "Messen Sie erneut und erfassen Sie die Vitalwerte alle 5 Minuten.",
+            "Wenn Sie Brustschmerzen oder Atemnot bemerken, sagen Sie es: Moon-C öffnet das Notfallprotokoll."
           ]
         }
       },
@@ -456,14 +698,18 @@
       "unit_aliases": ["mmHg", "mm Hg"],
       "valid_range": {"min": 20, "max": 200},
       "integer_only": false,
-      "name": {"en": "Blood pressure (diastolic)", "es": "Presión arterial (diastólica)"},
+      "name": {"en": "Blood pressure (diastolic)", "es": "Presión arterial (diastólica)", "ru": "Артериальное давление (диастолическое)", "de": "Blutdruck (diastolisch)"},
       "explanation": {
         "en": "The lower number of a blood pressure reading: the pressure in your arteries between heartbeats, in mmHg.",
-        "es": "El número más bajo de una lectura de presión arterial: la presión en tus arterias entre un latido y otro, en mmHg."
+        "es": "El número más bajo de una lectura de presión arterial: la presión en tus arterias entre un latido y otro, en mmHg.",
+        "ru": "Нижнее число при измерении артериального давления: давление в ваших артериях между сокращениями сердца, в мм рт. ст.",
+        "de": "Die niedrigere Zahl einer Blutdruckmessung: der Druck in Ihren Arterien zwischen den Herzschlägen, in mmHg."
       },
       "why_it_matters_in_space": {
         "en": "It is measured together with the systolic value; in ISS crews it fell by about 9 mmHg in flight. After landing, a drop of 10 mmHg or more within 3 minutes of standing up (or 20 mmHg in the systolic) is the standard sign that circulation is not keeping up with gravity.",
-        "es": "Se mide junto con la sistólica; en tripulaciones de la ISS bajó unos 9 mmHg durante el vuelo. Después de aterrizar, una caída de 10 mmHg o más en los 3 minutos siguientes a ponerse de pie (o de 20 mmHg en la sistólica) es la señal estándar de que la circulación no está compensando la gravedad."
+        "es": "Se mide junto con la sistólica; en tripulaciones de la ISS bajó unos 9 mmHg durante el vuelo. Después de aterrizar, una caída de 10 mmHg o más en los 3 minutos siguientes a ponerse de pie (o de 20 mmHg en la sistólica) es la señal estándar de que la circulación no está compensando la gravedad.",
+        "ru": "Измеряется вместе с систолическим; у экипажей МКС в полёте снижалось примерно на 9 мм рт. ст. После посадки падение на 10 мм рт. ст. и более в течение 3 минут после вставания (или на 20 мм рт. ст. для систолического) — стандартный признак того, что кровообращение не справляется с силой тяжести.",
+        "de": "Er wird zusammen mit dem systolischen Wert gemessen; bei ISS-Besatzungen sank er im Flug um etwa 9 mmHg. Nach der Landung ist ein Abfall um 10 mmHg oder mehr innerhalb von 3 Minuten nach dem Aufstehen (oder um 20 mmHg beim systolischen Wert) das übliche Zeichen dafür, dass der Kreislauf mit der Schwerkraft nicht Schritt hält."
       },
       "how_to_measure": {
         "en": [
@@ -477,6 +723,18 @@
           "Coloca el brazalete sobre la piel del brazo, 2–3 cm por encima del codo.",
           "Quédate quieto y en silencio mientras el monitor mide.",
           "Registra en Moon-C el número más bajo (diastólica) en mmHg."
+        ],
+        "ru": [
+          "Отдохните 5 минут, закрепившись на месте, рука опирается на уровне сердца.",
+          "Наденьте манжету на голое плечо, на 2–3 см выше локтя.",
+          "Оставайтесь неподвижны и молчите, пока прибор измеряет.",
+          "Запишите в Moon-C нижнее число (диастолическое) в мм рт. ст."
+        ],
+        "de": [
+          "Ruhen Sie 5 Minuten, gesichert an Ihrem Platz, den Arm in Herzhöhe abgestützt.",
+          "Legen Sie die Manschette auf den bloßen Oberarm, 2–3 cm oberhalb des Ellenbogens.",
+          "Bleiben Sie still und sprechen Sie nicht, während das Gerät misst.",
+          "Tragen Sie in Moon-C die niedrigere Zahl (diastolisch) in mmHg ein."
         ]
       },
       "ranges": {
@@ -488,7 +746,9 @@
       "what_to_do": {
         "normal": {
           "en": ["No action needed. Keep logging when the routine asks for it."],
-          "es": ["No hace falta hacer nada. Sigue registrando cuando la rutina lo pida."]
+          "es": ["No hace falta hacer nada. Sigue registrando cuando la rutina lo pida."],
+          "ru": ["Действий не требуется. Записывайте показания, когда этого требует распорядок."],
+          "de": ["Keine Maßnahmen nötig. Erfassen Sie Werte, wenn der Ablauf es verlangt."]
         },
         "attention": {
           "en": [
@@ -500,6 +760,16 @@
             "Descansa 5 minutos en calma y vuelve a medir.",
             "Evita cafeína y esfuerzo antes de la siguiente lectura.",
             "Si sigue fuera del rango normal, avisa al oficial médico a bordo."
+          ],
+          "ru": [
+            "Спокойно отдохните 5 минут и измерьте снова.",
+            "Избегайте кофеина и физических усилий перед следующим измерением.",
+            "Если значение остаётся вне нормального диапазона, сообщите медицинскому офицеру на борту."
+          ],
+          "de": [
+            "Ruhen Sie 5 Minuten in Ruhe und messen Sie erneut.",
+            "Vermeiden Sie vor der nächsten Messung Koffein und Anstrengung.",
+            "Bleibt der Wert außerhalb des Normalbereichs, informieren Sie den medizinischen Offizier an Bord."
           ]
         },
         "urgent": {
@@ -514,6 +784,18 @@
             "Avisa ahora al oficial médico a bordo.",
             "Vuelve a medir y registra los signos vitales cada 5 minutos.",
             "Si notas dolor de pecho o dificultad para respirar, dilo: Moon-C abrirá el protocolo de emergencia."
+          ],
+          "ru": [
+            "Прекратите то, что делаете, и отдохните, закрепившись на месте.",
+            "Немедленно сообщите медицинскому офицеру на борту.",
+            "Измеряйте снова и записывайте жизненные показатели каждые 5 минут.",
+            "Если почувствуете боль в груди или затруднение дыхания, скажите об этом: Moon-C откроет протокол экстренной помощи."
+          ],
+          "de": [
+            "Unterbrechen Sie, was Sie tun, und ruhen Sie sich gesichert an Ihrem Platz aus.",
+            "Informieren Sie sofort den medizinischen Offizier an Bord.",
+            "Messen Sie erneut und erfassen Sie die Vitalwerte alle 5 Minuten.",
+            "Wenn Sie Brustschmerzen oder Atemnot bemerken, sagen Sie es: Moon-C öffnet das Notfallprotokoll."
           ]
         }
       },
@@ -528,14 +810,18 @@
       "unit_aliases": ["breaths/min", "breaths per minute", "rpm", "resp/min", "/min", "respiraciones por minuto"],
       "valid_range": {"min": 1, "max": 80},
       "integer_only": false,
-      "name": {"en": "Respiratory rate", "es": "Frecuencia respiratoria"},
+      "name": {"en": "Respiratory rate", "es": "Frecuencia respiratoria", "ru": "Частота дыхания", "de": "Atemfrequenz"},
       "explanation": {
         "en": "How many breaths you take per minute, counted at rest.",
-        "es": "Cuántas veces respiras por minuto, contado en reposo."
+        "es": "Cuántas veces respiras por minuto, contado en reposo.",
+        "ru": "Сколько вдохов вы делаете за минуту, подсчитано в покое.",
+        "de": "Wie viele Atemzüge Sie pro Minute machen, in Ruhe gezählt."
       },
       "why_it_matters_in_space": {
         "en": "In microgravity, breaths become a little smaller and slightly faster (about 9% faster in Spacelab crews), still within the normal range. Cabin CO2 matters too: NASA limits it to 3 mmHg as a 1-hour average because higher levels are linked to headaches. If several crew members breathe faster or get headaches at the same time, check the cabin air.",
-        "es": "En microgravedad las respiraciones se vuelven un poco más pequeñas y algo más rápidas (cerca de 9% más rápidas en tripulaciones del Spacelab), todavía dentro del rango normal. El CO2 de la cabina también importa: la NASA lo limita a 3 mmHg en promedio por hora porque niveles más altos se asocian con dolor de cabeza. Si varios tripulantes respiran más rápido o les duele la cabeza al mismo tiempo, revisa el aire de la cabina."
+        "es": "En microgravedad las respiraciones se vuelven un poco más pequeñas y algo más rápidas (cerca de 9% más rápidas en tripulaciones del Spacelab), todavía dentro del rango normal. El CO2 de la cabina también importa: la NASA lo limita a 3 mmHg en promedio por hora porque niveles más altos se asocian con dolor de cabeza. Si varios tripulantes respiran más rápido o les duele la cabeza al mismo tiempo, revisa el aire de la cabina.",
+        "ru": "В микрогравитации дыхание становится немного более поверхностным и чуть более частым (примерно на 9 % чаще у экипажей «Спейслэба»), но остаётся в пределах нормы. Важен и CO₂ в кабине: NASA ограничивает его 3 мм рт. ст. как среднее за 1 час, поскольку более высокие уровни связаны с головной болью. Если у нескольких членов экипажа одновременно учащается дыхание или появляется головная боль, проверьте воздух в кабине.",
+        "de": "In Mikrogravitation werden die Atemzüge etwas kleiner und etwas schneller (etwa 9 % schneller bei Spacelab-Besatzungen), noch im Normalbereich. Auch das CO₂ in der Kabine ist wichtig: Die NASA begrenzt es auf 3 mmHg als 1-Stunden-Mittelwert, weil höhere Werte mit Kopfschmerzen in Verbindung stehen. Wenn mehrere Besatzungsmitglieder gleichzeitig schneller atmen oder Kopfschmerzen bekommen, prüfen Sie die Kabinenluft."
       },
       "how_to_measure": {
         "en": [
@@ -547,6 +833,16 @@
           "Descansa 5 minutos, sujeto a tu lugar.",
           "Cuenta cuántas veces sube el pecho en 30 segundos y multiplica por 2. Es más preciso si cuenta un compañero.",
           "Registra el valor en Moon-C en respiraciones por minuto."
+        ],
+        "ru": [
+          "Отдохните 5 минут, закрепившись на месте.",
+          "Посчитайте, сколько раз поднимется грудная клетка за 30 секунд, и умножьте на 2. Точнее, если считает член экипажа.",
+          "Запишите значение в Moon-C как число вдохов в минуту."
+        ],
+        "de": [
+          "Ruhen Sie 5 Minuten, gesichert an Ihrem Platz.",
+          "Zählen Sie, wie oft sich der Brustkorb in 30 Sekunden hebt, und multiplizieren Sie mit 2. Es ist genauer, wenn ein Crewmitglied zählt.",
+          "Tragen Sie den Wert in Moon-C in Atemzügen pro Minute ein."
         ]
       },
       "ranges": {
@@ -558,7 +854,9 @@
       "what_to_do": {
         "normal": {
           "en": ["No action needed. Keep logging when the routine asks for it."],
-          "es": ["No hace falta hacer nada. Sigue registrando cuando la rutina lo pida."]
+          "es": ["No hace falta hacer nada. Sigue registrando cuando la rutina lo pida."],
+          "ru": ["Действий не требуется. Записывайте показания, когда этого требует распорядок."],
+          "de": ["Keine Maßnahmen nötig. Erfassen Sie Werte, wenn der Ablauf es verlangt."]
         },
         "attention": {
           "en": [
@@ -570,6 +868,16 @@
             "Respira lento por la nariz durante un minuto y vuelve a contar.",
             "Revisa las lecturas de calidad del aire de la cabina.",
             "Si sigue fuera del rango normal, avisa al oficial médico a bordo."
+          ],
+          "ru": [
+            "Медленно дышите носом в течение минуты и сосчитайте снова.",
+            "Проверьте показания качества воздуха в кабине.",
+            "Если значение остаётся вне нормального диапазона, сообщите медицинскому офицеру на борту."
+          ],
+          "de": [
+            "Atmen Sie eine Minute lang langsam durch die Nase und zählen Sie erneut.",
+            "Prüfen Sie die Luftqualitätswerte der Kabine.",
+            "Bleibt der Wert außerhalb des Normalbereichs, informieren Sie den medizinischen Offizier an Bord."
           ]
         },
         "urgent": {
@@ -582,6 +890,16 @@
             "Detén tu actividad y quédate en reposo en un lugar seguro.",
             "Avisa ahora al oficial médico a bordo y revisa las alarmas de la atmósfera de la cabina.",
             "Mide la SpO2 y registra los signos vitales cada 5 minutos."
+          ],
+          "ru": [
+            "Прекратите деятельность и оставайтесь неподвижно в безопасном месте.",
+            "Немедленно сообщите медицинскому офицеру на борту и проверьте сигналы тревоги атмосферы кабины.",
+            "Измеряйте SpO₂ и записывайте жизненные показатели каждые 5 минут."
+          ],
+          "de": [
+            "Unterbrechen Sie Ihre Tätigkeit und bleiben Sie ruhig an einem sicheren Ort.",
+            "Informieren Sie sofort den medizinischen Offizier an Bord und prüfen Sie die Atmosphärenalarme der Kabine.",
+            "Messen Sie die SpO₂ und erfassen Sie die Vitalwerte alle 5 Minuten."
           ]
         }
       },
@@ -596,14 +914,18 @@
       "unit_aliases": ["µSv/h", "μSv/h", "uSv/h", "microsievert/h", "microsieverts per hour", "microsieverts por hora"],
       "valid_range": {"min": 0, "max": 100000},
       "integer_only": false,
-      "name": {"en": "Radiation (personal dosimeter)", "es": "Radiación (dosímetro personal)"},
+      "name": {"en": "Radiation (personal dosimeter)", "es": "Radiación (dosímetro personal)", "ru": "Радиация (персональный дозиметр)", "de": "Strahlung (persönliches Dosimeter)"},
       "explanation": {
         "en": "The radiation dose rate measured by your personal dosimeter, in microsieverts per hour (µSv/h).",
-        "es": "La tasa de dosis de radiación que mide tu dosímetro personal, en microsieverts por hora (µSv/h)."
+        "es": "La tasa de dosis de radiación que mide tu dosímetro personal, en microsieverts por hora (µSv/h).",
+        "ru": "Мощность дозы радиации, измеренная вашим персональным дозиметром, в микрозивертах в час (мкЗв/ч).",
+        "de": "Die Strahlungsdosisrate, die Ihr persönliches Dosimeter misst, in Mikrosievert pro Stunde (µSv/h)."
       },
       "why_it_matters_in_space": {
         "en": "Typical background dose rates: about 0.3 µSv/h on Earth, 8–21 µSv/h on the ISS, 28 µSv/h on the surface of Mars, 57 µSv/h on the Moon and about 75 µSv/h in deep space. Solar particle events can multiply them within hours, and shielding or a storm shelter cuts that dose a lot. NASA limits a whole career to 600 mSv, so the dose adds up over every mission.",
-        "es": "Tasas de dosis de fondo típicas: unos 0.3 µSv/h en la Tierra, 8–21 µSv/h en la ISS, 28 µSv/h en la superficie de Marte, 57 µSv/h en la Luna y unos 75 µSv/h en el espacio profundo. Los eventos de partículas solares pueden multiplicarlas en horas, y el blindaje o un refugio contra tormentas reduce mucho esa dosis. La NASA limita toda la carrera a 600 mSv, así que la dosis se acumula en cada misión."
+        "es": "Tasas de dosis de fondo típicas: unos 0.3 µSv/h en la Tierra, 8–21 µSv/h en la ISS, 28 µSv/h en la superficie de Marte, 57 µSv/h en la Luna y unos 75 µSv/h en el espacio profundo. Los eventos de partículas solares pueden multiplicarlas en horas, y el blindaje o un refugio contra tormentas reduce mucho esa dosis. La NASA limita toda la carrera a 600 mSv, así que la dosis se acumula en cada misión.",
+        "ru": "Типичная мощность дозы фонового излучения: около 0,3 мкЗв/ч на Земле, 8–21 мкЗв/ч на МКС, 28 мкЗв/ч на поверхности Марса, 57 мкЗв/ч на Луне и около 75 мкЗв/ч в дальнем космосе. События с выбросом солнечных частиц могут увеличить её в несколько раз за считаные часы, а экранирование или укрытие от радиационных бурь значительно снижает эту дозу. NASA ограничивает дозу за всю карьеру значением 600 мЗв, поэтому доза накапливается с каждой миссией.",
+        "de": "Typische Hintergrunddosisraten: etwa 0,3 µSv/h auf der Erde, 8–21 µSv/h auf der ISS, 28 µSv/h auf der Marsoberfläche, 57 µSv/h auf dem Mond und etwa 75 µSv/h im tiefen Weltraum. Sonnenpartikelereignisse können sie innerhalb von Stunden vervielfachen, und Abschirmung oder ein Sturmschutzraum senkt diese Dosis stark. Die NASA begrenzt die Dosis über die gesamte Laufbahn auf 600 mSv, sodass sich die Dosis mit jeder Mission aufsummiert."
       },
       "how_to_measure": {
         "en": [
@@ -615,6 +937,16 @@
           "Lleva tu dosímetro personal como se indica, normalmente a la altura del pecho.",
           "Lee la tasa de dosis actual en el dosímetro o en la pantalla de la estación.",
           "Registra el valor en Moon-C en µSv/h."
+        ],
+        "ru": [
+          "Носите персональный дозиметр согласно инструкции, обычно на уровне груди.",
+          "Считайте текущую мощность дозы на дозиметре или на экране станции.",
+          "Запишите значение в Moon-C в мкЗв/ч."
+        ],
+        "de": [
+          "Tragen Sie Ihr persönliches Dosimeter wie angewiesen, in der Regel auf Brusthöhe.",
+          "Lesen Sie die aktuelle Dosisrate am Dosimeter oder auf der Stationsanzeige ab.",
+          "Tragen Sie den Wert in Moon-C in µSv/h ein."
         ]
       },
       "ranges": {
@@ -626,7 +958,9 @@
       "what_to_do": {
         "normal": {
           "en": ["No action needed. Keep wearing your dosimeter."],
-          "es": ["No hace falta hacer nada. Sigue llevando tu dosímetro."]
+          "es": ["No hace falta hacer nada. Sigue llevando tu dosímetro."],
+          "ru": ["Действий не требуется. Продолжайте носить дозиметр."],
+          "de": ["Keine Maßnahmen nötig. Tragen Sie Ihr Dosimeter weiter."]
         },
         "attention": {
           "en": [
@@ -638,6 +972,16 @@
             "Reduce el tiempo en módulos poco blindados.",
             "Revisa las alertas de radiación y de clima espacial del hábitat.",
             "Revisa tu dosis acumulada al final del turno."
+          ],
+          "ru": [
+            "Сократите время пребывания в модулях с недостаточной защитой.",
+            "Проверьте оповещения о радиации и космической погоде в обитаемом модуле.",
+            "Проверьте накопленную дозу в конце смены."
+          ],
+          "de": [
+            "Verringern Sie die Zeit in weniger abgeschirmten Modulen.",
+            "Prüfen Sie die Strahlungs- und Weltraumwetterwarnungen des Habitats.",
+            "Prüfen Sie Ihre akkumulierte Dosis am Ende der Schicht."
           ]
         },
         "urgent": {
@@ -650,6 +994,16 @@
             "Ve ahora al refugio de tormenta o al módulo más blindado.",
             "Avisa al comandante y al oficial médico a bordo y espera instrucciones.",
             "Mantén puesto tu dosímetro y sigue el procedimiento de radiación del vehículo."
+          ],
+          "ru": [
+            "Немедленно пройдите в укрытие от радиационных бурь или в самый защищённый модуль.",
+            "Сообщите командиру и медицинскому офицеру на борту и ждите указаний.",
+            "Не снимайте дозиметр и следуйте радиационной процедуре аппарата."
+          ],
+          "de": [
+            "Gehen Sie sofort in den Sturmschutzraum oder in das am besten abgeschirmte Modul.",
+            "Informieren Sie den Kommandanten und den medizinischen Offizier an Bord und warten Sie auf Anweisungen.",
+            "Lassen Sie das Dosimeter angelegt und folgen Sie dem Strahlungsverfahren des Fahrzeugs."
           ]
         }
       },
@@ -662,8 +1016,8 @@
   "protocols": {
     "chest_pain": {
       "type": "emergency",
-      "title": {"en": "Chest pain: how to help", "es": "Dolor de pecho: cómo ayudar"},
-      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada."},
+      "title": {"en": "Chest pain: how to help", "es": "Dolor de pecho: cómo ayudar", "ru": "Боль в груди: как помочь", "de": "Brustschmerzen: so helfen Sie"},
+      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada.", "ru": "Для члена экипажа, оказывающего помощь пострадавшему.", "de": "Für das Crewmitglied, das der betroffenen Person hilft."},
       "steps": {
         "en": [
           "Make the person safe: stop their activity, help them stay still and secure them in a comfortable position.",
@@ -680,6 +1034,22 @@
           "Afloja la ropa ajustada y mantén a la persona en calma; que no haga esfuerzos.",
           "Anota cuándo empezó y qué estaba haciendo.",
           "Toma los signos vitales cada 5 minutos (frecuencia cardiaca, SpO2, temperatura, respuesta) y regístralos en Moon-C."
+        ],
+        "ru": [
+          "Обеспечьте безопасность человека: прекратите его деятельность, помогите ему оставаться неподвижным и закрепите его в удобном положении.",
+          "Немедленно сообщите медицинскому офицеру на борту и остальному экипажу.",
+          "Следуйте аварийной процедуре аппарата и принесите медицинскую аптечку.",
+          "Ослабьте тесную одежду и успокаивайте человека; не позволяйте ему напрягаться.",
+          "Отметьте, когда это началось и чем занимался человек.",
+          "Измеряйте жизненные показатели каждые 5 минут (частота пульса, SpO₂, температура, реакция) и записывайте их в Moon-C."
+        ],
+        "de": [
+          "Bringen Sie die Person in Sicherheit: Beenden Sie ihre Tätigkeit, helfen Sie ihr, ruhig zu bleiben, und sichern Sie sie in einer bequemen Position.",
+          "Informieren Sie sofort den medizinischen Offizier an Bord und die übrige Besatzung.",
+          "Folgen Sie dem Notfallverfahren des Fahrzeugs und holen Sie den Sanitätskasten.",
+          "Lockern Sie enge Kleidung und beruhigen Sie die Person; lassen Sie sie sich nicht anstrengen.",
+          "Notieren Sie, wann es angefangen hat und was die Person gerade getan hat.",
+          "Erfassen Sie alle 5 Minuten die Vitalwerte (Herzfrequenz, SpO₂, Temperatur, Ansprechbarkeit) und tragen Sie sie in Moon-C ein."
         ]
       },
       "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
@@ -689,8 +1059,8 @@
 
     "breathing_difficulty": {
       "type": "emergency",
-      "title": {"en": "Difficulty breathing: how to help", "es": "Dificultad para respirar: cómo ayudar"},
-      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada."},
+      "title": {"en": "Difficulty breathing: how to help", "es": "Dificultad para respirar: cómo ayudar", "ru": "Затруднение дыхания: как помочь", "de": "Atemnot: so helfen Sie"},
+      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada.", "ru": "Для члена экипажа, оказывающего помощь пострадавшему.", "de": "Für das Crewmitglied, das der betroffenen Person hilft."},
       "steps": {
         "en": [
           "Make the person safe: stop their activity and help them into an upright, comfortable position, secured in place.",
@@ -705,6 +1075,20 @@
           "Revisa las alarmas de la atmósfera de la cabina (calidad del aire, humo, presión) y sigue el procedimiento de emergencia del vehículo.",
           "Afloja lo que apriete el cuello y el pecho y ayúdala a respirar despacio.",
           "Toma los signos vitales cada 5 minutos (SpO2, frecuencia cardiaca, respuesta) y regístralos en Moon-C."
+        ],
+        "ru": [
+          "Обеспечьте безопасность человека: прекратите его деятельность и помогите ему принять удобное вертикальное положение, закрепившись на месте.",
+          "Немедленно сообщите медицинскому офицеру на борту и остальному экипажу.",
+          "Проверьте сигналы тревоги атмосферы кабины (качество воздуха, дым, давление) и следуйте аварийной процедуре аппарата.",
+          "Ослабьте всё, что стягивает шею и грудь, и помогите человеку дышать медленно.",
+          "Измеряйте жизненные показатели каждые 5 минут (SpO₂, частота пульса, реакция) и записывайте их в Moon-C."
+        ],
+        "de": [
+          "Bringen Sie die Person in Sicherheit: Beenden Sie ihre Tätigkeit und helfen Sie ihr in eine aufrechte, bequeme Position, gesichert an ihrem Platz.",
+          "Informieren Sie sofort den medizinischen Offizier an Bord und die übrige Besatzung.",
+          "Prüfen Sie die Atmosphärenalarme der Kabine (Luftqualität, Rauch, Druck) und folgen Sie dem Notfallverfahren des Fahrzeugs.",
+          "Lockern Sie alles Enge an Hals und Brust und helfen Sie der Person, langsam zu atmen.",
+          "Erfassen Sie alle 5 Minuten die Vitalwerte (SpO₂, Herzfrequenz, Ansprechbarkeit) und tragen Sie sie in Moon-C ein."
         ]
       },
       "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
@@ -714,8 +1098,8 @@
 
     "fainting_unresponsive": {
       "type": "emergency",
-      "title": {"en": "Fainting or unresponsive: how to help", "es": "Desmayo o sin respuesta: cómo ayudar"},
-      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada."},
+      "title": {"en": "Fainting or unresponsive: how to help", "es": "Desmayo o sin respuesta: cómo ayudar", "ru": "Обморок или отсутствие реакции: как помочь", "de": "Ohnmacht oder keine Reaktion: so helfen Sie"},
+      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada.", "ru": "Для члена экипажа, оказывающего помощь пострадавшему.", "de": "Für das Crewmitglied, das der betroffenen Person hilft."},
       "steps": {
         "en": [
           "Make the person and yourself safe: secure them so they do not drift or hit equipment.",
@@ -732,6 +1116,22 @@
           "Sigue el procedimiento de emergencia del vehículo; incluye qué hacer si la persona no respira.",
           "Quédate con ella; cuando responda, mantenla en reposo y no le des comida ni bebida hasta que el oficial médico lo indique.",
           "Toma los signos vitales cada 5 minutos (respuesta, respiración, frecuencia cardiaca, SpO2) y regístralos en Moon-C."
+        ],
+        "ru": [
+          "Обеспечьте безопасность человека и свою: закрепите его, чтобы он не дрейфовал и не ударился об оборудование.",
+          "Проверьте, реагирует ли человек на ваш голос и прикосновение и дышит ли он.",
+          "Немедленно сообщите медицинскому офицеру на борту и остальному экипажу и скажите, что вы наблюдали.",
+          "Следуйте аварийной процедуре аппарата; в ней описано, что делать, если человек не дышит.",
+          "Оставайтесь рядом; когда человек отреагирует, обеспечьте ему покой и не давайте еды и питья, пока медицинский офицер не разрешит.",
+          "Измеряйте жизненные показатели каждые 5 минут (реакция, дыхание, частота пульса, SpO₂) и записывайте их в Moon-C."
+        ],
+        "de": [
+          "Bringen Sie die Person und sich selbst in Sicherheit: Sichern Sie die Person, damit sie nicht davontreibt oder gegen Geräte stößt.",
+          "Prüfen Sie, ob die Person auf Ihre Stimme und Berührung reagiert und ob sie atmet.",
+          "Informieren Sie sofort den medizinischen Offizier an Bord und die übrige Besatzung und sagen Sie, was Sie beobachtet haben.",
+          "Folgen Sie dem Notfallverfahren des Fahrzeugs; es beschreibt, was zu tun ist, wenn die Person nicht atmet.",
+          "Bleiben Sie bei der Person; wenn sie reagiert, lassen Sie sie ruhen und geben Sie weder Essen noch Trinken, bis der medizinische Offizier es erlaubt.",
+          "Erfassen Sie alle 5 Minuten die Vitalwerte (Ansprechbarkeit, Atmung, Herzfrequenz, SpO₂) und tragen Sie sie in Moon-C ein."
         ]
       },
       "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
@@ -741,8 +1141,8 @@
 
     "bleeding": {
       "type": "emergency",
-      "title": {"en": "Bleeding: how to help", "es": "Sangrado: cómo ayudar"},
-      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada."},
+      "title": {"en": "Bleeding: how to help", "es": "Sangrado: cómo ayudar", "ru": "Кровотечение: как помочь", "de": "Blutung: so helfen Sie"},
+      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada.", "ru": "Для члена экипажа, оказывающего помощь пострадавшему.", "de": "Für das Crewmitglied, das der betroffenen Person hilft."},
       "steps": {
         "en": [
           "Make the person safe: stop their activity and secure them in place.",
@@ -759,6 +1159,22 @@
           "Mantén la presión y contén las gotas de sangre que floten con material absorbente.",
           "Sigue el procedimiento de emergencia del vehículo.",
           "Toma los signos vitales cada 5 minutos (frecuencia cardiaca, SpO2, respuesta) y regístralos en Moon-C."
+        ],
+        "ru": [
+          "Обеспечьте безопасность человека: прекратите его деятельность и закрепите его на месте.",
+          "Наденьте перчатки из аптечки и плотно, непосредственно прижмите рану чистой повязкой.",
+          "Немедленно сообщите медицинскому офицеру на борту и остальному экипажу.",
+          "Продолжайте давить и собирайте плавающие капли крови впитывающим материалом.",
+          "Следуйте аварийной процедуре аппарата.",
+          "Измеряйте жизненные показатели каждые 5 минут (частота пульса, SpO₂, реакция) и записывайте их в Moon-C."
+        ],
+        "de": [
+          "Bringen Sie die Person in Sicherheit: Beenden Sie ihre Tätigkeit und sichern Sie sie an ihrem Platz.",
+          "Ziehen Sie Handschuhe aus dem Sanitätskasten an und drücken Sie mit einem sauberen Verband fest und direkt auf die Wunde.",
+          "Informieren Sie sofort den medizinischen Offizier an Bord und die übrige Besatzung.",
+          "Halten Sie den Druck aufrecht und fangen Sie schwebende Blutstropfen mit saugfähigem Material auf.",
+          "Folgen Sie dem Notfallverfahren des Fahrzeugs.",
+          "Erfassen Sie alle 5 Minuten die Vitalwerte (Herzfrequenz, SpO₂, Ansprechbarkeit) und tragen Sie sie in Moon-C ein."
         ]
       },
       "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
@@ -768,12 +1184,14 @@
 
     "emotional_crisis": {
       "type": "emergency",
-      "title": {"en": "Emotional crisis: what to do now", "es": "Crisis emocional: qué hacer ahora"},
+      "title": {"en": "Emotional crisis: what to do now", "es": "Crisis emocional: qué hacer ahora", "ru": "Эмоциональный кризис: что делать сейчас", "de": "Emotionale Krise: was jetzt zu tun ist"},
       "intro": {
         "en": "Thank you for telling me. You are not alone, and you don't have to go through this without help.",
-        "es": "Gracias por decírmelo. No estás solo y no tienes que pasar por esto sin ayuda."
+        "es": "Gracias por decírmelo. No estás solo y no tienes que pasar por esto sin ayuda.",
+        "ru": "Спасибо, что сказали мне. Вы не одни, и вам не нужно проходить через это без помощи.",
+        "de": "Danke, dass Sie es mir gesagt haben. Sie sind nicht allein, und Sie müssen das nicht ohne Hilfe durchstehen."
       },
-      "audience": {"en": "For the crew member who is going through a very hard moment, and for the crewmate with them.", "es": "Para el tripulante que pasa por un momento muy difícil y para el compañero que lo acompaña."},
+      "audience": {"en": "For the crew member who is going through a very hard moment, and for the crewmate with them.", "es": "Para el tripulante que pasa por un momento muy difícil y para el compañero que lo acompaña.", "ru": "Для члена экипажа, переживающего очень трудный момент, и для члена экипажа, который рядом с ним.", "de": "Für das Besatzungsmitglied, das einen sehr schweren Moment durchlebt, und für das Crewmitglied bei ihm."},
       "steps": {
         "en": [
           "Do not stay alone right now: call a crewmate to be with you, or go to where the crew is.",
@@ -790,6 +1208,22 @@
           "Habla de lo que sientes; no hay palabras incorrectas. El compañero escucha con calma, sin juzgar ni discutir.",
           "Pide al oficial médico una llamada privada de apoyo con la Tierra en cuanto haya enlace.",
           "Sigan juntos hasta que el oficial médico esté con ustedes."
+        ],
+        "ru": [
+          "Не оставайтесь сейчас одни: позовите члена экипажа, чтобы он был рядом, или идите туда, где находится экипаж.",
+          "Немедленно сообщите медицинскому офицеру на борту. Если вы тот, кто рядом, оставайтесь с человеком и позовите медицинского офицера.",
+          "Уберите подальше всё, чем можно причинить вред (лекарства, острые инструменты).",
+          "Говорите о том, что чувствуете; неправильных слов не бывает. Член экипажа слушает спокойно, не осуждая и не споря.",
+          "Попросите медицинского офицера организовать приватный сеанс поддержки с Землёй, как только появится связь.",
+          "Оставайтесь вместе, пока к вам не придёт медицинский офицер."
+        ],
+        "de": [
+          "Bleiben Sie jetzt nicht allein: Rufen Sie ein Crewmitglied, das bei Ihnen bleibt, oder gehen Sie dorthin, wo die Besatzung ist.",
+          "Informieren Sie sofort den medizinischen Offizier an Bord. Wenn Sie das helfende Crewmitglied sind, bleiben Sie bei der Person und rufen Sie ihn.",
+          "Bringen Sie alles außer Reichweite, womit Schaden zugefügt werden könnte (Medikamente, scharfe Werkzeuge).",
+          "Sprechen Sie darüber, was Sie fühlen; es gibt keine falschen Worte. Das Crewmitglied hört ruhig zu, ohne zu urteilen oder zu streiten.",
+          "Bitten Sie den medizinischen Offizier um einen privaten Unterstützungsanruf mit der Erde, sobald eine Verbindung besteht.",
+          "Bleiben Sie zusammen, bis der medizinische Offizier bei Ihnen ist."
         ]
       },
       "source": "Moon-C manual v0.2 – follows common suicide-prevention steps (be there, keep them safe, help them connect) and WHO mhGAP principles; not clinically validated",
@@ -799,8 +1233,8 @@
 
     "general_emergency": {
       "type": "emergency",
-      "title": {"en": "Emergency: first steps", "es": "Emergencia: primeros pasos"},
-      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada."},
+      "title": {"en": "Emergency: first steps", "es": "Emergencia: primeros pasos", "ru": "Экстренная ситуация: первые шаги", "de": "Notfall: erste Schritte"},
+      "audience": {"en": "For the crewmate helping the affected person.", "es": "Para el compañero que ayuda a la persona afectada.", "ru": "Для члена экипажа, оказывающего помощь пострадавшему.", "de": "Für das Crewmitglied, das der betroffenen Person hilft."},
       "steps": {
         "en": [
           "Make the person and yourself safe.",
@@ -815,6 +1249,20 @@
           "Sigue el procedimiento de emergencia del vehículo.",
           "Toma los signos vitales cada 5 minutos y regístralos en Moon-C.",
           "Dime qué está pasando (dolor de pecho, dificultad para respirar, desmayo o sangrado) y abriré el protocolo específico."
+        ],
+        "ru": [
+          "Обеспечьте безопасность человека и свою.",
+          "Немедленно сообщите медицинскому офицеру на борту и остальному экипажу.",
+          "Следуйте аварийной процедуре аппарата.",
+          "Измеряйте жизненные показатели каждые 5 минут и записывайте их в Moon-C.",
+          "Скажите мне, что происходит (боль в груди, затруднение дыхания, обморок или кровотечение), и я открою нужный протокол."
+        ],
+        "de": [
+          "Bringen Sie die Person und sich selbst in Sicherheit.",
+          "Informieren Sie sofort den medizinischen Offizier an Bord und die übrige Besatzung.",
+          "Folgen Sie dem Notfallverfahren des Fahrzeugs.",
+          "Erfassen Sie alle 5 Minuten die Vitalwerte und tragen Sie sie in Moon-C ein.",
+          "Sagen Sie mir, was passiert (Brustschmerzen, Atemnot, Ohnmacht oder Blutung), und ich öffne das passende Protokoll."
         ]
       },
       "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
@@ -824,8 +1272,8 @@
 
     "feeling_unwell": {
       "type": "guidance",
-      "title": {"en": "Feeling unwell: what to do", "es": "Si te sientes mal: qué hacer"},
-      "audience": {"en": "For the crew member who feels unwell.", "es": "Para el tripulante que se siente mal."},
+      "title": {"en": "Feeling unwell: what to do", "es": "Si te sientes mal: qué hacer", "ru": "Если вы плохо себя чувствуете: что делать", "de": "Wenn Sie sich unwohl fühlen: was zu tun ist"},
+      "audience": {"en": "For the crew member who feels unwell.", "es": "Para el tripulante que se siente mal.", "ru": "Для члена экипажа, который плохо себя чувствует.", "de": "Für das Besatzungsmitglied, das sich unwohl fühlt."},
       "steps": {
         "en": [
           "Pause what you are doing and move to a safe, comfortable place.",
@@ -838,6 +1286,18 @@
           "Mide tu frecuencia cardiaca, temperatura corporal y SpO2 y regístralas en Moon-C.",
           "Cuéntale al oficial médico a bordo cómo te sientes, sobre todo si empeora o no mejora.",
           "Si notas dolor de pecho, dificultad para respirar, desmayo o sangrado, dilo enseguida: Moon-C abrirá el protocolo de emergencia."
+        ],
+        "ru": [
+          "Прервите то, что делаете, и перейдите в безопасное, удобное место.",
+          "Измерьте частоту пульса, температуру тела и SpO₂ и запишите их в Moon-C.",
+          "Расскажите медицинскому офицеру на борту, как вы себя чувствуете, особенно если становится хуже или не улучшается.",
+          "Если почувствуете боль в груди, затруднение дыхания, обморок или кровотечение, сразу скажите об этом: Moon-C откроет протокол экстренной помощи."
+        ],
+        "de": [
+          "Unterbrechen Sie, was Sie tun, und gehen Sie an einen sicheren, bequemen Ort.",
+          "Messen Sie Herzfrequenz, Körpertemperatur und SpO₂ und tragen Sie sie in Moon-C ein.",
+          "Sagen Sie dem medizinischen Offizier an Bord, wie Sie sich fühlen, besonders wenn es schlimmer wird oder sich nicht bessert.",
+          "Wenn Sie Brustschmerzen, Atemnot, Ohnmacht oder Blutung bemerken, sagen Sie es sofort: Moon-C öffnet das Notfallprotokoll."
         ]
       },
       "source": "Moon-C example manual v0.1 – illustrative content, not clinically validated",
