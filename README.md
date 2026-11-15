@@ -51,6 +51,10 @@ On a slow laptop, put `MOON_C_OLLAMA_TIMEOUT_S=25` in `Backend/.env` so the mode
 - **Voice:** Spanish replies are spoken with Moon-C's own offline voice (`POST /tts`). The front-end requests it sentence by sentence, so it starts talking right away, and moves her mouth with the real volume of the audio. English replies, or a backend without the voice installed, fall back to a voice installed on the machine (or subtitles if there is none for that language).
 - **Privacy:** chat text and audio are never stored or logged. Only measurements and safety records (maneuver reports, access log, announcements) are stored, in `Backend/storage/`. That folder is gitignored, but OneDrive will still sync it if the repo lives there.
 
+## Use of AI
+
+We used AI tools (Claude and Claude Code) to help write code, tests and documentation, and to gather the published documents behind the reference ranges. Inside the product, Moon-C uses AI only for small talk (a local Ollama model, never for health answers) and for her voice (Piper neural text-to-speech). Moon-C's face texture was generated with AI. Every AI-generated element is marked with a visible watermark, an "AI" tag or metadata: see [AI_DISCLOSURE.md](AI_DISCLOSURE.md).
+
 ## Tests
 
 ```bash

@@ -7,6 +7,7 @@ The 3D components (`Scene`, `MoonCModel`, `ModelSlot`, `DoctorPlaceholder`, `Pla
 | Component | Where on screen | Shown to |
 |---|---|---|
 | [`TopBar`](#topbar) (+ `LanguageSwitch`) | Top | Everyone |
+| [`AiMark`](#aimark) | Top center, over the 3D scene | Everyone, always |
 | [`AlertBanner`](#alertbanner) | Under the top bar | Account with unacknowledged visible alerts |
 | [`Announcements`](#announcements) | Left panel | Everyone (posting: General) |
 | [`ManeuverPanel`](#maneuverpanel) | Left panel, replaces announcements | While a 3D guide is open |
@@ -28,6 +29,10 @@ The 3D components (`Scene`, `MoonCModel`, `ModelSlot`, `DoctorPlaceholder`, `Pla
 - **Mobile tabs** (narrow screens): "Announcements" and "Crew" / "My vitals" toggle `mobilePanel` between `left`, `right` and `null`.
 
 `LanguageSwitch({ lang, account, onChange, className })` (exported): for a crew account a read-only pill with the language (tooltip: the screen follows the profile, Moon-C replies in the language you write in); for General an ES/EN radio group. Also used in the menu.
+
+## `AiMark`
+
+`AiMark({ lang })`: the visible AI watermark required by the NASA Space Apps rules ([`AI_DISCLOSURE.md`](../../../AI_DISCLOSURE.md)). A small pill over the 3D scene, under the top bar, always shown, so every screenshot or video of the app carries it: "Generado con IA: cara y voz de Moon-C" / "AI-generated: Moon-C's face and voice". Its tooltip explains that the face texture was generated with AI, that her own voice is a synthesized neural voice (Piper), and that replies marked AI in the log are written by the local AI. An alert banner or an open mobile panel may cover it for a moment.
 
 ## `AlertBanner`
 
@@ -92,7 +97,7 @@ The 3D components (`Scene`, `MoonCModel`, `ModelSlot`, `DoctorPlaceholder`, `Pla
 
 - **Log** ("Log" / "Bitácora") collapsible with a message count. Entries:
   - `system`: a centered note ("Session started · Ana", "Conversation cleared…");
-  - `user` / `assistant`: name, time and, for offline replies, an "offline" tag. Replies with a protocol render the intro, the protocol title and an ordered list of steps; emergencies are highlighted;
+  - `user` / `assistant`: name, time and, for offline replies, an "offline" tag. Replies written by the local AI (`aiUsed`, from the backend's `ai_used`) get an **AI** / **IA** tag with a tooltip ("Reply written by the local AI (Ollama). Moon-C never uses it for health topics."). Replies with a protocol render the intro, the protocol title and an ordered list of steps; emergencies are highlighted;
   - a suggested guide adds **Open 3D guide: <name>** → `onManeuver(id)`.
 - **Quick-reply chips** → `onSend(label)` (disabled while busy).
 - **Composer**: microphone button (`mic.start` / `mic.stop`, disabled without dictation; tooltip warns that browser dictation uses the internet), text input (max 2000 characters; shows the interim transcript while listening) and send button.

@@ -25,7 +25,7 @@ MoonCVoice(voice_dir: Path, enabled: bool = True)
 | `detail` | Why it is unavailable (no message content) |
 | `languages` | `("es",)` |
 | `load()` | Blocking (~3 s): imports `moonc_voz.py`, creates `VozMoonC()` (default model and `config.json` of that folder) and synthesizes "Hola." once to warm up. Run at startup with `asyncio.to_thread`, so it never delays startup |
-| `wav(text)` | WAV bytes (mono, 22 050 Hz) of `spoken_form(text)[:1000]`. Raises `VoiceUnavailable` unless `ready` |
+| `wav(text)` | WAV bytes (mono, 22 050 Hz) of `spoken_form(text)[:1000]`, marked as AI-generated in their metadata (`with_ai_metadata`, below). Raises `VoiceUnavailable` unless `ready` |
 
 `_import_voice_module(path)` loads `moonc_voz/moonc_voz.py` by file path with `importlib` (it is not an installed package) and registers it in `sys.modules` (its dataclasses need that).
 
@@ -61,9 +61,19 @@ Without help the Spanish voice spells units out ("72 bpm" → "be pe eme"). `spo
 1. Take a slot of `tts_slots` (`BoundedSemaphore(MOON_C_TTS_MAX_CONCURRENT)`, default 2) **without waiting**. If none is free → **429** with `Retry-After: 1`. Each synthesis holds a worker thread for 0.2–0.5 s (more for long text), so the cap keeps `/tts` from starving the rest of the API.
 2. `language` not in `voice.languages` → **422** "Moon-C's voice only speaks Spanish for now."
 3. Voice not ready → **503** "Moon-C's voice is loading." (or `unavailable` / `disabled` plus the detail).
-4. → **200** `audio/wav` with `Cache-Control: no-store`. The slot is always released, also on errors.
+4. → **200** `audio/wav` with `Cache-Control: no-store` and `X-AI-Generated: <AI_AUDIO_NOTE>`. The slot is always released, also on errors.
 
 The text is never stored or logged (tested).
+
+## AI disclosure metadata
+
+Moon-C's voice is AI-synthesized, and the NASA Space Apps rules ask for AI-generated audio to say so in descriptive text and in metadata ([`AI_DISCLOSURE.md`](../../../AI_DISCLOSURE.md)):
+
+- `with_ai_metadata(wav)` appends a RIFF `LIST/INFO` chunk to every WAV: `ICMT` (comment) = `AI_AUDIO_NOTE` ("AI-generated speech: Piper neural text-to-speech (es_MX-claude-high) + Praat. Moon-C's voice.") and `ISFT` (software) = `AI_AUDIO_SOFTWARE`. It updates the RIFF size and pads to an even offset; players ignore the chunk. Anything that is not a RIFF/WAVE file is returned unchanged.
+- The response also carries the header `X-AI-Generated` with the same note.
+- **Never** put the spoken text in the metadata (privacy).
+
+The front-end says it in text too: the menu describes the voice as "synthesized with AI (Piper)" and the scene shows a watermark ([frontend/components/README.md](../../frontend/components/README.md#aimark)).
 
 `GET /status` reports `voice` and `voice_languages` (`["es"]` when ready), which the front-end uses to choose between Moon-C's voice and a local voice.
 
@@ -73,7 +83,7 @@ On the development laptop the model loads in about 3 s and a sentence takes 0.2�
 
 ## Tests
 
-`tests/test_voice.py` uses a **fake voice module** written to a temporary folder (so tests do not need the GPL libraries): Spanish is spoken, English is refused, validation, disabled voice, a missing module does not break the backend, spoken text is never logged, the spoken forms table. `test_real_voice_produces_wav` runs only if the real voice is installed. `test_hardening.py` covers the 429 path and slot release.
+`tests/test_voice.py` uses a **fake voice module** written to a temporary folder (so tests do not need the GPL libraries): Spanish is spoken, English is refused, validation, disabled voice, a missing module does not break the backend, spoken text is never logged, the spoken forms table, the `X-AI-Generated` header and the WAV metadata (still a valid WAV with the same audio). `test_real_voice_produces_wav` runs only if the real voice is installed, and checks the metadata too. `test_hardening.py` covers the 429 path and slot release.
 
 ## Future work
 

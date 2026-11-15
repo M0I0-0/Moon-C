@@ -9,6 +9,7 @@ import VitalsPanel from './components/VitalsPanel'
 import CrewOverview, { EmergencyDetail } from './components/CrewOverview'
 import Announcements from './components/Announcements'
 import AlertBanner from './components/AlertBanner'
+import AiMark from './components/AiMark'
 import { alertText } from './lib/alerts'
 import ChatDock from './components/ChatDock'
 import Subtitles from './components/Subtitles'
@@ -321,6 +322,7 @@ export default function App() {
           protocol: res.protocol,
           category: res.category,
           via: res.via,
+          aiUsed: Boolean(res.ai_used), // written by the local AI: the log marks it (AI disclosure)
           maneuver: suggestedManeuver({ protocol: res.protocol, message }),
         })
         setSuggestions((s) => ({ ...s, [key]: res.suggestions ?? [] }))
@@ -537,6 +539,8 @@ export default function App() {
         lang={lang}
         onLanguage={chooseGeneralLang}
       />
+
+      <AiMark lang={lang} />
 
       <AlertBanner alerts={visibleAlerts} isGeneral={isGeneral} onOpen={openEmergency} onAck={sim.acknowledge} lang={lang} />
 

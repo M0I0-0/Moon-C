@@ -77,7 +77,7 @@ Subtitles are shown when `subtitleMode === 'on'`, or `auto` without audio, or fo
 4. **Backend** (if online): `askBackend({message, crewId, sessionId: sessionFor(account), language: msgLang})`. A failure marks the backend offline.
 5. If the account changed meanwhile (`epochRef`), drop the reply.
 6. **Offline** fallback: after 350 ms, `askLocal({message, language: msgLang})` (emergencies only).
-7. Log Moon-C's entry with `protocol`, `category`, `via` (`backend`/`local`) and a suggested guide (`suggestedManeuver`) shown as a button.
+7. Log Moon-C's entry with `protocol`, `category`, `via` (`backend`/`local`), `aiUsed` (the reply was written by the local AI: the log shows an "AI" tag) and a suggested guide (`suggestedManeuver`) shown as a button.
 8. Store the chips and the reply language (`talkLang`).
 9. **Auto-open a guide** only with unambiguous words (`autoOpenManeuver`, [lib/maneuvers.md](lib/maneuvers.md)) and if no guide is open: start it (`auto: {reply, lang}`), speak only the emergency intro (`replyIntro`); the guide then reads its steps. Otherwise speak the whole reply.
 10. An emergency of a crew account also calls `sim.reportFromChat()` (only the local simulation records it; the backend already raised the alert).
@@ -143,6 +143,7 @@ When the log is empty, the chips are starters: for General `QUICK_GENERAL` ("How
 <div class="app env-home">
   <Scene/>                       3D background (Moon-C, manikin)
   <TopBar/>
+  <AiMark/>                      visible AI watermark (always shown)
   <AlertBanner/>
   <aside class="panel panel-left">   ManeuverPanel (guide open) | Announcements
   <aside class="panel panel-right">  General: EmergencyDetail | CrewOverview — Crew: VitalsPanel

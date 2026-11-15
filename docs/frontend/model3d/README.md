@@ -16,8 +16,8 @@ Model3D/
 │   ├── maniobras.js             guided maneuvers (crearManiobra, MANIOBRAS, ENTORNOS, FUENTES, EN)
 │   ├── moonc-escena.js          standalone mount for any page (montarMoonC)
 │   ├── moonc_nave_rig.glb       Moon-C's rigged body + 25 animation clips (2.9 MB)
-│   ├── moonc_cara.jpg           face "decal" read by the face shader
-│   ├── moonc_cara_cerrada.png   the same face without eyes (eyelid skin, closed eyes)
+│   ├── moonc_cara.jpg           face "decal" read by the face shader (AI-generated, watermarked)
+│   ├── moonc_cara_cerrada.png   the same face without eyes (eyelid skin, closed eyes; AI-generated, watermarked)
 │   ├── maniqui_rcp.glb          CPR manikin (morph target `compresion`)
 │   ├── maniqui_brazo.glb        arm manikin for the tourniquet
 │   ├── maniqui_torso.glb        torso manikin for choking (morph target `empuje`)
@@ -78,8 +78,13 @@ It returns `null` (and logs why) if WebGL or the files are not available, so the
 
 The voice team's player (`moonc_voz/web/moonc-voz.js`) works with the object returned here: it calls `moon.talk()` and `moon.setMouth()` ([backend/voice/moonc-voz.md](../../backend/voice/moonc-voz.md#browser-player-webmoonc-vozjs)).
 
+## AI-generated assets
+
+Moon-C's face texture was generated with AI ([`AI_DISCLOSURE.md`](../../../AI_DISCLOSURE.md)). Both face images carry a visible "AI-generated · Generado con IA" watermark in their top-left corner, plus a comment and XMP metadata (`DigitalSourceType` = `trainedAlgorithmicMedia`). The watermark sits in the **top band** of the image (the top ~20 % of its height), which the face shader never samples: the shader reads `moonc_cara.jpg` only inside the eyes and `moonc_cara_cerrada.png` only within about two eye radii of each eye. The GLB carries the note in `asset.extras.aiDisclosure`. In the app, the `AiMark` watermark is shown over the scene ([components/README.md](../components/README.md#aimark)).
+
 ## Editing assets
 
+- If you replace the face textures, keep them watermarked in that unused top band and keep their metadata; any new AI-generated image needs a visible watermark.
 - Keep clip names equal to the state names used in code (`STATES` in `moonc.js`, the `clip` of each maneuver step).
 - The face shader relies on coordinates measured on the baked face texture (`FACE` in `moonc.js`): changing the body mesh or the face texture means re-measuring them.
 - Manikins: the CPR and torso manikins drive their first morph target from the compression animation; the arm manikin is posed in code.

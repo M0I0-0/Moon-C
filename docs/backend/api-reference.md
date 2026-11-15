@@ -239,7 +239,7 @@ One crew member. 404 if unknown, 409 if the simulation is off.
 
 ### `POST /tts`
 
-`{"text": "Hola, soy Moon-C.", "language": "es"}` → `audio/wav` (mono, 22 050 Hz), header `Cache-Control: no-store`.
+`{"text": "Hola, soy Moon-C.", "language": "es"}` → `audio/wav` (mono, 22 050 Hz), headers `Cache-Control: no-store` and `X-AI-Generated` (the audio is AI-synthesized speech; the WAV also says so in a `LIST/INFO` comment, see [voice/tts.md](voice/tts.md#ai-disclosure-metadata)).
 
 | Status | When |
 |---|---|

@@ -15,6 +15,11 @@ function Entry({ e, onManeuver, lang }) {
         <span className="log-name">{e.name}</span>
         <span>{time(e.at, lang)}</span>
         {e.via === 'local' && <span className="log-via">{tr(lang, 'offlineTag')}</span>}
+        {e.aiUsed && (
+          <span className="log-via log-ai" title={tr(lang, 'aiTagTitle')}>
+            {tr(lang, 'aiTag')}
+          </span>
+        )}
       </div>
       {steps ? (
         <div className="log-text">

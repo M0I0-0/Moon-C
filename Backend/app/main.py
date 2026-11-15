@@ -80,7 +80,7 @@ from .sessions import SessionStore
 from .support import ProfileStore, SupportError, SupportGuide
 from .storage import AlreadyAssigned, MeasurementNotFound, MeasurementStore, now_utc, to_utc
 from .sync import EarthSync
-from .voice import MoonCVoice, VoiceUnavailable
+from .voice import AI_AUDIO_NOTE, MoonCVoice, VoiceUnavailable
 
 log = logging.getLogger("moon_c")
 
@@ -513,7 +513,7 @@ def reset_simulation(body: SimulationResetRequest, services: ServicesDep) -> lis
     "/tts",
     response_class=Response,
     responses={
-        200: {"content": {"audio/wav": {}}, "description": "WAV, mono, 22 050 Hz."},
+        200: {"content": {"audio/wav": {}}, "description": "WAV, mono, 22 050 Hz. AI-synthesized speech."},
         422: {"model": ErrorResponse},
         429: {"model": ErrorResponse},
         503: {"model": ErrorResponse},
@@ -522,7 +522,9 @@ def reset_simulation(body: SimulationResetRequest, services: ServicesDep) -> lis
     summary="Moon-C's voice: text to speech, offline",
     description=(
         "Spanish only for now. Returns 503 while the voice loads or if it is not installed; then use a local "
-        "browser voice. Units are read in full (bpm -> latidos por minuto). The text is never stored or logged."
+        "browser voice. Units are read in full (bpm -> latidos por minuto). The text is never stored or logged. "
+        "The audio is AI-synthesized (Piper neural text-to-speech): the WAV says so in its metadata "
+        "(LIST/INFO comment) and the response in the X-AI-Generated header."
     ),
 )
 def text_to_speech(body: SpeechRequest, services: ServicesDep) -> Response:
@@ -546,7 +548,9 @@ def _synthesize(body: SpeechRequest, voice: MoonCVoice) -> Response:
         audio = voice.wav(body.text)
     except VoiceUnavailable as exc:
         raise HTTPException(status_code=503, detail=f"Moon-C's voice is {voice.state}. {voice.detail}".strip()) from exc
-    return Response(content=audio, media_type="audio/wav", headers={"Cache-Control": "no-store"})
+    return Response(
+        content=audio, media_type="audio/wav", headers={"Cache-Control": "no-store", "X-AI-Generated": AI_AUDIO_NOTE}
+    )
 
 
 # =========================================================================== maneuvers

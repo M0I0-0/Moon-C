@@ -25,6 +25,11 @@ VoiceState = Literal["disabled", "loading", "ready", "unavailable"]
 LANGUAGES = ("es",)
 MAX_CHARS = 1000
 
+# AI disclosure (NASA Space Apps rules, see AI_DISCLOSURE.md): every WAV served by /tts says in its own
+# metadata that it is AI-synthesized speech. Never put the spoken text in the metadata.
+AI_AUDIO_NOTE = "AI-generated speech: Piper neural text-to-speech (es_MX-claude-high) + Praat. Moon-C's voice."
+AI_AUDIO_SOFTWARE = "Moon-C moonc_voz (Piper TTS + Praat)"
+
 # How units, abbreviations and the name are read aloud. Without this the Spanish voice spells
 # them out ("72 bpm" -> "be pe eme"). Edit freely: (pattern, spoken form).
 SPOKEN_FORMS_ES: list[tuple[re.Pattern[str], str]] = [
@@ -47,6 +52,26 @@ def spoken_form(text: str) -> str:
     for pattern, replacement in SPOKEN_FORMS_ES:
         text = pattern.sub(replacement, text)
     return text
+
+
+def _info_subchunk(chunk_id: bytes, text: str) -> bytes:
+    data = text.encode("ascii", "replace") + b"\x00"
+    if len(data) % 2:
+        data += b"\x00"
+    return chunk_id + len(data).to_bytes(4, "little") + data
+
+
+def with_ai_metadata(wav: bytes) -> bytes:
+    """Append a RIFF LIST/INFO chunk (comment and software) saying the audio is AI-generated.
+
+    Players ignore it; anything that is not a RIFF/WAVE file is returned unchanged.
+    """
+    if len(wav) < 12 or wav[:4] != b"RIFF" or wav[8:12] != b"WAVE":
+        return wav
+    info = b"INFO" + _info_subchunk(b"ICMT", AI_AUDIO_NOTE) + _info_subchunk(b"ISFT", AI_AUDIO_SOFTWARE)
+    pad = b"\x00" if len(wav) % 2 else b""  # RIFF chunks start on even offsets
+    out = wav + pad + b"LIST" + len(info).to_bytes(4, "little") + info
+    return out[:4] + (len(out) - 8).to_bytes(4, "little") + out[8:]
 
 
 class VoiceUnavailable(RuntimeError):
@@ -99,7 +124,10 @@ class MoonCVoice:
         log.warning("Moon-C voice unavailable: %s. The front-end will use a local browser voice.", why)
 
     def wav(self, text: str) -> bytes:
-        """WAV bytes (mono, 22 050 Hz). The module serialises synthesis with its own lock."""
+        """WAV bytes (mono, 22 050 Hz), marked as AI-generated in their metadata.
+
+        The module serialises synthesis with its own lock.
+        """
         if self.state != "ready" or self._voice is None:
             raise VoiceUnavailable(self.state)
-        return self._voice.wav(spoken_form(text)[:MAX_CHARS])
+        return with_ai_metadata(self._voice.wav(spoken_form(text)[:MAX_CHARS]))

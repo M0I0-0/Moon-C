@@ -88,6 +88,7 @@ docs/
 | [`front-end/public/models/README.md`](../front-end/public/models/README.md) | Spanish | Replacing the 3D model with your own `.glb`/`.stl` |
 | [`moonc_voz/LEEME.md`](../moonc_voz/LEEME.md) | Spanish | The voice module (written by the voice team) |
 | [`shared/REFERENCES.md`](../shared/REFERENCES.md) | English | Where every clinical range comes from, and its space context |
+| [`AI_DISCLOSURE.md`](../AI_DISCLOSURE.md) | English | Where and how AI was used, and how every AI-generated element is marked (NASA Space Apps rules) |
 
 ## Conventions you will meet in the code
 
@@ -97,6 +98,7 @@ docs/
 - **`supuesto: validar con experto médico`** ("assumption: validate with a medical expert") marks clinical wording that still needs review. In the maneuvers each step carries `estado: 'validado' | 'supuesto'`.
 - **Two languages, English and Spanish**, everywhere. Moon-C replies in the language of each message; see [architecture.md#languages](architecture.md#languages).
 - **Code language.** The backend is written in English. Front-end identifiers are English, but most comments and test names are Spanish. `Model3D/` and `moonc_voz/` use Spanish identifiers (see the glossary below).
+- **AI disclosure.** Every AI-generated element is marked: replies written by the local AI carry `ai_used` and an "AI" tag in the chat log, Moon-C's voice carries metadata, and her AI-generated face has a visible watermark (in the app and in the texture files). Keep [`AI_DISCLOSURE.md`](../AI_DISCLOSURE.md) up to date when you add AI-generated content.
 - **Product name.** The companion is called Moon-C (she). Old comments may still say "Laika", the previous name. Environment variables use the prefix `MOON_C_` and loggers are named `moon_c`.
 
 ## Glossary of Spanish identifiers
@@ -129,4 +131,4 @@ docs/
 
 ---
 
-Last reviewed against the code on 2026-11-15 (branch `feature/language-merge`).
+These pages were written with Claude Code (an AI assistant) and checked against the code; see [`AI_DISCLOSURE.md`](../AI_DISCLOSURE.md). Last reviewed against the code on 2026-11-15 (branch `feature/language-merge`).

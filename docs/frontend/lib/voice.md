@@ -13,6 +13,8 @@ Sources: [`front-end/src/lib/moonVoice.js`](../../../front-end/src/lib/moonVoice
 
 Each text is read with a voice of its own language: Moon-C may answer in English on a Spanish screen.
 
+Moon-C's own voice is AI-synthesized (Piper). The app says so in the menu ("synthesized with AI (Piper)") and in the on-screen watermark, and every WAV from `/tts` carries it in its metadata ([backend/voice/tts.md](../../backend/voice/tts.md#ai-disclosure-metadata)).
+
 ## `moonVoice.js`: Moon-C's voice player
 
 Based on the voice team's `moonc_voz/web/moonc-voz.js`, with one difference: the text is synthesized **sentence by sentence**, and each piece plays while the next one is being prepared, so a long reply (an emergency protocol) starts sounding right away.

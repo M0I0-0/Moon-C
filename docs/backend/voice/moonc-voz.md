@@ -95,7 +95,9 @@ python generar_frases.py --mp3          # frases/frases.json → frases/audio/*.
 python generar_frases.py --frases mis.json --salida audio/ --config config.json
 ```
 
-`frases.json` maps an id to a text (`saludo`, `alerta_pulso`, `guia_rcp` today); `indice.json` maps each id to its file and text. The current app synthesizes on demand through the backend and does not use these files.
+`frases.json` maps an id to a text (`saludo`, `alerta_pulso`, `guia_rcp` today); `indice.json` maps each id to its file, its text and an `ia` note. The current app synthesizes on demand through the backend and does not use these files.
+
+**AI disclosure.** Every generated phrase says it is AI-synthesized speech ([`AI_DISCLOSURE.md`](../../../AI_DISCLOSURE.md)): `wav_con_nota_ia()` appends a WAV `LIST/INFO` comment (`NOTA_IA`), the MP3 conversion writes ID3v2.3 tags (`title` = the phrase, `artist` = "Moon-C (voz sintetizada con IA / AI-synthesized voice)", `comment` = `NOTA_IA`, `TXXX:AI_GENERATED=true`), and `indice.json` repeats the note in `ia`. The three MP3s in the repository were tagged the same way.
 
 ## Browser player (`web/moonc-voz.js`)
 

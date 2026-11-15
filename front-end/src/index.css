@@ -198,6 +198,16 @@ ul, ol { list-style: none; }
 .alert-text { display: flex; flex-direction: column; flex: 1; min-width: 0; }
 .alert-text span { font-size: 12px; opacity: .85; }
 
+/* ---------------------------------------------------------------- AI watermark */
+/* Always visible over the 3D scene (AI disclosure); alerts and mobile panels may cover it for a moment. */
+.ai-mark {
+  position: absolute; top: 76px; left: 50%; transform: translateX(-50%); z-index: 3;
+  max-width: calc(100% - 2 * var(--gap)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  padding: 3px 10px; border-radius: 999px; font-size: 11px; letter-spacing: .03em;
+  color: var(--muted); background: var(--panel); border: 1px solid var(--line);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); cursor: help;
+}
+
 /* ---------------------------------------------------------------- subtitles + chat */
 .subtitles {
   align-self: center; max-width: 100%; padding: 8px 14px; border-radius: 6px;
@@ -221,6 +231,7 @@ ul, ol { list-style: none; }
 .log-name { color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
 .log-entry--assistant .log-name { color: var(--accent); }
 .log-via { border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; }
+.log-ai { color: var(--accent); border-color: var(--accent); }
 .log-text { margin-top: 1px; }
 .log-text ol { list-style: decimal; padding-left: 20px; margin-top: 4px; display: grid; gap: 3px; }
 .log-entry--emergency { border-left: 2px solid var(--danger); padding-left: 8px; }
@@ -306,6 +317,7 @@ ul, ol { list-style: none; }
   .panel.mobile-open { display: block; z-index: 7; background: var(--panel-solid); }
   .bottom { left: var(--gap); right: var(--gap); width: auto; transform: none; margin: 0; }
   .alert-banner { top: 112px; flex-wrap: wrap; }
+  .ai-mark { top: 116px; }
   .log { max-height: 150px; }
 }
 

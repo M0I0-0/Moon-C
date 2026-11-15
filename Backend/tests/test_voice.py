@@ -9,7 +9,7 @@ import time
 import pytest
 
 from app.config import REPO_DIR
-from app.voice import MoonCVoice, spoken_form
+from app.voice import AI_AUDIO_NOTE, MoonCVoice, spoken_form, with_ai_metadata
 
 # Same shape as moonc_voz/moonc_voz.py (dataclass + `from __future__ import annotations` on purpose:
 # loading it requires registering the module first). It returns the text it was asked to say.
@@ -56,6 +56,33 @@ def test_voice_speaks_spanish(make_client, fake_voice_dir):
     assert res.headers["content-type"] == "audio/wav"
     assert res.headers["cache-control"] == "no-store"
     assert res.content == "RIFFHola, soy Mun Si. Tu pulso: 72 latidos por minuto.".encode()
+
+
+def test_voice_is_marked_as_ai_generated(make_client, fake_voice_dir):
+    client = make_client(voice=True, voice_dir=fake_voice_dir)
+    wait_for_voice(client)
+    res = client.post("/tts", json={"text": "Hola"})
+    assert res.status_code == 200
+    assert res.headers["x-ai-generated"] == AI_AUDIO_NOTE
+
+
+def test_wav_metadata_says_the_audio_is_ai_generated():
+    import io
+    import wave
+
+    buffer = io.BytesIO()
+    with wave.open(buffer, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(22050)
+        w.writeframes(b"\x01\x00" * 100)
+    marked = with_ai_metadata(buffer.getvalue())
+    assert marked[:4] == b"RIFF" and marked[8:12] == b"WAVE"
+    assert int.from_bytes(marked[4:8], "little") == len(marked) - 8
+    assert b"LIST" in marked and b"INFO" in marked and AI_AUDIO_NOTE.encode() in marked
+    with wave.open(io.BytesIO(marked)) as w:  # still a valid WAV with the same audio
+        assert w.getframerate() == 22050 and w.readframes(100) == b"\x01\x00" * 100
+    assert with_ai_metadata(b"RIFFnot a wav") == b"RIFFnot a wav"
 
 
 def test_english_is_not_spoken_by_moon_c_voice(make_client, fake_voice_dir):
@@ -125,3 +152,4 @@ def test_real_voice_produces_wav():
     assert audio[:4] == b"RIFF" and audio[8:12] == b"WAVE"
     assert int.from_bytes(audio[24:28], "little") == 22050
     assert len(audio) > 22050  # more than half a second of speech
+    assert AI_AUDIO_NOTE.encode() in audio  # marked as AI-generated in its metadata

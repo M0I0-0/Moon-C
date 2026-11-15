@@ -44,7 +44,8 @@ Everything floats over the 3D canvas:
 | Crew (General) | `.crew`, `.crew-list`, `.crew-row` (`--alert`), `.crew-ok`, `.emergency-detail`, `.access-note`, `.alert-reasons`, `.protocol` |
 | Announcements | `.announcements`, `.announce-form`, `.announce-list`, `.announce` (`--important`) |
 | Alert banner | `.alert-banner`, `.alert-text` |
-| Subtitles and chat | `.subtitles` (`--user`, `--alert`), `.dock` (translucent so Moon-C shows behind it), `.dock-toggle`, `.log`, `.log-entry` (`--assistant`, `--emergency`), `.log-system`, `.chips`, `.composer`, `.mic` (`--on`), `.send` |
+| AI watermark | `.ai-mark`: a small pill at the top center, over the scene (moved to 116 px from the top on narrow screens). It is the visible AI disclosure: do not hide it |
+| Subtitles and chat | `.subtitles` (`--user`, `--alert`), `.dock` (translucent so Moon-C shows behind it), `.dock-toggle`, `.log`, `.log-entry` (`--assistant`, `--emergency`), `.log-system`, `.log-via` (the "offline" tag), `.log-ai` (the "AI" tag), `.chips`, `.composer`, `.mic` (`--on`), `.send` |
 | Drawer | `.drawer` (`.open`), `.drawer-overlay`, `.drawer-section`, `.account`, `.row-toggle`, `.sim-row`, `.entry*` (log a reading) |
 | Vital detail | `.vd`, `.vd-overlay`, `.vd-head`, `.vd-now`, `.vd-chart`, `.vd-stats`, `.vd-todo`, `.vd-nav`, `.sparkline`, `.sparkline-band`, `.sparkline-line` |
 | Guided maneuvers | `.maneuver`, `.maneuver-head`, `.maneuver-env`, `.maneuver-progress`, `.maneuver-step`, `.maneuver-count`, `.maneuver-source`, `.badge` (`--validado`, `--supuesto`), `.maneuver-nav`, `.maneuver-shortcuts`, `.maneuver-summary`, `.maneuver-note`, `.maneuver-notice`, `.maneuver-img` |

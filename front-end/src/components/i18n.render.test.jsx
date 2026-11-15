@@ -14,6 +14,7 @@ import Announcements from './Announcements'
 import ManeuverPanel from './ManeuverPanel'
 import AlertBanner from './AlertBanner'
 import Subtitles from './Subtitles'
+import AiMark from './AiMark'
 
 const VALUES = {
   heart_rate: 70,
@@ -42,6 +43,7 @@ function screen(lang, accountId = 'general') {
       <MenuDrawer open onClose={noop} accountId={accountId} setAccountId={noop} inEmergency={() => false} voiceOn
         setVoiceOn={noop} subtitleMode="auto" setSubtitleMode={noop} audio={audio} onSimulate={noop} onReset={noop}
         onManeuver={noop} online={false} lang={lang} onLanguage={noop} sync={null} onDataChanged={noop} />
+      <AiMark lang={lang} />
       <AlertBanner alerts={[vitalAlert]} isGeneral onOpen={noop} onAck={noop} lang={lang} />
       <VitalsPanel member={member} onSelect={noop} lang={lang} />
       <CrewOverview members={members} activeAlerts={[]} onOpen={noop} lang={lang} />
@@ -93,5 +95,28 @@ describe('el dashboard cambia completo de idioma', () => {
     expect(screen('en')).toContain('CPR (cardiac arrest)')
     expect(screen('en')).toContain('Space station (low Earth orbit)')
     expect(screen('es')).toContain('RCP (paro cardiaco)')
+  })
+})
+
+// AI disclosure (NASA Space Apps rules, see AI_DISCLOSURE.md).
+describe('AI-generated content is marked on screen', () => {
+  it('shows the visible AI watermark in the screen language', () => {
+    expect(screen('es')).toContain('Generado con IA: cara y voz de Moon-C')
+    expect(screen('en')).toContain('AI-generated: Moon-C&#x27;s face and voice')
+  })
+
+  it('tags only the replies written by the local AI', () => {
+    const log = [
+      { id: 1, who: 'assistant', name: 'Moon-C', at: 0, text: 'Hola, ¿cómo va tu día?', aiUsed: true },
+      { id: 2, who: 'assistant', name: 'Moon-C', at: 0, text: 'Dolor de pecho: cómo ayudar', aiUsed: false },
+    ]
+    const dock = (lang) =>
+      renderToStaticMarkup(
+        <ChatDock log={log} suggestions={[]} busy={false} onSend={noop} onManeuver={noop} mic={mic} placeholder="" lang={lang} />,
+      )
+    expect(dock('es').match(/log-via log-ai/g)).toHaveLength(1)
+    expect(dock('es')).toContain('>IA</span>')
+    expect(dock('en')).toContain('>AI</span>')
+    expect(dock('en')).toContain('Reply written by the local AI (Ollama)')
   })
 })
