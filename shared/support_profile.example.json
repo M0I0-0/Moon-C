@@ -1,0 +1,32 @@
+{
+  "_comment": "EXAMPLE support profile with made-up content, to show the format. Real profiles go in shared/profiles/<crew_id>.json, which is kept out of git. Moon-C loads a profile only if crew_id is in crew.json and consent.crew_member is true. Write what helps the person, never labels or conditions.",
+  "crew_id": "example",
+  "language": "en",
+  "version": "0.1.0",
+  "updated": "2026-11-15",
+  "consent": {
+    "crew_member": true,
+    "friend": true,
+    "note": "Both questionnaires were answered for this purpose and the crew member reviewed this profile."
+  },
+  "sources": ["Self-assessment questionnaire", "Questionnaire answered by a close friend"],
+
+  "ai_context": [
+    "She is the mission's flight engineer. She is practical and cheerful, and she likes to fix problems with her hands.",
+    "When something weighs on her, she prefers to keep busy first and talk about it later, while doing something together.",
+    "A short walk around the module or music helps her reset.",
+    "Light topics she enjoys: cooking, and the hiking trips she takes with her sister."
+  ],
+  "avoid": [
+    "Do not bring up her family's business unless she does."
+  ],
+
+  "moments": {
+    "stress": "Thanks for telling me. When things pile up, keeping your hands busy helps you: shall we pick one small task to start with, and talk while you do it?",
+    "low_mood": "Thanks for telling me. You don't have to explain it all now; some music and a short walk around the module usually help you reset. I'm here when you want to talk."
+  },
+
+  "mood_guidance": [
+    "A short walk around the module or some music usually helps you reset."
+  ]
+}

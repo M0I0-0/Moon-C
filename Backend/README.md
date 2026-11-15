@@ -100,7 +100,8 @@ Every setting is optional. Use environment variables or copy `.env.example` to `
 | `MOON_C_OLLAMA_NUM_PREDICT` | `120` | Max tokens per reply |
 | `MOON_C_OLLAMA_TEMPERATURE` | `0.7` | Sampling temperature |
 | `MOON_C_OLLAMA_WARMUP` | `true` | Load the model in the background at startup |
-| `MOON_C_SHARED_DIR` | `../shared` | Folder with `protocols.json`, `keywords.json` and `crew.json` |
+| `MOON_C_SHARED_DIR` | `../shared` | Folder with `protocols.json`, `keywords.json`, `crew.json` and `support.json` |
+| `MOON_C_PROFILES_DIR` | `../shared/profiles` | Private support profiles, one JSON per crew member (see [Emotional support](#emotional-support-and-personal-profiles)) |
 | `MOON_C_STORAGE_PATH` | `storage/measurements.json` | Measurements file (relative to `Backend/`) |
 | `MOON_C_RETENTION_DAYS` | `0` | Days to keep measurements. `0` keeps them for the whole mission |
 | `MOON_C_SESSION_TTL_S` | `600` | Chat context is cleared after this much inactivity |
@@ -124,11 +125,11 @@ The full contract, with schemas and examples, is at `/docs`. Responses use the l
 |---|---|---|
 | GET | `/status` | Backend ok, Ollama reachable, model name, `earth_link` state, `voice` state |
 | POST | `/tts` | `{text, language?}` → WAV spoken with Moon-C's own voice (Spanish only; 503 while loading or if not installed) |
-| POST | `/chat` | `{session_id, crew_id?, message, language?}` → `{category, reply, language, ai_used, protocol?, indicator?, source?, suggestions}` |
+| POST | `/chat` | `{session_id, crew_id?, message, language?}` → `{category, reply, language, ai_used, personalized, protocol?, indicator?, moment?, source?, suggestions}` |
 | POST | `/session/reset` | `{session_id}`: forget that chat context |
 | POST | `/identify` | Simulated bracelet: `{bracelet_id, session_id?}` → crew profile; clears that session's context |
 | GET | `/manual`, `/manual/{indicator}` | Localized manual (`?language=en\|es`) |
-| GET | `/protocols/{name}` | Emergency protocol or guidance (`chest_pain`, `breathing_difficulty`, `fainting_unresponsive`, `bleeding`, `general_emergency`, `feeling_unwell`) |
+| GET | `/protocols/{name}` | Emergency protocol or guidance (`chest_pain`, `breathing_difficulty`, `fainting_unresponsive`, `bleeding`, `emotional_crisis`, `general_emergency`, `feeling_unwell`) |
 | POST | `/measurements` | `{crew_id?, indicator, value, unit, timestamp?, language?}` → measurement with `status`. Urgent creates an alert. Without `crew_id`: unassigned and `needs_confirmation: true` |
 | GET | `/measurements` | Filters: `crew_id`, `indicator`, `since`, `unassigned` |
 | POST | `/measurements/{id}/assign` | `{crew_id}`. Only for unassigned readings (otherwise 409) |
@@ -174,13 +175,33 @@ curl -s localhost:8000/alerts
 
 The router (`app/intent.py`) normalizes the text (lowercase, no accents, no punctuation) and checks these categories in strict order:
 
-1. **emergency**: chest pain, can't breathe, passed out, unresponsive, bleeding… The keywords of both languages are always checked, whatever the active language. Moon-C returns the manual protocol, written for the crewmate who is helping. The AI is never called.
-2. **health**: indicator names or symptoms. Moon-C answers from the manual. The AI is never called.
-3. **ambiguous**: "I feel weird", "me siento raro". Moon-C asks "Does something hurt, or do you feel tired?"
-4. **small_talk**: greetings, thanks, casual chat. Moon-C uses the local AI or a canned reply. If an AI reply mentions health or emergency keywords, it is discarded and the message is answered by the health router.
-5. **fallback**: an honest "I'm not sure" with options.
+1. **emergency**: chest pain, can't breathe, passed out, unresponsive, bleeding, and thoughts of self-harm ("ya no quiero vivir", which opens `emotional_crisis`)… The keywords of both languages are always checked, whatever the active language. Moon-C returns the manual protocol and raises an alert for the medical officer. The AI is never called.
+2. **health** (symptoms): "I feel sick", "me duele la cabeza". Moon-C answers from the manual. The AI is never called.
+3. **support**: a key mental-health moment: stress, frustration, a mistake, a conflict, missing home, loneliness or low mood. Moon-C answers from `shared/support.json`, personalized with the crew member's support profile when there is one. The AI is never called for this first reply.
+4. **health** (indicators): "what is a normal pulse?". Moon-C answers from the manual.
+5. **ambiguous**: "I feel weird", "me siento raro". Moon-C asks "Does something hurt, or do you feel tired?"
+6. **small_talk**: greetings, thanks, casual chat. Moon-C uses the local AI (with the support profile's notes) or a canned reply. If an AI reply mentions health or emergency keywords, or a label such as "depression", it is discarded.
+7. **fallback**: an honest "I'm not sure" with options. If a conversation is already going on (the last turn was small talk or support), the AI keeps it going instead.
 
 To change keywords, edit `shared/keywords.json` and restart the backend. To change health content, edit `shared/protocols.json`: it is validated at startup, and a broken manual stops the backend with a clear error instead of giving wrong answers.
+
+## Emotional support and personal profiles
+
+Moon-C recognizes key mental-health moments in the chat (stress, frustration, a mistake, a conflict, missing home, loneliness, low mood) and answers them with care instead of with the mood indicator's explanation. Low mood replies always end with a safety line, and thoughts of self-harm open the `emotional_crisis` emergency protocol, which is the same for everyone and is never personalized.
+
+A crew member can have a **private support profile** in `shared/profiles/<crew_id>.json`, written from questionnaires they and someone close to them answered. With it, Moon-C:
+
+- answers key moments with that person's own replies (`moments`), and adds `mood_guidance` lines to low mood readings (`POST /measurements`, mood 1–2);
+- gives the local AI that person's notes (`ai_context`, `avoid`), so small talk and the conversation after a key moment are personal. Replies say `personalized: true`.
+
+Rules:
+
+- **Consent.** A profile is loaded only if `consent.crew_member` is `true` and its `crew_id` is in `crew.json`.
+- **No labels.** A profile describes what helps the person, never a condition. The AI is told never to quote the notes or use labels, and its replies pass the post-filter.
+- **Format.** `shared/support_profile.example.json` shows the format with made-up content. Profiles are validated at startup; an invalid one is skipped with a warning (the log names the file, never its content).
+- **Today only Rubén has a profile**, built from the team's two questionnaires.
+
+On the development laptop the extra notes make the first AI reply of a conversation take about 25 s; later replies take 10–15 s. Raise `MOON_C_OLLAMA_TIMEOUT_S` to 40 if the first reply falls back to a canned one.
 
 ## Privacy
 
@@ -190,6 +211,7 @@ To change keywords, edit `shared/keywords.json` and restart the backend. To chan
 - **Chat messages, transcripts and audio are never stored**, and message content is never logged. An alert raised from the chat keeps only the protocol name.
 - Chat context lives only in memory, keyed by `session_id`. It keeps at most 10 turns and is cleared after 10 minutes of inactivity, on a crew switch, on `/identify` and on `POST /session/reset`.
 - No biometric data of any kind. Crew profiles hold only an id, a name, a bracelet id, a language and a role.
+- **Support profiles** (`shared/profiles/`) and the questionnaires they come from (`shared/*.docx`) are **kept out of git**. They are read at startup and kept in memory, never logged, never exported and never sent to Earth; only the local Ollama model receives the notes, and nothing sent to it is stored. To delete a profile, delete its file and restart the backend.
 - ⚠️ **This repository is inside a OneDrive folder.** OneDrive uploads `Backend/storage/measurements.json` to the cloud like any other file there. For real use, set `MOON_C_STORAGE_PATH` to a folder that is not synced.
 
 ## Speech

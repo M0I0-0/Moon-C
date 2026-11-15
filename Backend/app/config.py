@@ -46,6 +46,9 @@ class Settings(BaseSettings):
 
     # Data.
     shared_dir: Path = REPO_DIR / "shared"
+    profiles_dir: Path | None = Field(
+        None, description="Private support profiles (one JSON per crew member). Default: <shared_dir>/profiles"
+    )
     storage_path: Path = BACKEND_DIR / "storage" / "measurements.json"
     retention_days: int = Field(0, ge=0, description="0 = keep for the whole mission")
 
@@ -72,9 +75,11 @@ class Settings(BaseSettings):
     cors_origins: str = DEFAULT_CORS_ORIGINS
     cors_origin_regex: str | None = DEFAULT_CORS_ORIGIN_REGEX
 
-    @field_validator("shared_dir", "storage_path", "voice_dir", mode="after")
+    @field_validator("shared_dir", "storage_path", "voice_dir", "profiles_dir", mode="after")
     @classmethod
-    def _resolve_relative(cls, value: Path) -> Path:
+    def _resolve_relative(cls, value: Path | None) -> Path | None:
+        if value is None:
+            return None
         return value if value.is_absolute() else (BACKEND_DIR / value).resolve()
 
     @field_validator("cors_origin_regex", mode="after")

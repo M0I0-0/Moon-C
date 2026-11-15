@@ -24,3 +24,7 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Personal support profiles and the questionnaires they come from (private, local only).
+shared/profiles/
+shared/*.docx

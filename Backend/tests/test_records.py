@@ -45,7 +45,7 @@ def test_report_is_stored_and_queued_for_earth(client, storage_path):
     report = res.json()
     assert report["synced"] is False and report["summary"]["compressions"] == 120
     assert [r["id"] for r in client.get("/maneuvers/reports", params={"crew_id": "ana"}).json()] == [report["id"]]
-    assert client.get("/maneuvers/reports", params={"crew_id": "kenji"}).json() == []
+    assert client.get("/maneuvers/reports", params={"crew_id": "ruben"}).json() == []
 
     stored = json.loads((storage_path.parent / "maneuver_reports.json").read_text(encoding="utf-8"))
     assert stored["reports"][0]["summary"]["events"][1]["event"] == "Paso: Comprime 30 veces"
@@ -66,7 +66,7 @@ def test_report_validation(client):
 def test_announcements_persist_newest_first(make_client):
     client = make_client()
     assert client.get("/announcements").json() == []
-    client.post("/announcements", json={"text": "Ventana con la Tierra a las 16:40", "priority": "important", "author": "Kenji"})
+    client.post("/announcements", json={"text": "Ventana con la Tierra a las 16:40", "priority": "important", "author": "Rubén"})
     client.post("/announcements", json={"text": "Toma de signos a las 18:00"})
     restarted = make_client()
     items = restarted.get("/announcements").json()

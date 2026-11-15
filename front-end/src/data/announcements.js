@@ -3,7 +3,7 @@ const minutesAgo = (m) => new Date(Date.now() - m * 60000).toISOString()
 export const SEED_ANNOUNCEMENTS = [
   {
     id: 'a1',
-    author: 'Kenji · Comandante',
+    author: 'Rubén · Comandante',
     priority: 'important',
     text: 'Ventana de comunicación con la Tierra a las 16:40 UTC. Dejen sus registros listos antes.',
     at: minutesAgo(25),

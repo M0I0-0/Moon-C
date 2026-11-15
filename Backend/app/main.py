@@ -75,6 +75,7 @@ from .schemas import (
 )
 from .records import RecordStore
 from .sessions import SessionStore
+from .support import ProfileStore, SupportError, SupportGuide
 from .storage import AlreadyAssigned, MeasurementNotFound, MeasurementStore, now_utc, to_utc
 from .sync import EarthSync
 from .voice import MoonCVoice, VoiceUnavailable
@@ -127,6 +128,8 @@ class Services:
     sessions: SessionStore
     ai_client: OllamaClient
     chat: ChatService
+    support: SupportGuide
+    profiles: ProfileStore
     sync: EarthSync
     reports: RecordStore[ManeuverReport]
     access_log: RecordStore[AccessEntry]
@@ -140,6 +143,11 @@ class Services:
         manual = Manual.load(settings.shared_dir / "protocols.json")
         router = KeywordRouter.load(settings.shared_dir / "keywords.json")
         crew = CrewRegistry.load(settings.shared_dir / "crew.json")
+        support = SupportGuide.load(settings.shared_dir / "support.json")
+        missing = router.support_moments - set(support.moments)
+        if missing:
+            raise SupportError(f"keywords.json has support moments without a reply in support.json: {sorted(missing)}")
+        profiles = ProfileStore.load(settings.profiles_dir or settings.shared_dir / "profiles", crew)
         store = MeasurementStore(settings.storage_path, settings.retention_days)
         store.load()
         folder, days = settings.storage_path.parent, settings.retention_days
@@ -178,7 +186,11 @@ class Services:
             alerts=alerts,
             sessions=sessions,
             ai_client=ai_client,
-            chat=ChatService(manual, router, crew, sessions, SmallTalk(ai_client), alerts=alerts),
+            chat=ChatService(
+                manual, router, crew, sessions, SmallTalk(ai_client), alerts=alerts, support=support, profiles=profiles
+            ),
+            support=support,
+            profiles=profiles,
             sync=EarthSync(store, link=settings.earth_link, reports=reports),
             reports=reports,
             access_log=access_log,
@@ -283,6 +295,14 @@ def get_protocol(name: str, services: ServicesDep, language: LanguageQuery = "en
 
 
 # =========================================================================== measurements
+def _guidance(services: Services, indicator: str, status: str, lang: str, crew) -> list[str]:
+    """Manual steps for a reading; a low mood also gets the lines of the crew member's support profile."""
+    steps = services.manual.what_to_do(indicator, status, lang)
+    if indicator == "mood" and status != "normal" and crew is not None:
+        steps = services.support.mood_guidance(services.profiles.get(crew.crew_id), lang) + steps
+    return steps
+
+
 @api.post(
     "/measurements",
     status_code=201,
@@ -326,7 +346,7 @@ def create_measurement(body: MeasurementIn, services: ServicesDep) -> Measuremen
         needs_confirmation=needs_confirmation,
         language=lang,
         message=describe(services.manual, evaluation, lang, needs_confirmation),
-        guidance=services.manual.what_to_do(evaluation.indicator, evaluation.status, lang),
+        guidance=_guidance(services, evaluation.indicator, evaluation.status, lang, crew),
         alert=services.alerts.view(alert, lang) if alert else None,
         source=services.manual.indicator_source(evaluation.indicator),
     )

@@ -6,7 +6,7 @@ import { CREW, LIVE_INDICATORS, UNIT, classify } from '../data/manual'
 const BASELINE = {
   moises: { heart_rate: 74, blood_pressure: 122, spo2: 98, respiratory_rate: 15, body_temperature: 36.6, radiation: 28, sleep_hours: 6.4, mood: 4 },
   ana: { heart_rate: 66, blood_pressure: 112, spo2: 97, respiratory_rate: 14, body_temperature: 36.5, radiation: 24, sleep_hours: 7.6, mood: 4 },
-  kenji: { heart_rate: 62, blood_pressure: 118, spo2: 98, respiratory_rate: 13, body_temperature: 36.7, radiation: 31, sleep_hours: 7.2, mood: 5 },
+  ruben: { heart_rate: 62, blood_pressure: 118, spo2: 98, respiratory_rate: 13, body_temperature: 36.7, radiation: 31, sleep_hours: 7.2, mood: 5 },
   valentina: { heart_rate: 79, blood_pressure: 126, spo2: 97, respiratory_rate: 17, body_temperature: 36.9, radiation: 26, sleep_hours: 8.1, mood: 3 },
 }
 
@@ -46,7 +46,7 @@ const diastolic = (sys) => Math.round(sys * 0.6 + (Math.random() - 0.5) * 3)
 function initialState() {
   const members = {}
   for (const c of CREW) {
-    const base = BASELINE[c.crew_id] ?? BASELINE.kenji
+    const base = BASELINE[c.crew_id] ?? BASELINE.ruben
     const history = {}
     const values = { ...base }
     for (const [ind, cfg] of Object.entries(DAILY)) {
@@ -77,7 +77,7 @@ function reducer(state, action) {
       const members = {}
       const alerts = [...state.alerts]
       for (const [id, m] of Object.entries(state.members)) {
-        const base = BASELINE[id] ?? BASELINE.kenji
+        const base = BASELINE[id] ?? BASELINE.ruben
         const target = { ...base, ...(m.emergency ? EMERGENCY_TYPES[m.emergency].target : {}) }
         const values = { ...m.values }
         const history = { ...m.history }

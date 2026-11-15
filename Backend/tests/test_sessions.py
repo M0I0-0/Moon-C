@@ -67,9 +67,9 @@ def test_crew_switch_clears_context():
     store.open("s", None)  # crew not given: keep the bound crew and context
     store.open("s", "ana")  # same crew: keep
     assert len(store.turns("s")) == 1
-    store.open("s", "kenji")  # switch: clear
+    store.open("s", "ruben")  # switch: clear
     assert store.turns("s") == []
-    assert store.crew_of("s") == "kenji"
+    assert store.crew_of("s") == "ruben"
 
 
 def test_chat_context_is_limited_to_ten_turns(make_client):

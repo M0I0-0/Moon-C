@@ -1,7 +1,10 @@
-"""Local AI (Ollama) for small talk only.
+"""Local AI (Ollama) for conversation: small talk and listening, never health answers.
 
 The model never answers health or emergency questions: those are routed to the
-manual before the AI is ever called. If Ollama is down, slow or returns an
+manual before the AI is ever called. It may keep a conversation going after a
+key mental-health moment (listening, encouraging), and when the crew member has
+a private support profile its notes are added to the system prompt so the
+conversation is personal. If Ollama is down, slow or returns an
 error, Moon-C answers with a canned reply and ``ai_used`` is false. Every AI
 reply goes through a post-filter; if it mentions health or emergency keywords
 it is discarded and the message is answered from the manual instead.
@@ -27,11 +30,13 @@ log = logging.getLogger("moon_c.ai")
 SYSTEM_PROMPT = (
     "You are Moon-C, a warm companion on board a space mission. "
     "Reply in the same language the crew member uses. "
-    "Keep replies short (1–2 sentences) and warm. "
-    "You may greet, encourage and chat. "
+    "Keep every reply to 1–2 short sentences, warm and natural; never write lists. "
+    "You may greet, encourage and chat, and you can listen when someone is having a hard time: "
+    "acknowledge their feelings, never judge, and if things feel very heavy, encourage them to talk "
+    "with a crewmate they trust or the on-board medical officer. "
     "Never discuss health, symptoms or measurements; if they come up, say you will check the manual. "
     "Never invent facts about the crew member. "
-    "Never diagnose."
+    "Never diagnose and never use labels or names of conditions for how someone feels."
 )
 
 # Moon-C is female: in Spanish she speaks about herself in the feminine.
@@ -111,11 +116,13 @@ def clean_reply(text: str, truncated: bool = False) -> str:
     return text
 
 
-def build_system_prompt(lang: str, crew_name: str | None) -> str:
+def build_system_prompt(lang: str, crew_name: str | None, notes: str | None = None) -> str:
+    """System prompt. ``notes`` come from the crew member's private support profile (never logged)."""
     lines = [SYSTEM_PROMPT, _LANGUAGE_LINE.get(lang, _LANGUAGE_LINE["en"])]
     if crew_name:
         lines.append(f"The crew member's name is {crew_name}.")
-    return " ".join(lines)
+    prompt = " ".join(lines)
+    return f"{prompt}\n\n{notes}" if notes else prompt
 
 
 def is_safe_small_talk(reply: str, router: KeywordRouter) -> bool:
@@ -204,10 +211,16 @@ class SmallTalk:
         return self._rng.choice(replies.get(kind or "casual", replies["casual"]))
 
     async def reply(
-        self, message: str, history: list[Turn], lang: str, crew_name: str | None, kind: str | None
+        self,
+        message: str,
+        history: list[Turn],
+        lang: str,
+        crew_name: str | None,
+        kind: str | None,
+        notes: str | None = None,
     ) -> tuple[str, bool]:
-        """(reply, ai_used)."""
-        messages = [{"role": "system", "content": build_system_prompt(lang, crew_name)}]
+        """(reply, ai_used). ``notes``: the crew member's support profile, for a personal conversation."""
+        messages = [{"role": "system", "content": build_system_prompt(lang, crew_name, notes)}]
         for turn in history:
             messages.append({"role": "user", "content": turn.user})
             messages.append({"role": "assistant", "content": turn.assistant})

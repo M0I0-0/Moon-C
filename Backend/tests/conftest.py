@@ -92,6 +92,7 @@ def settings(storage_path) -> Settings:
         _env_file=None,
         shared_dir=SHARED_DIR,
         storage_path=storage_path,
+        profiles_dir=storage_path.parent.parent / "profiles",  # empty: tests never read a real (private) profile
         ollama_warmup=False,
         earth_link="offline",
         simulation=False,  # tests that need the bracelets turn them on and advance them by hand

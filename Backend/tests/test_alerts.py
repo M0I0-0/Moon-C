@@ -32,8 +32,8 @@ def test_repeated_report_reuses_the_open_alert(client):
 
 
 def test_general_emergency_message(client):
-    chat(client, "Emergency!", crew_id="kenji")
-    assert client.get("/alerts").json()[0]["message"] == "Alert: Kenji reported an emergency"
+    chat(client, "Emergency!", crew_id="ruben")
+    assert client.get("/alerts").json()[0]["message"] == "Alert: Rubén reported an emergency"
 
 
 def test_no_report_without_an_identified_crew_member(client):
@@ -72,7 +72,7 @@ def test_after_resolving_a_new_report_opens_a_new_alert(client):
 
 def test_resolve_all(client):
     chat(client, "chest pain", crew_id="ana")
-    chat(client, "bleeding", crew_id="kenji")
+    chat(client, "bleeding", crew_id="ruben")
     closed = client.post("/alerts/resolve", json={}).json()
     assert len(closed) == 2
     assert client.get("/alerts").json() == []

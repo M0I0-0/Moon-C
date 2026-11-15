@@ -2,11 +2,15 @@
 
 Classifies a message in this strict order:
 
-1. ``emergency``  - checked with the keywords of *every* language, always.
-2. ``health``     - indicator names or symptoms.
-3. ``ambiguous``  - vague discomfort ("I feel weird"): Moon-C asks a clarifying question.
-4. ``small_talk`` - greetings, thanks, casual chat (the only category that may use the AI).
-5. ``fallback``   - nothing matched.
+1. ``emergency``  - checked with the keywords of *every* language, always (thoughts of
+                    self-harm included: the ``emotional_crisis`` protocol).
+2. ``health``     - symptoms ("I feel sick"), with the indicator if one is named.
+3. ``support``    - key mental-health moments: stress, frustration, a mistake, a conflict,
+                    missing home, loneliness, low mood.
+4. ``health``     - indicator names ("what is a normal pulse?").
+5. ``ambiguous``  - vague discomfort ("I feel weird"): Moon-C asks a clarifying question.
+6. ``small_talk`` - greetings, thanks, casual chat (the AI may answer).
+7. ``fallback``   - nothing matched.
 
 All keywords live in shared/keywords.json. Matching is deterministic and
 offline: the text and the keywords are normalized the same way, keywords match
@@ -63,6 +67,8 @@ class Intent:
     """The message describes feeling unwell (category ``health``)."""
     small_talk_type: str | None = None
     """greeting, thanks, farewell or casual (category ``small_talk``)."""
+    moment: str | None = None
+    """Key mental-health moment (category ``support``)."""
 
 
 def _phrases(node: Any) -> list[str]:
@@ -97,12 +103,17 @@ class KeywordRouter:
                 for kw in _phrases(node)
             ]
             self._symptoms = [("symptom", kw) for kw in _phrases(health["symptoms"])]
+            self._support = [
+                (name, kw) for name, node in data.get("support", {}).items() if not name.startswith("_")
+                for kw in _phrases(node)
+            ]
             self._ambiguous = [("ambiguous", kw) for kw in _phrases(data["ambiguous"])]
             self._small_talk = [
                 (name, kw) for name, node in data["small_talk"].items() if not name.startswith("_")
                 for kw in _phrases(node)
             ]
             self._allow = sorted(_phrases(data.get("post_filter_allow", {})), key=len, reverse=True)
+            self._block = [("label", kw) for kw in _phrases(data.get("post_filter_block", {}))]
         except (KeyError, AttributeError, TypeError) as exc:
             raise KeywordsError(f"keywords.json is malformed: {exc!r}") from exc
 
@@ -125,6 +136,10 @@ class KeywordRouter:
     @property
     def emergency_protocols(self) -> set[str]:
         return {name for name, _ in self._emergency + self._emergency_fallback}
+
+    @property
+    def support_moments(self) -> set[str]:
+        return {name for name, _ in self._support}
 
     # ------------------------------------------------------------------ matching
     @staticmethod
@@ -151,8 +166,15 @@ class KeywordRouter:
 
         indicator = self._best(padded, self._indicators)
         symptom = self._best(padded, self._symptoms)
-        if indicator or symptom:
-            return Intent("health", indicator=indicator.group if indicator else None, symptom=symptom is not None)
+        if symptom:
+            return Intent("health", indicator=indicator.group if indicator else None, symptom=True)
+
+        moment = self._best(padded, self._support)
+        if moment:
+            return Intent("support", moment=moment.group)
+
+        if indicator:
+            return Intent("health", indicator=indicator.group)
 
         if self._best(padded, self._ambiguous):
             return Intent("ambiguous")
@@ -167,7 +189,9 @@ class KeywordRouter:
         """Post-filter for AI replies: True if the text touches health or emergency topics.
 
         Everyday pleasantries listed in ``post_filter_allow`` ("sleep well") are
-        removed first so they do not trigger the filter.
+        removed first so they do not trigger the filter. Labels listed in
+        ``post_filter_block`` ("depression", "disorder") always trigger it: talking
+        about feelings is fine, naming conditions is not (Moon-C does not diagnose).
         """
         padded = f" {normalize(text)} "
         for phrase in self._allow:
@@ -176,5 +200,5 @@ class KeywordRouter:
                 padded = padded.replace(target, " ")
         return any(
             self._best(padded, table)
-            for table in (self._emergency, self._emergency_fallback, self._indicators, self._symptoms)
+            for table in (self._emergency, self._emergency_fallback, self._indicators, self._symptoms, self._block)
         )

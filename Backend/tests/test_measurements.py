@@ -43,7 +43,7 @@ def test_assign_errors(client):
     assert client.post("/measurements/nope/assign", json={"crew_id": "ana"}).status_code == 404
     assert client.post(f"/measurements/{mid}/assign", json={"crew_id": "zeus"}).status_code == 404
     assigned = post(client, crew_id="ana", indicator="spo2", value=97, unit="%").json()["id"]
-    assert client.post(f"/measurements/{assigned}/assign", json={"crew_id": "kenji"}).status_code == 409
+    assert client.post(f"/measurements/{assigned}/assign", json={"crew_id": "ruben"}).status_code == 409
 
 
 def test_urgent_reading_creates_alert(client):
@@ -81,8 +81,8 @@ def test_acknowledge_alert(client):
 def test_unassigned_urgent_alert_gets_name_after_assign(client):
     data = post(client, indicator="mood", value=1, unit="/5").json()
     assert data["alert"]["message"] == "Alert: unidentified crew member, mood 1/5"
-    client.post(f"/measurements/{data['id']}/assign", json={"crew_id": "kenji"})
-    assert client.get("/alerts").json()[0]["message"] == "Alert: Kenji, mood 1/5"
+    client.post(f"/measurements/{data['id']}/assign", json={"crew_id": "ruben"})
+    assert client.get("/alerts").json()[0]["message"] == "Alert: Rubén, mood 1/5"
 
 
 def test_validation_errors(client):
@@ -106,7 +106,7 @@ def test_filters(client):
     base = datetime(2026, 11, 1, tzinfo=timezone.utc)
     post(client, crew_id="ana", indicator="heart_rate", value=70, unit="bpm", timestamp=base.isoformat())
     post(client, crew_id="ana", indicator="sleep_hours", value=7.5, unit="h", timestamp=(base + timedelta(days=2)).isoformat())
-    post(client, crew_id="kenji", indicator="heart_rate", value=65, unit="bpm", timestamp=(base + timedelta(days=3)).isoformat())
+    post(client, crew_id="ruben", indicator="heart_rate", value=65, unit="bpm", timestamp=(base + timedelta(days=3)).isoformat())
 
     assert len(client.get("/measurements").json()) == 3
     assert len(client.get("/measurements", params={"crew_id": "ana"}).json()) == 2

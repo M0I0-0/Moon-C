@@ -88,7 +88,8 @@ export function askLocal({ message, language = 'es' }) {
   const protocol = detectEmergency(message)
   if (protocol) {
     const p = protocolView(protocol, lang)
-    return { ...base, category: 'emergency', protocol: p, reply: `${t.intro} ${p.title}: ${numbered(p.steps)}` }
+    // La crisis emocional trae su propia introducción en el manual; las demás usan la genérica.
+    return { ...base, category: 'emergency', protocol: p, reply: `${p.intro ?? t.intro} ${p.title}: ${numbered(p.steps)}` }
   }
   return { ...base, category: 'fallback', reply: t.reply, suggestions: t.suggestions }
 }

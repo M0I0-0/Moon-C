@@ -18,7 +18,7 @@ def add(client, **body):
 
 def test_sync_status_and_simulate(client):
     add(client, crew_id="ana", indicator="heart_rate", value=70, unit="bpm")
-    add(client, crew_id="kenji", indicator="spo2", value=97, unit="%")
+    add(client, crew_id="ruben", indicator="spo2", value=97, unit="%")
     unassigned = add(client, indicator="mood", value=4, unit="/5")
 
     assert client.get("/sync/status").json() == {
@@ -69,7 +69,7 @@ def test_no_background_sync_while_offline(make_client):
 
 def test_export_json(client):
     add(client, crew_id="ana", indicator="heart_rate", value=70, unit="bpm")
-    add(client, crew_id="kenji", indicator="sleep_hours", value=6, unit="h")
+    add(client, crew_id="ruben", indicator="sleep_hours", value=6, unit="h")
     res = client.get("/export.json")
     assert res.status_code == 200
     assert "attachment" in res.headers["content-disposition"]
@@ -77,7 +77,7 @@ def test_export_json(client):
     assert data["count"] == 2
     assert data["ranges_warning"] == "REFERENCE VALUES from published guidelines and NASA standards – must be validated by medical experts"
     assert set(data["measurements"][0]) == set(CSV_FIELDS)
-    assert client.get("/export.json", params={"crew_id": "kenji"}).json()["count"] == 1
+    assert client.get("/export.json", params={"crew_id": "ruben"}).json()["count"] == 1
 
 
 def test_export_csv(client):

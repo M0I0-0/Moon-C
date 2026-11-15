@@ -59,7 +59,7 @@ def vital_alerts(alerts, indicator=None):
 def test_every_crew_member_has_live_and_daily_signs(parts):
     bracelets, *_ = parts
     vitals = bracelets.vitals()
-    assert [v.crew_id for v in vitals] == ["moises", "ana", "kenji", "valentina"]
+    assert [v.crew_id for v in vitals] == ["moises", "ana", "ruben", "valentina"]
     for v in vitals:
         assert set(v.indicators) == set(LIVE) | set(DAILY)
         assert all(len(v.indicators[i].history) == 40 for i in LIVE)
@@ -114,12 +114,12 @@ def test_resolved_alert_does_not_return_while_still_urgent_but_rearms_later(part
 
 def test_open_alert_is_not_duplicated(parts):
     bracelets, store, alerts, _ = parts
-    bracelets.start_scenario("kenji", "solar_storm")
-    assert tick_until(bracelets, store, lambda: status(bracelets, "kenji", "radiation") == "urgent")
-    bracelets.reset("kenji")
-    assert tick_until(bracelets, store, lambda: status(bracelets, "kenji", "radiation") == "normal")
+    bracelets.start_scenario("ruben", "solar_storm")
+    assert tick_until(bracelets, store, lambda: status(bracelets, "ruben", "radiation") == "urgent")
+    bracelets.reset("ruben")
+    assert tick_until(bracelets, store, lambda: status(bracelets, "ruben", "radiation") == "normal")
     advance(bracelets, store, 10)
-    bracelets.start_scenario("kenji", "solar_storm")
+    bracelets.start_scenario("ruben", "solar_storm")
     advance(bracelets, store, 60)
     assert len(vital_alerts(alerts, "radiation")) == 1  # the first alert was never resolved
 
@@ -172,7 +172,7 @@ def api_advance(client, ticks=1):
 
 def test_vitals_endpoints(sim_client):
     vitals = sim_client.get("/vitals").json()
-    assert [v["crew_id"] for v in vitals] == ["moises", "ana", "kenji", "valentina"]
+    assert [v["crew_id"] for v in vitals] == ["moises", "ana", "ruben", "valentina"]
     moises = sim_client.get("/vitals/moises").json()
     assert moises["indicators"]["blood_pressure_systolic"]["unit"] == "mmHg"
     assert len(moises["indicators"]["heart_rate"]["history"]) == 40

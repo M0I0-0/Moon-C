@@ -67,12 +67,12 @@ BASELINES = {
                "body_temperature": 36.6, "radiation": 28, "sleep_hours": 6.4, "mood": 4},
     "ana": {"heart_rate": 66, "blood_pressure_systolic": 112, "spo2": 97, "respiratory_rate": 14,
             "body_temperature": 36.5, "radiation": 24, "sleep_hours": 7.6, "mood": 4},
-    "kenji": {"heart_rate": 62, "blood_pressure_systolic": 118, "spo2": 98, "respiratory_rate": 13,
+    "ruben": {"heart_rate": 62, "blood_pressure_systolic": 118, "spo2": 98, "respiratory_rate": 13,
               "body_temperature": 36.7, "radiation": 31, "sleep_hours": 7.2, "mood": 5},
     "valentina": {"heart_rate": 79, "blood_pressure_systolic": 126, "spo2": 97, "respiratory_rate": 17,
                   "body_temperature": 36.9, "radiation": 26, "sleep_hours": 8.1, "mood": 3},
 }
-DEFAULT_BASELINE = BASELINES["kenji"]
+DEFAULT_BASELINE = BASELINES["ruben"]
 
 # Simulated emergencies for demos: label and the values the signals drift toward.
 SCENARIOS = {

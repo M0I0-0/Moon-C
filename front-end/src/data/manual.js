@@ -98,7 +98,15 @@ export function protocolView(name, lang = 'es') {
   const p = protocols.protocols[name]
   if (!p) return null
   const t = (texts) => texts?.[lang] ?? texts?.es
-  return { name, type: p.type, title: t(p.title), audience: t(p.audience), steps: t(p.steps), source: p.source }
+  return {
+    name,
+    type: p.type,
+    title: t(p.title),
+    intro: p.intro ? t(p.intro) : null,
+    audience: t(p.audience),
+    steps: t(p.steps),
+    source: p.source,
+  }
 }
 
 // Protocolo que se muestra cuando un indicador está en rango urgente (urgent_protocol del manual).

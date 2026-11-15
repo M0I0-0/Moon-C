@@ -23,7 +23,7 @@ import httpx
 def main() -> None:
     parser = argparse.ArgumentParser(description="Chat with Moon-C from the terminal.")
     parser.add_argument("--url", default="http://localhost:8000", help="backend URL")
-    parser.add_argument("--crew", help="crew_id from shared/crew.json, e.g. moises, ana, kenji, valentina")
+    parser.add_argument("--crew", help="crew_id from shared/crew.json, e.g. moises, ana, ruben, valentina")
     parser.add_argument("--lang", choices=["en", "es"], help="reply language")
     args = parser.parse_args()
 

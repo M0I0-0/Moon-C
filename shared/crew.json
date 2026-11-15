@@ -17,10 +17,10 @@
       "role": "medical_officer"
     },
     {
-      "crew_id": "kenji",
-      "name": "Kenji",
+      "crew_id": "ruben",
+      "name": "Rubén",
       "bracelet_id": "BR-003",
-      "preferredLanguage": "en",
+      "preferredLanguage": "es",
       "role": "commander"
     },
     {

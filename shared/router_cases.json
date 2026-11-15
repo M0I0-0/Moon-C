@@ -35,7 +35,14 @@
     {"text": "Guíame con la RCP", "protocol": "fainting_unresponsive"},
     {"text": "He needs CPR", "protocol": "fainting_unresponsive"},
     {"text": "¿Dónde está el torniquete?", "protocol": "bleeding"},
-    {"text": "Apply a tourniquet", "protocol": "bleeding"}
+    {"text": "Apply a tourniquet", "protocol": "bleeding"},
+    {"text": "I want to kill myself", "protocol": "emotional_crisis"},
+    {"text": "Sometimes I think about suicide", "protocol": "emotional_crisis"},
+    {"text": "I don't want to live anymore", "protocol": "emotional_crisis"},
+    {"text": "Ya no quiero vivir", "protocol": "emotional_crisis"},
+    {"text": "Me quiero morir", "protocol": "emotional_crisis"},
+    {"text": "Quiero hacerme daño", "protocol": "emotional_crisis"},
+    {"text": "Estoy muy triste y pienso en quitarme la vida", "protocol": "emotional_crisis"}
   ],
   "not_emergency": [
     "Good morning, Moon-C",
@@ -44,6 +51,10 @@
     "Me siento raro",
     "This is a test",
     "I'm going to Spain",
+    "Estoy muy estresado",
+    "I miss my family",
+    "Me equivoqué en la maniobra",
+    "Me muero de risa",
     ""
   ]
 }

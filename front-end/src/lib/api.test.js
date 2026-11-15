@@ -82,7 +82,7 @@ describe('api (fase 4)', () => {
   it('lecturas: registrar y confirmar de quién es', async () => {
     const fetch = mockFetch({})
     await api.createMeasurement({ crewId: null, indicator: 'blood_pressure_systolic', value: 122, unit: 'mmHg', language: 'es' })
-    await api.assignMeasurement('m1', 'kenji')
+    await api.assignMeasurement('m1', 'ruben')
     await api.unassignedMeasurements()
     expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({
       crew_id: null,

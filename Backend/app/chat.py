@@ -1,10 +1,14 @@
 """Chat flow: route each message, answer from the manual or the AI, keep short-lived context.
 
-* emergency  -> the protocol from the manual (never the AI)
+* emergency  -> the protocol from the manual (never the AI); thoughts of self-harm included
 * health     -> the manual (never the AI)
+* support    -> a key mental-health moment: the support guide, personalized with the crew
+                member's private support profile when there is one (never the AI)
 * ambiguous  -> a clarifying question
-* small_talk -> the local AI, or a canned reply; AI replies pass the post-filter
-* fallback   -> an honest "I'm not sure" with options
+* small_talk -> the local AI (with the support profile's notes), or a canned reply; AI replies
+                pass the post-filter
+* fallback   -> an honest "I'm not sure" with options, unless a conversation is already going
+                on: then the AI keeps it going
 
 Language: the request's language, then the crew member's preferredLanguage, then English.
 """
@@ -18,6 +22,7 @@ from .intent import Intent, KeywordRouter
 from .manual import Manual
 from .schemas import ChatRequest, ChatResponse
 from .sessions import SessionStore, Turn
+from .support import ProfileStore, SupportGuide
 
 TEXTS = {
     "en": {
@@ -66,6 +71,7 @@ SUGGESTIONS = {
 }
 
 FEELING_UNWELL = "feeling_unwell"
+CONVERSATION = ("small_talk", "support")
 
 
 def numbered(steps: list[str]) -> str:
@@ -81,6 +87,8 @@ class ChatService:
         sessions: SessionStore,
         small_talk: SmallTalk,
         alerts: AlertBoard | None = None,
+        support: SupportGuide | None = None,
+        profiles: ProfileStore | None = None,
     ):
         self.manual = manual
         self.router = router
@@ -88,6 +96,8 @@ class ChatService:
         self.sessions = sessions
         self.small_talk = small_talk
         self.alerts = alerts
+        self.support = support
+        self.profiles = profiles or ProfileStore()
 
     async def handle(self, req: ChatRequest) -> ChatResponse:
         # An unknown crew_id never blocks a reply (an emergency must always be answered).
@@ -104,10 +114,17 @@ class ChatService:
                 self.alerts.report(crew.crew_id, crew.name, intent.protocol)
         elif intent.category == "health":
             response = self._health(intent, lang)
+        elif intent.category == "support" and self.support is not None:
+            response = self._support(intent, lang, crew)
+        elif intent.category == "support":  # no support guide loaded: answer about the mood indicator
+            response = self._health(Intent("health", indicator="mood"), lang)
         elif intent.category == "ambiguous":
             response = self._reply("ambiguous", TEXTS[lang]["clarify"], lang, SUGGESTIONS["clarify"][lang])
         elif intent.category == "small_talk":
             response = await self._small_talk(req, intent, lang, crew)
+        elif self._in_conversation(req.session_id):
+            # Nothing matched, but a conversation is going on: keep it going instead of "I'm not sure".
+            response = await self._small_talk(req, Intent("small_talk", small_talk_type="casual"), lang, crew)
         else:
             response = self._reply("fallback", TEXTS[lang]["fallback"], lang, SUGGESTIONS["topics"][lang])
 
@@ -119,9 +136,14 @@ class ChatService:
     def _reply(category: str, text: str, lang: str, suggestions: list[str] | None = None) -> ChatResponse:
         return ChatResponse(category=category, reply=text, language=lang, ai_used=False, suggestions=suggestions or [])
 
+    def _in_conversation(self, session_id: str) -> bool:
+        turns = self.sessions.turns(session_id)
+        return bool(turns) and turns[-1].category in CONVERSATION
+
     def _emergency(self, intent: Intent, lang: str) -> ChatResponse:
         protocol = self.manual.protocol_view(intent.protocol, lang)
-        reply = f"{TEXTS[lang]['emergency_intro']} {protocol.title}: {numbered(protocol.steps)}"
+        intro = protocol.intro or TEXTS[lang]["emergency_intro"]
+        reply = f"{intro} {protocol.title}: {numbered(protocol.steps)}"
         return ChatResponse(
             category="emergency", reply=reply, language=lang, ai_used=False, protocol=protocol, source=protocol.source
         )
@@ -164,13 +186,44 @@ class ChatService:
             suggestions=SUGGESTIONS["topics"][lang],
         )
 
+    def _support(self, intent: Intent, lang: str, crew: CrewMember | None) -> ChatResponse:
+        """A key mental-health moment: the support guide, personalized with the crew member's profile."""
+        profile = self.profiles.get(crew.crew_id if crew else None)
+        text, personalized = self.support.reply(intent.moment, lang, profile)
+        return ChatResponse(
+            category="support",
+            reply=text,
+            language=lang,
+            ai_used=False,
+            moment=intent.moment,
+            personalized=personalized,
+            source=self.support.source,
+            suggestions=self.support.suggestions(intent.moment, lang),
+        )
+
     async def _small_talk(self, req: ChatRequest, intent: Intent, lang: str, crew: CrewMember | None) -> ChatResponse:
-        history = [t for t in self.sessions.turns(req.session_id) if t.category == "small_talk"]
+        history = [t for t in self.sessions.turns(req.session_id) if t.category in CONVERSATION]
+        supporting = self.support is not None and any(t.category == "support" for t in history)
+        profile = self.profiles.get(crew.crew_id if crew else None)
+        notes = profile.ai_notes(crew.name) if profile and crew else None
         text, ai_used = await self.small_talk.reply(
-            req.message, history, lang, crew.name if crew else None, intent.small_talk_type
+            req.message, history, lang, crew.name if crew else None, intent.small_talk_type, notes=notes
         )
         if ai_used and not is_safe_small_talk(text, self.router):
+            if supporting:
+                # Mid-conversation about how they feel: keep listening instead of switching to the manual.
+                return ChatResponse(
+                    category="small_talk", reply=self.support.keep_listening(lang), language=lang, ai_used=False
+                )
             # Post-filter: discard the AI reply and re-route the message through the health router.
             rerouted = self.router.classify(req.message)
             return self._health(rerouted if rerouted.category == "health" else Intent("health"), lang)
-        return ChatResponse(category="small_talk", reply=text, language=lang, ai_used=ai_used)
+        if not ai_used and supporting:
+            text = self.support.keep_listening(lang)  # a canned "Hello!" would not fit here
+        return ChatResponse(
+            category="small_talk",
+            reply=text,
+            language=lang,
+            ai_used=ai_used,
+            personalized=ai_used and notes is not None,
+        )

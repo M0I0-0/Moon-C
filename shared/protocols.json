@@ -766,6 +766,37 @@
       "last_reviewed": "2026-11-14"
     },
 
+    "emotional_crisis": {
+      "type": "emergency",
+      "title": {"en": "Emotional crisis: what to do now", "es": "Crisis emocional: qué hacer ahora"},
+      "intro": {
+        "en": "Thank you for telling me. You are not alone, and you don't have to go through this without help.",
+        "es": "Gracias por decírmelo. No estás solo y no tienes que pasar por esto sin ayuda."
+      },
+      "audience": {"en": "For the crew member who is going through a very hard moment, and for the crewmate with them.", "es": "Para el tripulante que pasa por un momento muy difícil y para el compañero que lo acompaña."},
+      "steps": {
+        "en": [
+          "Do not stay alone right now: call a crewmate to be with you, or go to where the crew is.",
+          "Alert the on-board medical officer now. If you are the crewmate, stay with the person and call them.",
+          "Put out of reach anything that could be used to cause harm (medications, sharp tools).",
+          "Talk about what you feel; there are no wrong words. The crewmate listens calmly, without judging or arguing.",
+          "Ask the medical officer for a private support call with Earth as soon as there is a link.",
+          "Stay together until the medical officer is with you."
+        ],
+        "es": [
+          "No te quedes a solas ahora: llama a un compañero para que esté contigo, o ve a donde está la tripulación.",
+          "Avisa ahora al oficial médico a bordo. Si eres el compañero, quédate con la persona y llámalo.",
+          "Aleja todo lo que pueda usarse para hacer daño (medicamentos, herramientas con filo).",
+          "Habla de lo que sientes; no hay palabras incorrectas. El compañero escucha con calma, sin juzgar ni discutir.",
+          "Pide al oficial médico una llamada privada de apoyo con la Tierra en cuanto haya enlace.",
+          "Sigan juntos hasta que el oficial médico esté con ustedes."
+        ]
+      },
+      "source": "Moon-C manual v0.2 – follows common suicide-prevention steps (be there, keep them safe, help them connect) and WHO mhGAP principles; not clinically validated",
+      "version": "0.2.0",
+      "last_reviewed": "2026-11-15"
+    },
+
     "general_emergency": {
       "type": "emergency",
       "title": {"en": "Emergency: first steps", "es": "Emergencia: primeros pasos"},

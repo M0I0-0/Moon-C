@@ -1,7 +1,7 @@
 {
   "_comment": "Keyword lists for Moon-C's intent router. Edit freely: no code changes needed (restart the backend to reload).",
   "_matching": "Text and keywords are normalized the same way before matching: lowercase, accents removed, apostrophes removed (can't -> cant), other punctuation replaced by spaces. A keyword matches only as whole words. Categories are checked in strict order: emergency, health, ambiguous, small_talk, then fallback. Keywords of every language are checked for every category, so emergency phrases always work in both languages regardless of the active language.",
-  "version": "0.1.0",
+  "version": "0.2.0",
 
   "emergency": {
     "chest_pain": {
@@ -19,6 +19,11 @@
     "bleeding": {
       "en": ["bleeding", "bleed", "bleeds", "blood loss", "losing blood", "lot of blood", "lots of blood", "blood everywhere", "hemorrhage", "haemorrhage", "hemorrhaging", "tourniquet"],
       "es": ["sangrado", "sangrando", "sangra", "sangrar", "hemorragia", "pierdo sangre", "perdiendo sangre", "mucha sangre", "torniquete"]
+    },
+    "emotional_crisis": {
+      "_comment": "Thoughts of self-harm or suicide. Always an emergency, checked before every other category; negation is not understood (the safe side).",
+      "en": ["kill myself", "killing myself", "suicide", "suicidal", "end my life", "take my own life", "want to die", "wanna die", "dont want to live", "dont want to be alive", "no reason to live", "better off dead", "want to hurt myself", "going to hurt myself", "harm myself", "self harm", "selfharm", "hurt myself on purpose"],
+      "es": ["suicidarme", "suicidio", "suicida", "quitarme la vida", "quiero matarme", "voy a matarme", "me quiero morir", "quiero morirme", "quisiera morirme", "no quiero vivir", "ya no quiero vivir", "no quiero seguir viviendo", "no vale la pena vivir", "acabar con mi vida", "terminar con mi vida", "hacerme dano", "quiero lastimarme", "autolesion", "autolesionarme", "mejor muerto", "mejor muerta", "desaparecer para siempre"]
     },
     "general_emergency": {
       "_comment": "Used only when no specific emergency protocol matches.",
@@ -47,8 +52,9 @@
         "es": ["sueno", "dormir", "dormi", "duermo", "dormido", "dormida", "no puedo dormir", "insomnio", "cansado", "cansada", "cansancio", "agotado", "agotada", "fatiga", "siesta"]
       },
       "mood": {
-        "en": ["mood", "my mood", "sad", "stressed", "stress", "anxious", "anxiety", "lonely", "loneliness", "depressed", "homesick", "worried", "upset", "overwhelmed", "feeling down", "feel down", "unhappy", "angry"],
-        "es": ["estado de animo", "mi animo", "bajo de animo", "sin animo", "humor", "triste", "tristeza", "estres", "estresado", "estresada", "ansioso", "ansiosa", "ansiedad", "me siento solo", "me siento sola", "soledad", "deprimido", "deprimida", "nostalgia", "extrano a mi familia", "preocupado", "preocupada", "agobiado", "agobiada", "enojado", "enojada"]
+        "_comment": "Questions about the mood indicator itself. Feelings (sad, stressed, lonely...) are support moments, see 'support'.",
+        "en": ["mood", "my mood", "mood score", "log my mood"],
+        "es": ["estado de animo", "mi animo", "humor", "registrar mi animo"]
       },
       "blood_pressure_systolic": {
         "en": ["blood pressure", "my pressure", "bp", "systolic"],
@@ -70,6 +76,38 @@
     "symptoms": {
       "en": ["i feel sick", "feel sick", "feeling sick", "sick", "unwell", "i dont feel well", "dont feel well", "not feeling well", "feel bad", "feeling bad", "it hurts", "hurts", "hurt", "pain", "painful", "ache", "aches", "headache", "stomachache", "stomach ache", "nausea", "nauseous", "vomit", "vomiting", "threw up", "dizzy", "dizziness", "lightheaded", "injury", "injured", "cough", "coughing", "symptom", "symptoms", "medicine", "medication", "space sickness", "motion sickness"],
       "es": ["me siento mal", "me siento enfermo", "me siento enferma", "no me siento bien", "estoy enfermo", "estoy enferma", "enfermo", "enferma", "me duele", "duele", "dolor", "dolor de cabeza", "dolor de estomago", "nauseas", "vomito", "vomitar", "vomite", "mareo", "mareado", "mareada", "lesion", "herida", "me lastime", "tos", "sintoma", "sintomas", "medicina", "medicamento"]
+    }
+  },
+
+  "support": {
+    "_comment": "Key mental-health moments. Checked after emergency and symptoms, before indicators. Moon-C answers them from shared/support.json, personalized with the crew member's private support profile when there is one.",
+    "stress": {
+      "en": ["stressed", "stress", "stressful", "so stressed", "under pressure", "so much pressure", "too much pressure", "overwhelmed", "too much work", "cant cope", "cant handle it", "cant take it anymore", "burned out", "burnt out", "anxious", "anxiety", "nervous", "worried", "on edge", "upset"],
+      "es": ["estres", "estresado", "estresada", "estresante", "presionado", "presionada", "mucha presion", "bajo presion", "agobiado", "agobiada", "abrumado", "abrumada", "no puedo con todo", "no puedo mas", "ya no puedo mas", "demasiado trabajo", "ansioso", "ansiosa", "ansiedad", "nervioso", "nerviosa", "preocupado", "preocupada", "angustiado", "angustiada", "angustia"]
+    },
+    "frustration": {
+      "en": ["frustrated", "frustrating", "frustration", "im stuck", "feel stuck", "feeling stuck", "im blocked", "cant focus", "cant concentrate", "nothing works", "fed up", "annoyed", "angry", "so angry"],
+      "es": ["frustrado", "frustrada", "frustracion", "frustrante", "estoy atorado", "estoy atorada", "me siento atorado", "me siento atorada", "estoy bloqueado", "estoy bloqueada", "me siento bloqueado", "me siento bloqueada", "no me sale", "nada me sale", "no puedo concentrarme", "no me concentro", "harto", "harta", "nada funciona", "enojado", "enojada", "molesto", "molesta", "coraje"]
+    },
+    "mistake": {
+      "en": ["i messed up", "messed up", "i made a mistake", "made a mistake", "my mistake", "my fault", "its my fault", "i failed", "i screwed up", "screwed up", "i blew it", "i ruined it"],
+      "es": ["la regue", "me equivoque", "cometi un error", "fue mi culpa", "es mi culpa", "yo falle", "les falle", "te falle", "le falle", "lo arruine", "la cague", "meti la pata", "todo me salio mal", "me salio mal"]
+    },
+    "conflict": {
+      "en": ["argument", "had an argument", "argued", "we argued", "fight with", "fought with", "we fought", "conflict with", "disagreement", "mad at me", "angry at me", "upset with me", "doesnt listen to me", "doesnt respect me"],
+      "es": ["discuti", "discutimos", "una discusion", "pelee", "nos peleamos", "pelea con", "conflicto con", "desacuerdo", "se enojo conmigo", "esta enojado conmigo", "esta enojada conmigo", "no me escucha", "no me respeta", "me cae mal", "tension con"]
+    },
+    "homesick": {
+      "en": ["homesick", "miss home", "i miss home", "miss my family", "miss my friends", "miss my mom", "miss my dad", "miss my partner", "miss earth", "far from home", "far from my family"],
+      "es": ["nostalgia", "extrano a mi familia", "extrano a mis amigos", "extrano a mi", "extrano a mis", "extrano mi casa", "extrano mi hogar", "extrano la tierra", "extrano estar en casa", "extrano mucho", "los extrano", "las extrano", "te extrano", "lejos de casa", "lejos de mi familia", "echo de menos"]
+    },
+    "lonely": {
+      "en": ["lonely", "loneliness", "i feel alone", "feel alone", "all alone", "isolated", "no one understands me", "nobody understands me", "no one to talk to", "nobody to talk to"],
+      "es": ["me siento solo", "me siento sola", "soledad", "aislado", "aislada", "nadie me entiende", "no tengo con quien hablar"]
+    },
+    "low_mood": {
+      "en": ["sad", "so sad", "sadness", "feeling down", "feel down", "im down", "unhappy", "depressed", "hopeless", "worthless", "not good enough", "i feel useless", "crying", "want to cry", "cried", "heartbroken", "bad day", "terrible day", "awful day"],
+      "es": ["triste", "tristeza", "bajoneado", "bajoneada", "bajon", "deprimido", "deprimida", "desanimado", "desanimada", "sin animo", "bajo de animo", "decaido", "decaida", "no sirvo", "no sirvo para nada", "no soy suficiente", "no valgo", "me siento inutil", "soy un inutil", "llorar", "llore", "llorando", "ganas de llorar", "mal dia", "pesimo dia", "dia horrible", "corazon roto"]
     }
   },
 
@@ -95,6 +133,12 @@
       "en": ["how are you", "how are you doing", "whats up", "how is it going", "hows it going", "who are you", "what is your name", "whats your name", "what can you do", "tell me a joke", "a joke", "fun fact", "tell me something", "im bored", "bored", "im fine", "im ok", "im okay", "im good", "im great", "all good", "nice", "cool", "awesome", "good job", "well done", "you are great", "i love you"],
       "es": ["como estas", "como te va", "que haces", "que onda", "quien eres", "como te llamas", "que puedes hacer", "cuentame un chiste", "un chiste", "dato curioso", "cuentame algo", "estoy aburrido", "estoy aburrida", "aburrido", "aburrida", "estoy bien", "todo bien", "muy bien", "genial", "buen trabajo", "te quiero"]
     }
+  },
+
+  "post_filter_block": {
+    "_comment": "Labels the local AI must never use (Moon-C does not diagnose). An AI reply containing any of them is discarded.",
+    "en": ["depression", "depressed", "depressive", "anxiety disorder", "disorder", "diagnosis", "diagnose", "panic attack", "mental illness", "bipolar", "burnout syndrome"],
+    "es": ["depresion", "deprimido", "deprimida", "depresivo", "depresiva", "trastorno", "diagnostico", "diagnosticar", "ataque de panico", "enfermedad mental", "bipolar"]
   },
 
   "post_filter_allow": {

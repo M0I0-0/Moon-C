@@ -134,6 +134,8 @@ class Manual:
                 raise ManualError(f"{where}.type must be 'emergency' or 'guidance'")
             for field in ("title", "audience", "steps"):
                 self._require_languages(proto.get(field), f"{where}.{field}")
+            if "intro" in proto:
+                self._require_languages(proto["intro"], f"{where}.intro")
             for field in ("source", "version", "last_reviewed"):
                 if not proto.get(field):
                     raise ManualError(f"Manual is missing {where}.{field}")
@@ -240,6 +242,7 @@ class Manual:
             type=proto["type"],
             language=lang,
             title=_t(proto["title"], lang),
+            intro=_t(proto["intro"], lang) if "intro" in proto else None,
             audience=_t(proto["audience"], lang),
             steps=list(_t(proto["steps"], lang)),
             source=proto["source"],
