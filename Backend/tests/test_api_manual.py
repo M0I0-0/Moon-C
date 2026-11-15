@@ -42,3 +42,14 @@ def test_protocol_endpoint(client):
     assert any("medical officer" in step for step in data["steps"])
     assert client.get("/protocols/bleeding", params={"language": "es"}).json()["title"] == "Sangrado: cómo ayudar"
     assert client.get("/protocols/unknown").status_code == 404
+
+
+def test_status_lists_supported_languages(client):
+    assert client.get("/status").json()["languages"] == ["es", "en", "ru", "de"]
+
+
+def test_manual_accepts_ru_and_de(client):
+    for lang in ("ru", "de"):
+        res = client.get("/protocols/bleeding", params={"language": lang})
+        assert res.status_code == 200 and res.json()["language"] == lang
+    assert client.get("/protocols/bleeding", params={"language": "fr"}).status_code == 422

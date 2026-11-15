@@ -24,7 +24,7 @@ Moon-C/                  monorepo root
 │   └── .env.example
 ├── shared/
 │   ├── protocols.json   health manual: the single source of truth (en + es)
-│   ├── keywords.json    router keywords (en + es), editable without code changes
+│   ├── keywords.json    router keywords (es, en, ru, de), editable without code changes
 │   └── crew.json        simulated crew profiles (no biometric data)
 └── Frontend/            (not part of this backend)
 ```
@@ -202,6 +202,28 @@ Rules:
 - **Today only Rubén has a profile**, built from the team's two questionnaires.
 
 On the development laptop the extra notes make the first AI reply of a conversation take about 25 s; later replies take 10–15 s. Raise `MOON_C_OLLAMA_TIMEOUT_S` to 40 if the first reply falls back to a canned one.
+
+## Languages
+
+Moon-C answers in four **priority languages**: Spanish (`es`), English (`en`), Russian (`ru`) and German (`de`). Anything else depends on the local AI and is never a guaranteed emergency protocol.
+
+| Language | Emergency protocols | Router (health, injuries, wellbeing, readings, crew questions) | If the AI is down |
+| --- | --- | --- | --- |
+| `es`, `en`, `ru`, `de` | **Deterministic**: keywords in `shared/keywords.json`, protocol text from `shared/protocols.json`. The AI never decides. | Deterministic (manual and fixed texts; the AI only chats and words the cut question). | Everything above still works. |
+| Any other language (French, Chinese, Arabic, ...) | **Not guaranteed.** The keyword layer still runs first, so "SOS" and a bare "112"/"911" are always an emergency, and so is any word of the four languages in the message. | None: the message is not understood by the router. | Only a fixed safety line plus buttons. |
+
+How a message in another language is handled (`app/multilingual.py`, called from `app/chat.py`):
+
+1. The deterministic emergency layer runs first (keywords of all four languages, `SOS`, bare `112`/`911`).
+2. If nothing matched and the message looks like another language, the local multilingual model answers in the **same language** the person used (1-2 short sentences, no medical advice), through the same post-filter as every other AI reply.
+3. A **fixed safety line** (es/en/ru/de, by the account language, English by default) is always appended: Moon-C can only guide emergency protocols with certainty in Spanish, English, Russian and German; in an emergency call a crewmate and the on-board medical officer.
+4. Without the AI (Ollama down or not installed) the reply is only that line plus the buttons `SOS` and "Emergency" (in the account language). Both open the general emergency protocol.
+
+"Another language" is decided offline and simply: by script (Unicode ranges: Arabic, Chinese, Japanese, Korean, Greek, Hebrew, Indic and Thai text are always another language), by letters Russian does not use (Ukrainian, Serbian) and, for Latin script, by too few known words (a built-in list of very common words plus every word of `keywords.json`; accents of French, Portuguese or Italian lower the bar). One word, "ok" and emoji never count. `is_priority_language(lang)` tells whether a language is one of the four.
+
+Text normalization (same function in `app/intent.py` and `front-end/src/lib/assistant.js`): `casefold` (German `ß` becomes `ss`), NFKD and removal of combining marks. German `ä ö ü` become `a o u`; in Russian only `ё` becomes `е` and `й` becomes `и`. Keywords may be written naturally; transliterations typed without umlauts (`ae`, `oe`, `ue`) are separate keywords. Negation (`не`, `нет`, `nicht`, `kein`) works as in English and Spanish: at most 3 words before the phrase, only filler words between, no comma. A negator *after* the verb ("Er blutet nicht") is deliberately not read as a negation: it opens the protocol (a false alarm is safer than a miss).
+
+The Russian and German texts written in code (`chat.py`, `wellbeing.py`, `crewdata.py`, the offline texts of the front end) are marked `supuesto: traducción por validar con traductor médico`. A language without a text falls back to English; it never raises.
 
 ## Privacy
 

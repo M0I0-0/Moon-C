@@ -76,3 +76,70 @@ def test_resolve_all(client):
     closed = client.post("/alerts/resolve", json={}).json()
     assert len(closed) == 2
     assert client.get("/alerts").json() == []
+
+
+# --------------------------------------------------------------------------- vital alerts: attention + urgent, one open per indicator
+def reading(client, indicator, value, unit, crew_id="ruben"):
+    res = client.post("/measurements", json={"crew_id": crew_id, "indicator": indicator, "value": value, "unit": unit})
+    assert res.status_code == 201, res.text
+    return res.json()
+
+
+def test_attention_reading_through_the_api_alerts_too(client):
+    data = reading(client, "heart_rate", 120, "bpm")
+    assert data["status"] == "attention" and data["alert"]["status"] == "attention"
+    assert [a["indicator"] for a in client.get("/alerts").json()] == ["heart_rate"]
+
+
+def test_two_readings_of_the_same_indicator_keep_one_alert_and_raise_its_level(client):
+    first = reading(client, "heart_rate", 120, "bpm")["alert"]
+    second = reading(client, "heart_rate", 140, "bpm")["alert"]
+    assert second["id"] == first["id"] and second["status"] == "urgent" and second["value"] == 140
+    assert second["updated_at"] >= first["created_at"]
+    reading(client, "heart_rate", 118, "bpm")  # a lower level never downgrades the open alert
+    (only,) = client.get("/alerts").json()
+    assert only["id"] == first["id"] and only["status"] == "urgent" and only["value"] == 140
+
+
+def test_different_indicators_or_members_get_different_alerts(client):
+    reading(client, "heart_rate", 120, "bpm")
+    reading(client, "body_temperature", 39.5, "°C")
+    reading(client, "heart_rate", 120, "bpm", crew_id="ana")
+    assert len(client.get("/alerts").json()) == 3
+
+
+def test_resolving_and_reporting_again_opens_a_new_alert(client):
+    first = reading(client, "heart_rate", 120, "bpm")["alert"]
+    client.post(f"/alerts/{first['id']}/resolve")
+    again = reading(client, "heart_rate", 121, "bpm")["alert"]
+    assert again["id"] != first["id"]
+    assert len(client.get("/alerts").json()) == 1
+
+
+def test_chat_and_api_share_the_same_open_alert(client):
+    chat(client, "mi pulso está en 120", crew_id="ruben")
+    api_alert = reading(client, "heart_rate", 125, "bpm")["alert"]
+    assert len(client.get("/alerts").json()) == 1 and api_alert["value"] == 125
+
+
+def test_unassigned_readings_never_merge(client):
+    for _ in range(2):
+        res = client.post("/measurements", json={"indicator": "heart_rate", "value": 120, "unit": "bpm"})
+        assert res.status_code == 201
+    assert len(client.get("/alerts").json()) == 2
+
+
+def test_alert_line_in_ru_de_with_english_fallback(client):
+    reading(client, "heart_rate", 140, "bpm")
+    texts = {lang: client.get("/alerts", params={"language": lang}).json()[0]["message"] for lang in ("en", "ru", "de")}
+    assert texts["ru"].startswith("Тревога:") and texts["de"].startswith("Alarm:") and texts["en"].startswith("Alert:")
+
+
+def test_support_alert_has_its_own_kind_and_no_conversation_content(client):
+    chat(client, "estoy en pánico", crew_id="ruben")
+    chat(client, "avisa al oficial médico", crew_id="ruben")
+    (alert,) = client.get("/alerts").json()
+    assert alert["kind"] == "support" and alert["indicator"] is None and alert["value"] is None
+    for lang, word in (("es", "apoyo"), ("en", "support"), ("ru", "поддерж"), ("de", "Unterstützung")):
+        message = client.get("/alerts", params={"language": lang}).json()[0]["message"]
+        assert word in message and "pánico" not in message

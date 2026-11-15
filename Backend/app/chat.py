@@ -14,7 +14,9 @@
                 already going on: then the AI keeps it going
 
 Language: the message's own language when clear, then the session's last one, then the request's,
-the crew member's preferredLanguage, then English.
+the crew member's preferredLanguage, then English. Priority languages (deterministic emergencies): es, en, ru,
+de. Any other language is handled by ``multilingual.py`` (AI fallback + a fixed honest safety line); a text in a
+language that is not there falls back to English, never a KeyError.
 
 Clinical wording below (follow-up questions and reassurance) is deliberately conservative: it only asks
 and, when the answer is serious, escalates to an emergency protocol. It gives no new treatment.
@@ -27,13 +29,17 @@ import random
 
 from .ai import SmallTalk, is_safe_small_talk
 from .alerts import AlertBoard
+from .config import REPO_DIR
 from .crew import CrewMember, CrewRegistry
+from .crewdata import CrewData
 from .intent import Intent, KeywordRouter, tokenize
 from .language import detect_language
 from .manual import Manual
+from .multilingual import MultilingualFallback, is_foreign_message
 from .schemas import ChatRequest, ChatResponse
 from .sessions import Pending, SessionStore, Turn
 from .support import ProfileStore, SupportGuide
+from .wellbeing import Wellbeing, WellbeingError
 
 TEXTS = {
     "en": {
@@ -154,7 +160,129 @@ TEXTS = {
             "👍 Aquí estoy.",
         ],
     },
+    # supuesto: traducción por validar con traductor médico (ru)
+    "ru": {
+        "emergency_intro": "Это может быть экстренная ситуация. Сейчас же позови члена экипажа и бортового медицинского офицера.",
+        "indicator": (
+            "{name}: {explanation} Нормальный диапазон (справочные значения): {normal}. Как измерить: {steps} "
+            "Если запишешь показание, я сравню его с руководством."
+        ),
+        "health_generic": (
+            "По любым вопросам здоровья я смотрю в руководство. Могу объяснить пульс, температуру тела, "
+            "кислород, сон или настроение, или помочь записать показание."
+        ),
+        "clarify": "Хочу убедиться, что правильно тебя понимаю. Что-то болит или ты чувствуешь усталость?",
+        "wound_check": "Мне жаль это слышать. Кровотечение сильное? Скажи, и я шаг за шагом помогу.",
+        "wound_minor": (
+            "Хорошо. Если кровотечение усилится, боль станет сильнее или рана окажется глубокой, скажи мне, и я помогу. "
+            "Бортовой медицинский офицер тоже может посмотреть."
+        ),
+        "wound_burn": "Мне жаль это слышать. Ожог большой, с волдырями или на лице или руках?",
+        "wound_head": "Мне жаль это слышать. Была ли потеря сознания, рвота, головокружение или спутанность?",
+        "wound_fall": "Вот это испуг. Есть ли сильная боль, трудно ли двигаться, был ли удар по голове или потеря сознания?",
+        "wound_twist": "Мне жаль это слышать. Сильная боль или отёк, или на ногу не встать и не пошевелить?",
+        "q_safety": "Хочу убедиться, что с тобой всё в порядке. Ты в опасности или тебе нужна помощь прямо сейчас?",
+        "q_negated": "Поняла. Всё точно в порядке?",
+        "q_pain_chest_pain": "Это сильная боль или давление?",
+        "q_pain_breathing_difficulty": "Тебе не хватает воздуха или дышать очень трудно?",
+        "retry": "Хочу быть уверена. ",
+        "no_safety": "Рада слышать. Я рядом: если что-то изменится, скажи.",
+        "no_negated": "Хорошо. Если что-то изменится, скажи, и я сразу помогу.",
+        "no_pain": (
+            "Поняла. Если боль усилится или появится давление, скажи, и я помогу. "
+            "Бортовой медицинский офицер тоже может тебя осмотреть."
+        ),
+        "no_wound": (
+            "Поняла. Если станет хуже или что-то изменится, скажи, и я помогу. "
+            "Бортовой медицинский офицер тоже может посмотреть."
+        ),
+        "help": (
+            "Могу объяснить твои показатели (пульс, температура, кислород, сон, настроение), записать показание, "
+            "шаг за шагом помочь в экстренной ситуации или поддержать, если ты в стрессе или скучаешь по дому. "
+            "Что тебе нужно?"
+        ),
+        "fallback": [
+            (
+                "Я не совсем поняла. Можешь сказать иначе? Если это про здоровье или экстренная ситуация, я здесь: "
+                "могу объяснить показатель, записать показание или шаг за шагом помочь."
+            ),
+            "Хм, не уверена, что ты имеешь в виду. Скажи по-другому или выбери один из вариантов.",
+            "Я немного потерялась. Это про здоровье, показание или самочувствие? Скажи, и разберёмся.",
+            "Не совсем улавливаю. Могу помочь с показателями, самочувствием или экстренной ситуацией.",
+        ],
+        "ack": [
+            "Поняла. Я здесь, если что-то понадобится.",
+            "Отлично. Скажи, когда захочешь продолжить.",
+            "Хорошо! Могу чем-то ещё помочь?",
+            "👍 Я рядом.",
+        ],
+    },
+    # supuesto: traducción por validar con traductor médico (de)
+    "de": {
+        "emergency_intro": "Das könnte ein Notfall sein. Ruf jetzt sofort einen Kameraden und den medizinischen Offizier an Bord.",
+        "indicator": (
+            "{name}: {explanation} Normalbereich (Referenzwerte): {normal}. So misst du: {steps} "
+            "Wenn du einen Messwert einträgst, vergleiche ich ihn mit dem Handbuch."
+        ),
+        "health_generic": (
+            "Bei Gesundheitsthemen schaue ich im Handbuch nach. Ich kann Herzfrequenz, Körpertemperatur, Sauerstoff, "
+            "Schlaf oder Stimmung erklären oder dir helfen, einen Messwert einzutragen."
+        ),
+        "clarify": "Ich möchte sichergehen, dass ich dich richtig verstehe. Tut dir etwas weh, oder bist du müde?",
+        "wound_check": "Das tut mir leid. Blutet es stark? Sag es mir, dann führe ich dich Schritt für Schritt.",
+        "wound_minor": (
+            "Gut zu hören. Wenn es stark zu bluten beginnt, mehr wehtut oder tief aussieht, sag es mir, dann führe ich dich. "
+            "Der medizinische Offizier an Bord kann auch einen Blick darauf werfen."
+        ),
+        "wound_burn": "Das tut mir leid. Ist die Verbrennung groß, hat sie Blasen oder liegt sie im Gesicht oder an den Händen?",
+        "wound_head": "Das tut mir leid. Gab es Bewusstlosigkeit, Erbrechen, Schwindel oder Verwirrung?",
+        "wound_fall": (
+            "Das klingt erschreckend. Gibt es starke Schmerzen, Probleme sich zu bewegen, einen Schlag auf den Kopf "
+            "oder Bewusstlosigkeit?"
+        ),
+        "wound_twist": "Das tut mir leid. Gibt es starke Schmerzen oder Schwellung, oder lässt es sich nicht belasten oder bewegen?",
+        "q_safety": "Ich möchte sichergehen, dass es dir gut geht. Bist du in Gefahr oder brauchst du jetzt Hilfe?",
+        "q_negated": "Verstanden. Bist du sicher, dass alles in Ordnung ist?",
+        "q_pain_chest_pain": "Ist es ein starker Schmerz oder Druck?",
+        "q_pain_breathing_difficulty": "Bekommst du schlecht Luft oder atmest du sehr mühsam?",
+        "retry": "Ich möchte sichergehen. ",
+        "no_safety": "Das freut mich. Ich bin weiter da: Wenn sich etwas ändert, sag es mir.",
+        "no_negated": "Gut zu hören. Wenn sich etwas ändert, sag es mir, dann helfe ich sofort.",
+        "no_pain": (
+            "Verstanden. Wenn es stärker wird oder zu Druck wird, sag es mir, dann führe ich dich. "
+            "Der medizinische Offizier an Bord kann dich auch untersuchen."
+        ),
+        "no_wound": (
+            "Verstanden. Wenn es sich ändert oder schlimmer wird, sag es mir, dann führe ich dich. "
+            "Der medizinische Offizier an Bord kann auch einen Blick darauf werfen."
+        ),
+        "help": (
+            "Ich kann deine Werte erklären (Puls, Temperatur, Sauerstoff, Schlaf, Stimmung), einen Messwert eintragen, "
+            "dich im Notfall Schritt für Schritt anleiten oder dir beistehen, wenn du gestresst bist oder Heimweh hast. "
+            "Was brauchst du?"
+        ),
+        "fallback": [
+            (
+                "Das habe ich nicht ganz verstanden. Kannst du es anders sagen? Wenn es um deine Gesundheit oder einen "
+                "Notfall geht, bin ich da: Ich kann einen Wert erklären, einen Messwert eintragen oder dich anleiten."
+            ),
+            "Hm, ich bin nicht sicher, was du meinst. Sag es anders oder wähle eine dieser Optionen.",
+            "Ich habe den Faden verloren. Geht es um deine Gesundheit, einen Messwert oder wie du dich fühlst?",
+            "Ich komme nicht ganz mit. Ich kann bei Werten, Befinden oder einem Notfall helfen.",
+        ],
+        "ack": [
+            "Verstanden. Ich bin da, falls du etwas brauchst.",
+            "Perfekt. Sag Bescheid, wenn du weitermachen willst.",
+            "Okay! Kann ich sonst noch helfen?",
+            "👍 Ich bin hier.",
+        ],
+    },
 }
+
+
+def _text(lang: str) -> dict:
+    """Texts of a language; a language (or a key) that is missing falls back to English."""
+    return {**TEXTS["en"], **TEXTS.get(lang, {})}
 
 # Quick replies. Labels are routed back through the router: "yes" answers open the protocol, never the AI.
 # supuesto: validar con experto médico (textos de preguntas y botones clínicos)
@@ -188,6 +316,49 @@ SUGGESTIONS = {
     },
 }
 
+# supuesto: traducción por validar con traductor médico (ru, de). Every label is routed back through the router
+# (tests/test_chat_languages.py checks that each one still lands where it should).
+_MORE_SUGGESTIONS = {
+    "wound": {
+        "ru": ["Сильно кровоточит", "Это пустяк", "Крови нет"],
+        "de": ["Es blutet stark", "Es ist nicht schlimm", "Kein Blut"],
+    },
+    "wound_burn": {"ru": ["Да, серьёзный", "Нет, небольшой"], "de": ["Ja, es ist ernst", "Nein, es ist klein"]},
+    "wound_head": {"ru": ["Да, было", "Нет, ничего"], "de": ["Ja, gab es", "Nein, nichts"]},
+    "wound_fall": {"ru": ["Да, что-то из этого", "Нет, ничего"], "de": ["Ja, eines davon", "Nein, nichts"]},
+    "wound_twist": {"ru": ["Да, серьёзно", "Нет, слабо"], "de": ["Ja, es ist ernst", "Nein, es ist leicht"]},
+    "safety": {
+        "ru": ["Да, мне нужна помощь", "Нет, я в порядке"],
+        "de": ["Ja, ich brauche Hilfe", "Nein, mir geht es gut"],
+    },
+    "negated": {"ru": ["Да, всё хорошо", "Нет, это происходит"], "de": ["Ja, alles gut", "Nein, es passiert"]},
+    "pain_chest_pain": {"ru": ["Да, сильная", "Нет, слабая"], "de": ["Ja, es ist stark", "Nein, es ist leicht"]},
+    "pain_breathing_difficulty": {
+        "ru": ["Да, не хватает воздуха", "Нет, слабо"],
+        "de": ["Ja, ich bekomme keine Luft", "Nein, es ist leicht"],
+    },
+    "clarify": {
+        "ru": ["Что-то болит", "Чувствую усталость", "Я в порядке"],
+        "de": ["Mir tut etwas weh", "Ich bin müde", "Mir geht es gut"],
+    },
+    "topics": {
+        "ru": ["Пульс", "Температура", "Кислород (SpO2)", "Сон", "Настроение"],
+        "de": ["Puls", "Temperatur", "Sauerstoff (SpO2)", "Schlaf", "Stimmung"],
+    },
+    "help": {
+        "ru": ["Пульс", "Температура", "Мне плохо", "Я в стрессе"],
+        "de": ["Puls", "Temperatur", "Mir ist schlecht", "Ich bin gestresst"],
+    },
+}
+for _key, _langs in _MORE_SUGGESTIONS.items():
+    SUGGESTIONS[_key].update(_langs)
+
+
+def _sug(key: str, lang: str) -> list[str]:
+    """Quick replies of a language (English if there are none)."""
+    options = SUGGESTIONS[key]
+    return options.get(lang) or options["en"]
+
 FEELING_UNWELL = "feeling_unwell"
 CONVERSATION = ("small_talk", "support")
 # Protocol opened by a "yes" to an injury question: bleeding for a cut, otherwise the general emergency
@@ -214,6 +385,8 @@ class ChatService:
         support: SupportGuide | None = None,
         profiles: ProfileStore | None = None,
         rng: random.Random | None = None,
+        wellbeing: Wellbeing | None = None,
+        crewdata: CrewData | None = None,
     ):
         self.manual = manual
         self.router = router
@@ -223,8 +396,20 @@ class ChatService:
         self.alerts = alerts
         self.support = support
         self.profiles = profiles or ProfileStore()
+        self.crewdata = crewdata  # report a reading / ask about a crew member (alerts only)
+        # Other languages than es/en/ru/de: AI fallback + a fixed honest safety line (see multilingual.py).
+        self.foreign = MultilingualFallback(getattr(small_talk, "client", None), router)
         # Seedable: shares the small-talk generator by default, so one seed fixes every canned wording.
         self._rng = rng or getattr(small_talk, "_rng", None) or random.Random()
+        # Wellbeing flows (anxiety guide, low-mood tips, CMO notices): fixed texts, never the AI.
+        if wellbeing is None:
+            try:
+                wellbeing = Wellbeing.load(REPO_DIR / "shared", self._rng)
+            except WellbeingError:
+                wellbeing = None
+        self.wellbeing = wellbeing
+        if self.wellbeing is not None:
+            self.wellbeing.attach(sessions, alerts, router, self._emergency)
 
     async def handle(self, req: ChatRequest) -> ChatResponse:
         # An unknown crew_id never blocks a reply (an emergency must always be answered).
@@ -234,22 +419,50 @@ class ChatService:
         # Reply in the language the person is using now. Without a clear signal ("ok", "gracias/thanks" ties),
         # keep the session's last detected language, then the request's, then the crew member's.
         detected = detect_language(req.message)
+        # Gaps of the word-count detector ("Notfall", "Puls"): the router's own keywords tell the language.
+        hint, evidence = self.router.language_hint(req.message)
+        if hint and (detected is None or (hint != detected and evidence >= 2)):
+            detected = hint
         if detected:
             self.sessions.set_language(req.session_id, detected)
         lang = detected or session.language or req.language or (crew.preferredLanguage if crew else None) or "en"
 
         intent = self.router.classify(req.message)
+        # A language outside es/en/ru/de that the keyword router could not place: never "normal" small talk.
+        # Emergencies were already checked (the router reads the keywords of all four languages, "SOS" and "112").
+        foreign = intent.category == "fallback" and is_foreign_message(req.message, detected, self.router.vocabulary)
         # A pending question is consumed by this message; the handlers below set a new one if needed.
         pending = self.sessions.pending(req.session_id)
         self.sessions.clear_pending(req.session_id)
         answered = None
-        if pending is not None and intent.category != "emergency":
+        wb_action = None
+        if self.wellbeing is not None and intent.category != "emergency":
+            profile = self.profiles.get(crew.crew_id if crew else None)
+            personal_mood = bool(profile and profile.speaks(lang) and "low_mood" in profile.moments)
+            wb_action = self.wellbeing.detect(req.message, intent, pending, req.session_id, skip_low_mood=personal_mood)
+        wb_pending = pending is not None and pending.kind.startswith("wb_")
+        if pending is not None and intent.category != "emergency" and wb_action is None and not wb_pending:
             answered = await self._answer_pending(pending, intent, req, lang, crew)
 
         if intent.category == "emergency":
             response = self._emergency(intent.protocol, lang, crew)
+        elif wb_action is not None:
+            response = self.wellbeing.respond(wb_action, req.session_id, lang, crew)
+            if wb_action == "low_mood" and self.support is not None:
+                # Keep the support guide's standing safety line after low-mood tips.
+                response = response.model_copy(
+                    update={"reply": f"{response.reply} {self._safety_line(lang)}"}
+                )
         elif answered is not None:
             response = answered
+        elif self.crewdata is not None and (
+            data_response := self.crewdata.handle(req.session_id, req.message, lang, crew)
+        ) is not None:
+            response = data_response
+        elif foreign:
+            response = await self.foreign.respond(
+                req.message, req.language or (crew.preferredLanguage if crew else None) or "en"
+            )
         elif intent.category == "health":
             response = self._health(intent, lang)
         elif intent.category == "support" and self.support is not None:
@@ -261,9 +474,9 @@ class ChatService:
         elif intent.category == "ambiguous" and intent.wound:
             response = await self._wound(req, intent.wound, lang, crew)
         elif intent.category == "ambiguous":
-            response = self._reply("ambiguous", TEXTS[lang]["clarify"], lang, SUGGESTIONS["clarify"][lang])
+            response = self._reply("ambiguous", _text(lang)["clarify"], lang, _sug("clarify", lang))
         elif intent.category == "small_talk" and intent.small_talk_type == "help":
-            response = self._reply("small_talk", TEXTS[lang]["help"], lang, SUGGESTIONS["help"][lang])
+            response = self._reply("small_talk", _text(lang)["help"], lang, _sug("help", lang))
         elif intent.category == "small_talk" and intent.small_talk_type == "ack":
             response = self._ack(req.session_id, lang)
         elif intent.category == "small_talk":
@@ -278,6 +491,10 @@ class ChatService:
         return response
 
     # ------------------------------------------------------------------ helpers
+    def _safety_line(self, lang: str) -> str:
+        line = self.support._data["safety_line"]
+        return line.get(lang) or line["en"]
+
     @staticmethod
     def _reply(category: str, text: str, lang: str, suggestions: list[str] | None = None) -> ChatResponse:
         return ChatResponse(category=category, reply=text, language=lang, ai_used=False, suggestions=suggestions or [])
@@ -299,10 +516,11 @@ class ChatService:
     def _ask(self, kind: str, protocol: str | None, lang: str, session_id: str, retry: bool = False, tries: int = 0) -> ChatResponse:
         """Ask a safety, pain or injury question and remember it: the next message answers it."""
         self.sessions.set_pending(session_id, kind, protocol, tries)
-        text = TEXTS[lang][f"q_{kind}"] if f"q_{kind}" in TEXTS[lang] else TEXTS[lang][kind]
+        texts = _text(lang)
+        text = texts[f"q_{kind}"] if f"q_{kind}" in texts else texts[kind]
         if retry:
-            text = TEXTS[lang]["retry"] + text
-        suggestions = SUGGESTIONS["wound" if kind == "wound_check" else kind][lang]
+            text = texts["retry"] + text
+        suggestions = _sug("wound" if kind == "wound_check" else kind, lang)
         return self._reply("ambiguous", text, lang, suggestions)
 
     async def _answer_pending(
@@ -326,7 +544,7 @@ class ChatService:
         group = pending.kind.split("_")[0]
         if pending.kind == "wound_check":
             return await self._wound(req, "minor", lang, crew)
-        return self._reply("ambiguous", TEXTS[lang][f"no_{group}"], lang)
+        return self._reply("ambiguous", _text(lang)[f"no_{group}"], lang)
 
     # ------------------------------------------------------------------ categories
     async def _wound(self, req: ChatRequest, kind: str, lang: str, crew: CrewMember | None) -> ChatResponse:
@@ -341,10 +559,10 @@ class ChatService:
             self.sessions.set_pending(req.session_id, "wound_check", WOUND_PROTOCOL["check"])
         return ChatResponse(
             category="ambiguous",
-            reply=text or TEXTS[lang][f"wound_{kind}"],
+            reply=text or _text(lang)[f"wound_{kind}"],
             language=lang,
             ai_used=ai_used,
-            suggestions=SUGGESTIONS["wound"][lang] if kind == "check" else [],
+            suggestions=_sug("wound", lang) if kind == "check" else [],
         )
 
     def _ack(self, session_id: str, lang: str) -> ChatResponse:
@@ -352,7 +570,7 @@ class ChatService:
         history = [t for t in self.sessions.turns(session_id) if t.category in CONVERSATION]
         if self.support is not None and any(t.category == "support" for t in history):
             return self._reply("small_talk", self.support.keep_listening(lang), lang)
-        return self._reply("small_talk", self._pick(TEXTS[lang]["ack"], session_id), lang)
+        return self._reply("small_talk", self._pick(_text(lang)["ack"], session_id), lang)
 
     async def _open_ended(self, req: ChatRequest, lang: str, crew: CrewMember | None) -> ChatResponse:
         """Nothing matched: let the AI answer like a companion (the same post-filter applies).
@@ -363,8 +581,8 @@ class ChatService:
         response = await self._small_talk(req, Intent("small_talk", small_talk_type="casual"), lang, crew)
         if response.ai_used or response.category != "small_talk" or self._in_conversation(req.session_id):
             return response
-        text = self._pick(TEXTS[lang]["fallback"], req.session_id)
-        return self._reply("fallback", text, lang, SUGGESTIONS["topics"][lang])
+        text = self._pick(_text(lang)["fallback"], req.session_id)
+        return self._reply("fallback", text, lang, _sug("topics", lang))
 
     def _in_conversation(self, session_id: str) -> bool:
         turns = self.sessions.turns(session_id)
@@ -372,7 +590,7 @@ class ChatService:
 
     def _emergency(self, protocol_name: str | None, lang: str, crew: CrewMember | None) -> ChatResponse:
         protocol = self.manual.protocol_view(protocol_name, lang)
-        intro = protocol.intro or TEXTS[lang]["emergency_intro"]
+        intro = protocol.intro or _text(lang)["emergency_intro"]
         reply = f"{intro} {protocol.title}: {numbered(protocol.steps)}"
         if self.alerts is not None and crew is not None:
             # Priority 2: alert the crew and the medical officer. Only the protocol name is kept.
@@ -396,7 +614,7 @@ class ChatService:
             )
         if intent.indicator:
             view = self.manual.indicator_view(intent.indicator, lang)
-            reply = TEXTS[lang]["indicator"].format(
+            reply = _text(lang)["indicator"].format(
                 name=view.name,
                 explanation=view.explanation,
                 normal=view.ranges.normal,
@@ -412,11 +630,11 @@ class ChatService:
             )
         return ChatResponse(
             category="health",
-            reply=TEXTS[lang]["health_generic"],
+            reply=_text(lang)["health_generic"],
             language=lang,
             ai_used=False,
             source=self.manual.source,
-            suggestions=SUGGESTIONS["topics"][lang],
+            suggestions=_sug("topics", lang),
         )
 
     def _support(self, intent: Intent, lang: str, crew: CrewMember | None) -> ChatResponse:

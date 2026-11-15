@@ -96,6 +96,19 @@ _MESSAGES = {
         "urgent": "{name} {value}: rango urgente. Se creó una alerta a bordo para el oficial médico.",
         "confirm": "¿De quién es esta lectura? Confirma el tripulante.",
     },
+    # supuesto: traducción por validar con traductor médico (ru, de)
+    "ru": {
+        "normal": "{name} {value}: в пределах нормы (справочные значения).",
+        "attention": "{name} {value}: требует внимания. Справочный диапазон нормы: {normal}.",
+        "urgent": "{name} {value}: срочный диапазон. Для медицинского офицера создано оповещение на борту.",
+        "confirm": "Чьё это измерение? Подтвердите члена экипажа.",
+    },
+    "de": {
+        "normal": "{name} {value}: im Normalbereich (Referenzwerte).",
+        "attention": "{name} {value}: erfordert Aufmerksamkeit. Der normale Referenzbereich ist {normal}.",
+        "urgent": "{name} {value}: dringender Bereich. Für den medizinischen Offizier wurde ein Alarm an Bord erstellt.",
+        "confirm": "Für wen ist dieser Messwert? Bitte das Besatzungsmitglied bestätigen.",
+    },
 }
 
 

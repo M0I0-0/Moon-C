@@ -26,7 +26,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from .alerts import AlertBoard
+from .alerts import ALERT_STATUSES, AlertBoard
 from .crew import CrewRegistry
 from .evaluator import classify
 from .manual import Manual
@@ -77,23 +77,23 @@ DEFAULT_BASELINE = BASELINES["ruben"]
 # Simulated emergencies for demos: label and the values the signals drift toward.
 SCENARIOS = {
     "low_oxygen": (
-        {"en": "Low oxygen saturation", "es": "Baja saturación de oxígeno"},
+        {"en": "Low oxygen saturation", "es": "Baja saturación de oxígeno", "ru": "Низкое насыщение кислородом", "de": "Niedrige Sauerstoffsättigung"},
         {"spo2": 86, "heart_rate": 118, "respiratory_rate": 32},
     ),
     "high_heart_rate": (
-        {"en": "Very high heart rate", "es": "Frecuencia cardiaca muy alta"},
+        {"en": "Very high heart rate", "es": "Frecuencia cardiaca muy alta", "ru": "Очень высокий пульс", "de": "Sehr hoher Puls"},
         {"heart_rate": 138, "blood_pressure_systolic": 150},
     ),
     "high_temperature": (
-        {"en": "High temperature", "es": "Temperatura alta"},
+        {"en": "High temperature", "es": "Temperatura alta", "ru": "Высокая температура", "de": "Hohe Temperatur"},
         {"body_temperature": 39.6, "heart_rate": 104, "respiratory_rate": 22},
     ),
     "high_blood_pressure": (
-        {"en": "Very high blood pressure", "es": "Presión arterial muy alta"},
+        {"en": "Very high blood pressure", "es": "Presión arterial muy alta", "ru": "Очень высокое давление", "de": "Sehr hoher Blutdruck"},
         {"blood_pressure_systolic": 188, "heart_rate": 96},
     ),
     "solar_storm": (
-        {"en": "Solar storm (radiation)", "es": "Tormenta solar (radiación)"},
+        {"en": "Solar storm (radiation)", "es": "Tormenta solar (radiación)", "ru": "Солнечная буря (радиация)", "de": "Sonnensturm (Strahlung)"},
         {"radiation": 1500},
     ),
 }
@@ -205,7 +205,7 @@ class SimulatedBracelets:
         """Advance every bracelet one reading. Returns the measurements that should be stored."""
         now = now_utc()
         to_store: list[Measurement] = []
-        new_urgent: list[tuple[Measurement, str]] = []
+        new_alerts: list[tuple[Measurement, str]] = []
         with self._lock:
             for bracelet in self._bracelets.values():
                 target = dict(bracelet.baseline)
@@ -232,8 +232,8 @@ class SimulatedBracelets:
                         to_store.append(measurement)
                         signal.stored_status = signal.status
                         signal.pending, signal.pending_ticks = None, 0
-                        if signal.status == "urgent":
-                            new_urgent.append((measurement, bracelet.name))
+                        if signal.status in ALERT_STATUSES:
+                            new_alerts.append((measurement, bracelet.name))
                 bracelet.updated_at = now
 
             if self._clock() - self._last_snapshot >= self._snapshot_interval_s:
@@ -242,9 +242,8 @@ class SimulatedBracelets:
                     for indicator in LIVE:
                         to_store.append(self._measurement(bracelet, indicator, bracelet.signals[indicator], now))
 
-        for measurement, name in new_urgent:
-            if not self._alerts.has_open_vital(measurement.crew_id, measurement.indicator):
-                self._alerts.create(measurement, name)
+        for measurement, name in new_alerts:
+            self._alerts.raise_vital(measurement, name)  # reuses the open alert of the same member and indicator
         return to_store
 
     async def run(self, tick_s: float) -> None:

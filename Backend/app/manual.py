@@ -26,7 +26,7 @@ from .schemas import (
 )
 
 STATUSES = ("normal", "attention", "urgent")
-_OR = {"en": " or ", "es": " o "}
+_OR = {"en": " or ", "es": " o ", "ru": " или ", "de": " oder "}
 
 
 class ManualError(RuntimeError):

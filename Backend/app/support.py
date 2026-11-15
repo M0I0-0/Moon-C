@@ -164,21 +164,26 @@ class SupportGuide:
     def reply(self, moment: str, lang: str, profile: SupportProfile | None = None) -> tuple[str, bool]:
         """(reply, personalized). The profile's reply wins when it exists in the reply language."""
         personal = profile.moments.get(moment) if profile and profile.speaks(lang) else None
-        text = personal or self._data["moments"][moment]["reply"][lang]
+        text = personal or self._data["moments"][moment]["reply"].get(lang) or self._data["moments"][moment]["reply"]["en"]
         if moment in SAFETY_LINE_MOMENTS:
-            text = f"{text} {self._data['safety_line'][lang]}"
+            text = f"{text} {self._data['safety_line'].get(lang) or self._data['safety_line']['en']}"
         return text, personal is not None
 
     def suggestions(self, moment: str, lang: str) -> list[str]:
-        return list(self._data["moments"][moment]["suggestions"][lang])
+        return list(_pick(self._data["moments"][moment]["suggestions"], lang))
 
     def label(self, moment: str, lang: str) -> str:
-        return self._data["moments"][moment]["label"][lang]
+        return _pick(self._data["moments"][moment]["label"], lang)
 
     def keep_listening(self, lang: str) -> str:
         """A short line to keep a support conversation going without the AI."""
-        return self._rng.choice(self._data["continue"][lang])
+        return self._rng.choice(_pick(self._data["continue"], lang))
 
     def mood_guidance(self, profile: SupportProfile | None, lang: str) -> list[str]:
         """Personal lines for a low mood reading (empty without a profile in that language)."""
         return list(profile.mood_guidance) if profile and profile.speaks(lang) else []
+
+
+def _pick(texts: dict, lang: str):
+    """Text for ``lang``, falling back to English when the language is missing."""
+    return texts.get(lang) or texts["en"]

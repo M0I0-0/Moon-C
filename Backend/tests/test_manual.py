@@ -117,3 +117,24 @@ def test_broken_manual_fails_fast(shared_dir):
     broken["protocols"]["bleeding"]["steps"]["es"] = []
     with pytest.raises(ManualError, match="bleeding"):
         Manual(broken)
+
+
+def test_ru_de_fall_back_to_english_when_missing(shared_dir):
+    data = json.loads((shared_dir / "protocols.json").read_text(encoding="utf-8"))
+    partial = copy.deepcopy(data)
+    for node in (partial["protocols"]["bleeding"], partial["indicators"]["heart_rate"]):
+        for field in ("title", "audience", "steps", "name", "explanation"):
+            if field in node:
+                node[field].pop("ru", None)
+                node[field].pop("de", None)
+    # "de" present only in the title: that field must be used, the rest falls back to English
+    partial["protocols"]["bleeding"]["title"]["de"] = "Blutung (Test)"
+    m = Manual(partial)
+    ru = m.protocol_view("bleeding", "ru")
+    de = m.protocol_view("bleeding", "de")
+    en = m.protocol_view("bleeding", "en")
+    assert ru.language == "ru" and ru.title == en.title and ru.steps == en.steps
+    assert de.title == "Blutung (Test)" and de.steps == en.steps
+    assert m.indicator_view("heart_rate", "ru").name == m.indicator_view("heart_rate", "en").name
+    assert m.manual_view("de").title
+    assert m.ranges_text("body_temperature", "attention", "de")

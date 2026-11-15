@@ -199,3 +199,13 @@ def test_unit_aliases(manual, indicator, unit, canonical):
 def test_invalid_readings_are_rejected(manual, indicator, value, unit):
     with pytest.raises(MeasurementValueError):
         evaluate(manual, indicator, value, unit)
+
+
+@pytest.mark.parametrize("lang,start", [("ru", "Частота сердечных"), ("de", "Herzfrequenz"), ("fr", "Heart")])
+def test_describe_in_ru_de_falls_back_to_english(manual, lang, start):
+    from app.evaluator import describe
+
+    ev = evaluate(manual, "heart_rate", 120, "bpm")
+    text = describe(manual, ev, lang, True)
+    assert text.startswith(start)
+    assert ("needs attention" in text) == (lang == "fr")

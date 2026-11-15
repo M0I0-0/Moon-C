@@ -40,6 +40,23 @@ class Pending:
 
 
 @dataclass
+class WellbeingState:
+    """Minimal state of the wellbeing flows (exercise episode, tips already shown). Never holds chat text."""
+
+    episode_expires: float = 0.0
+    """Monotonic time until which an anxiety/breathing episode is open (0 = none)."""
+    rounds: int = 0
+    """Breathing rounds offered in this episode."""
+    grounded: bool = False
+    safety: str | None = None
+    """None, "asked" or "clear" (the safety question was answered "no")."""
+    notified: bool = False
+    tips_shown: list[str] = field(default_factory=list)
+    low_mood_count: int = 0
+    stay_index: int = 0
+
+
+@dataclass
 class Session:
     session_id: str
     crew_id: str | None
@@ -48,6 +65,7 @@ class Session:
     language: str | None = None
     """Last language detected in the user's messages (kept for the session only)."""
     pending: Pending | None = None
+    wellbeing: WellbeingState | None = None
 
 
 class SessionStore:
@@ -89,6 +107,7 @@ class SessionStore:
                 session.crew_id = crew_id
                 session.language = None
                 session.pending = None
+                session.wellbeing = None
             session.last_active = self._clock()
             return session
 
@@ -139,6 +158,19 @@ class SessionStore:
             session = self._sessions.get(session_id)
             if session is not None:
                 session.pending = None
+
+    def now(self) -> float:
+        return self._clock()
+
+    def wellbeing(self, session_id: str) -> WellbeingState | None:
+        """The session's wellbeing state (created on first use); None if the session does not exist."""
+        with self._lock:
+            session = self._sessions.get(session_id)
+            if session is None or self._expired(session):
+                return None
+            if session.wellbeing is None:
+                session.wellbeing = WellbeingState()
+            return session.wellbeing
 
     def crew_of(self, session_id: str) -> str | None:
         with self._lock:

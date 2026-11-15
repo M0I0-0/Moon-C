@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from .schemas import LANGUAGES, CrewProfile
+from .schemas import SUPPORTED_LANGUAGES, CrewProfile
 
 
 class CrewError(RuntimeError):
@@ -38,7 +38,7 @@ class CrewRegistry:
         if len(self._by_id) != len(members) or len(self._by_bracelet) != len(members):
             raise CrewError("crew.json has duplicate crew_id or bracelet_id values")
         for m in members:
-            if m.preferredLanguage not in LANGUAGES:
+            if m.preferredLanguage not in SUPPORTED_LANGUAGES:
                 raise CrewError(f"crew.json: unsupported preferredLanguage for {m.crew_id}")
 
     @classmethod

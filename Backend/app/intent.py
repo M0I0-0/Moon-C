@@ -40,8 +40,19 @@ _NON_WORD = re.compile(r"[^\w\s]|_")
 def normalize(text: str) -> str:
     """Lowercase, remove accents and apostrophes, turn other punctuation into spaces.
 
+    One stable folding for the four priority languages (the front end repeats it in assistant.js):
+    ``casefold`` (German sharp s -> ``ss``), NFKD and removal of combining marks. Consequences: Spanish and
+    German accents/umlauts go (a, o, u), Cyrillic keeps its letters except the two composed ones: e with
+    diaeresis -> e and short i -> i (so "ее" and "её", "мой" and "мои" fold the same). Keywords go through the
+    same function, so they may be written naturally. Typed transliterations (ae, oe, ue) are NOT folded:
+    keywords.json lists the important ones as extra entries.
+
     >>> normalize("¡No puedo RESPIRAR! Can't breathe… SpO₂?")
     'no puedo respirar cant breathe spo2'
+    >>> normalize("Ich kann nicht ATMEN, Brustschmerzen, Straße")
+    'ich kann nicht atmen brustschmerzen strasse'
+    >>> normalize("Мне больно, ёлка, дышать не могу")
+    'мне больно елка дышать не могу'
     """
     text = unicodedata.normalize("NFKD", text.casefold())
     text = "".join(ch for ch in text if not unicodedata.combining(ch))
@@ -52,7 +63,7 @@ def normalize(text: str) -> str:
 
 _BREAK_MARK = "xbreakx"
 _BREAKS = re.compile(r"[,;.:!?¿¡()…\n\r]|\s[-–—]\s")
-_LAUGH = re.compile(r"^(?:([jh][aeiou])\1+[jh]?|l+o+l+|lmao+|x+d+)$")
+_LAUGH = re.compile(r"^(?:([jh][aeiou])\1+[jh]?|l+o+l+|lmao+|x+d+|(?:ха){2,}х?|(?:ах){2,}а?|х[еи]х+[еи]*|ло+л|ке+к|ржу+)$")
 
 
 def tokenize(text: str) -> tuple[list[str], list[bool]]:
@@ -83,7 +94,9 @@ def _find_phrase(tokens: list[str], phrase: tuple[str, ...]) -> list[int]:
 
 _REPEATED = re.compile(r"(.)\1{2,}")
 # Short real words one letter away from a greeting ("hora" ~ "hola"): never read as small talk.
-_NOT_SMALL_TALK = frozenset({"hora", "horas", "hoja", "sola", "solo", "bola", "cola", "mola", "gracia"})
+_NOT_SMALL_TALK = frozenset(
+    {"hora", "horas", "hoja", "sola", "solo", "bola", "cola", "mola", "gracia", "пора", "поза", "мока", "voll", "wohl", "hall"}
+)
 
 
 def _within_one_edit(a: str, b: str) -> bool:
@@ -100,6 +113,27 @@ def _within_one_edit(a: str, b: str) -> bool:
     if len(a) == len(b):
         return a[i + 1 :] == b[i + 1 :]
     return a[i:] == b[i + 1 :]
+
+
+KEYWORD_LANGUAGES = ("es", "en", "ru", "de")
+# Nodes whose words say nothing about the language (answers, negations, filters) or that are not language lists.
+_HINT_SKIP = frozenset({"negation", "followup", "ack", "post_filter_allow", "post_filter_block", "emergency_exact"})
+
+
+def _collect_language_phrases(node: Any, out: dict[str, set[str]], skip: bool = False) -> None:
+    """Fill ``out`` with normalized keyword -> languages whose lists contain it (any {"es": [...], "ru": [...]} node)."""
+    if not isinstance(node, dict) or skip:
+        return
+    for key, value in node.items():
+        if key.startswith("_"):
+            continue
+        if key in KEYWORD_LANGUAGES and isinstance(value, list):
+            for item in value:
+                phrase = normalize(str(item))
+                if phrase:
+                    out.setdefault(phrase, set()).add(key)
+        else:
+            _collect_language_phrases(value, out)
 
 
 class KeywordsError(RuntimeError):
@@ -183,11 +217,15 @@ class KeywordRouter:
             safety_help = data.get("safety_help", {})
             self._safety_help = [("safety", kw) for kw in _phrases(safety_help)]
             self._safety_protocol = safety_help.get("protocol", "general_emergency")
+            exact = data.get("emergency_exact", {})
+            self._exact = set(_phrases(exact))
+            self._exact_protocol = exact.get("protocol", "general_emergency")
             self._help = [("help", kw) for kw in _phrases(data.get("help", {}))]
             self._ack = [("ack", kw) for kw in _phrases(data.get("ack", {}))]
             followup = data.get("followup", {})
             self._yes = set(_phrases(followup.get("yes", {})))
             self._no = set(_phrases(followup.get("no", {})))
+            self._unsure = [tuple(p.split()) for p in _phrases(followup.get("unsure", {}))]
             self._heavy = _phrases(followup.get("heavy", {}))
             self._light = _phrases(followup.get("light", {}))
             self._indicators = [
@@ -216,6 +254,15 @@ class KeywordRouter:
             self._block = [("label", kw) for kw in _phrases(data.get("post_filter_block", {}))]
         except (KeyError, AttributeError, TypeError) as exc:
             raise KeywordsError(f"keywords.json is malformed: {exc!r}") from exc
+
+        # keyword -> languages, for ``language_hint`` (only keywords that belong to ONE language are evidence)
+        every: dict[str, set[str]] = {}
+        _collect_language_phrases({k: v for k, v in data.items() if k not in _HINT_SKIP}, every)
+        self._only_in: dict[str, str] = {ph: next(iter(ls)) for ph, ls in every.items() if len(ls) == 1}
+        everything: dict[str, set[str]] = {}
+        _collect_language_phrases(data, everything)
+        self.vocabulary: frozenset[str] = frozenset(tok for ph in everything for tok in ph.split())
+        """Every word of every keyword of every language: words Moon-C knows (see multilingual.is_foreign_message)."""
 
         unknown = {name for name, _ in self._indicators} - set(INDICATORS)
         if unknown:
@@ -337,6 +384,9 @@ class KeywordRouter:
         padded = f" {normalized} "
         tokens, breaks = tokenize(text)
 
+        if len(tokens) == 1 and tokens[0] in self._exact:  # "112", "911": a bare emergency number
+            return Intent("emergency", protocol=self._exact_protocol)
+
         scan = self._scan_emergency(tokens, breaks)
         if scan:
             kind, protocol = scan
@@ -395,6 +445,26 @@ class KeywordRouter:
 
         return Intent("fallback")
 
+    def language_hint(self, text: str) -> tuple[str | None, int]:
+        """(language, evidence) guessed from the keywords of shared/keywords.json, or (None, 0).
+
+        Only keywords that exist in a single language count ("brustschmerzen", "кровотечение"; not "no" or
+        "ok"); evidence = words matched. It fills the gaps of ``detect_language`` for one-word messages
+        ("Notfall", "Puls") in the domain this router knows: the reply must come in the language of the person
+        who is asking for help.
+        """
+        padded = f" {normalize(text)} "
+        score: dict[str, int] = {}
+        for phrase, lang in self._only_in.items():
+            if f" {phrase} " in padded:
+                score[lang] = score.get(lang, 0) + len(phrase.split())
+        if not score:
+            return None, 0
+        ranked = sorted(score.items(), key=lambda item: -item[1])
+        if len(ranked) > 1 and ranked[0][1] == ranked[1][1]:
+            return None, 0
+        return ranked[0]
+
     def answer(self, text: str, graded: bool = True) -> str | None:
         """Read a reply to one of Moon-C's questions: "yes", "no" or None (not understood).
 
@@ -414,7 +484,7 @@ class KeywordRouter:
         first = tokens[0]
         if first in self._yes:
             return "yes"
-        if first in self._no and tokens[1:2] != ["se"]:
+        if first in self._no and not any(tuple(tokens[: len(p)]) == p for p in self._unsure):  # "no sé", "не знаю"
             return "no"
         return None
 

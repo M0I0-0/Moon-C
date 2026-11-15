@@ -48,6 +48,14 @@ SYSTEM_PROMPT = (
 _LANGUAGE_LINE = {
     "en": "Always reply in English.",
     "es": "Responde siempre en español y usa el femenino al hablar de ti misma.",
+    "ru": (
+        "Always reply in Russian. Moon-C is female: when you speak about yourself, use feminine "
+        "grammatical gender (past-tense verbs, adjectives and participles)."
+    ),
+    "de": (
+        "Always reply in German. Moon-C is female: when you refer to yourself with a role or noun, "
+        "use the feminine form (e.g. 'Begleiterin')."
+    ),
 }
 
 CANNED_REPLIES: dict[str, dict[str, list[str]]] = {
@@ -103,6 +111,60 @@ CANNED_REPLIES: dict[str, dict[str, list[str]]] = {
             "Suena bien. Aquí sigo si quieres seguir conversando.",
             "Te escucho. Cuéntame más cuando quieras.",
             "Cada día aquí es parte de algo grande. Me alegra estar en esta misión contigo.",
+        ],
+    },
+    "ru": {
+        "greeting": [
+            "Рада тебя слышать! Я рядом, когда понадоблюсь.",
+            "Привет! Как приятно, что ты здесь. Как проходит твой день?",
+            "Здравствуй! Я готова, когда ты готов.",
+            "Привет! Рада тебя видеть. О чём думаешь?",
+            "Привет! Я здесь, с тобой, как всегда.",
+        ],
+        "thanks": [
+            "Пожалуйста! Я всегда рядом.",
+            "Обращайся в любое время. Для этого я и здесь.",
+            "Рада помочь!",
+            "Не за что. Мы же команда.",
+        ],
+        "farewell": [
+            "До скорой встречи! Я буду здесь.",
+            "Пока! Береги себя там.",
+            "До связи! Я рядом, когда понадоблюсь.",
+        ],
+        "casual": [
+            "Я Moon-C, твоя спутница на борту. У меня всё хорошо, спасибо, что спросил!",
+            "Я всегда рада поболтать. О чём хочешь поговорить?",
+            "Звучит хорошо. Я здесь, если хочешь продолжить разговор.",
+            "Я слушаю. Расскажи побольше, когда захочешь.",
+            "Каждый день здесь — часть чего-то великого. Я рада быть с тобой на этой миссии.",
+        ],
+    },
+    "de": {
+        "greeting": [
+            "Schön, von dir zu hören! Ich bin da, wann immer du mich brauchst.",
+            "Hallo! Schön, dass du da bist. Wie läuft dein Tag?",
+            "Hallo! Ich bin bereit, wenn du es bist.",
+            "Hey! Schön, dich zu sehen. Was beschäftigt dich?",
+            "Hallo! Ich bin wie immer ganz bei dir.",
+        ],
+        "thanks": [
+            "Gern geschehen! Ich bin immer für dich da.",
+            "Jederzeit. Dafür bin ich da.",
+            "Ich helfe gern!",
+            "Kein Problem. Wir sind ein Team.",
+        ],
+        "farewell": [
+            "Bis bald! Ich bin hier.",
+            "Tschüss für jetzt. Pass da draußen auf dich auf!",
+            "Bis später! Ich bin da, wenn du mich brauchst.",
+        ],
+        "casual": [
+            "Ich bin Moon-C, deine Begleiterin an Bord. Mir geht es gut, danke der Nachfrage!",
+            "Ich unterhalte mich immer gern. Worüber möchtest du sprechen?",
+            "Klingt gut. Ich bin da, wenn du weiterreden möchtest.",
+            "Ich höre dir zu. Erzähl mir mehr, wann immer du magst.",
+            "Jeder Tag hier draußen ist Teil von etwas Großem. Ich bin froh, diese Mission mit dir zu erleben.",
         ],
     },
 }

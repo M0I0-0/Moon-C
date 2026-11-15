@@ -2,11 +2,13 @@
 
 Kinds of alert:
 
-* ``vital``    - a reading in the urgent range. POST /measurements raises one per urgent
-                 reading; the simulated bracelets keep at most one open alert per crew
-                 member and indicator.
+* ``vital``    - a reading in the attention or urgent range (POST /measurements, chat and simulated
+                 bracelets share ``record_reading``/``AlertBoard.raise_vital``). There is at most one open
+                 alert per crew member and indicator: a new reading updates it (time, and level if it rises).
 * ``report``   - the chat detected an emergency for an identified crew member.
 * ``maneuver`` - a guided emergency maneuver (CPR, tourniquet, choking) was started.
+* ``support``  - the wellbeing flow tells the crew and the medical officer that someone needs support.
+                 It never carries what was said.
 
 An alert stays open until it is resolved; acknowledging it only says someone saw it.
 Alerts live in memory only and never include chat text: a report alert keeps just
@@ -31,6 +33,7 @@ _TEXTS = {
         "maneuver": "Alert: {what} guide started ({who})",
         "unknown": "unidentified crew member",
         "emergency": "an emergency",
+        "support": "Alert: {who} needs support from the medical officer",
     },
     "es": {
         "vital": "Alerta: {who}, {what} {value}",
@@ -38,15 +41,38 @@ _TEXTS = {
         "maneuver": "Alerta: guía de {what} iniciada ({who})",
         "unknown": "tripulante sin identificar",
         "emergency": "una emergencia",
+        "support": "Alerta: {who} necesita apoyo del oficial médico",
+    },
+    # supuesto: traducción por validar con traductor médico (ru, de)
+    "ru": {
+        "vital": "Тревога: {who}, {what} {value}",
+        "report": "Тревога: {who} сообщил(а): {what}",
+        "maneuver": "Тревога: запущено руководство «{what}» ({who})",
+        "unknown": "неопознанный член экипажа",
+        "emergency": "экстренная ситуация",
+        "support": "Тревога: {who} нужна поддержка медицинского офицера",
+    },
+    "de": {
+        "vital": "Alarm: {who}, {what} {value}",
+        "report": "Alarm: {who} hat gemeldet: {what}",
+        "maneuver": "Alarm: Anleitung {what} gestartet ({who})",
+        "unknown": "nicht identifiziertes Besatzungsmitglied",
+        "emergency": "ein Notfall",
+        "support": "Alarm: {who} braucht Unterstützung vom medizinischen Offizier",
     },
 }
 
 # Guided maneuvers defined by the 3D app (Model3D/moonc/maniobras.js).
 MANEUVER_NAMES = {
-    "rcp": {"en": "CPR", "es": "RCP"},
-    "torniquete": {"en": "tourniquet", "es": "torniquete"},
-    "atragantamiento": {"en": "choking", "es": "atragantamiento"},
+    "rcp": {"en": "CPR", "es": "RCP", "ru": "СЛР", "de": "Herz-Lungen-Wiederbelebung"},
+    "torniquete": {"en": "tourniquet", "es": "torniquete", "ru": "жгут", "de": "Aderpresse"},
+    "atragantamiento": {"en": "choking", "es": "atragantamiento", "ru": "удушье", "de": "Verschlucken"},
 }
+
+
+# Protocol name of a "report" alert raised by the wellbeing flow (app/wellbeing.py). It is not a manual protocol:
+# it only tells the crew and the medical officer that someone needs support. It never carries what was said.
+SUPPORT_ESCALATION = "support_escalation"
 
 
 class AlertNotFound(KeyError):
@@ -69,6 +95,19 @@ class Alert:
     acknowledged_at: datetime | None = None
     resolved: bool = False
     resolved_at: datetime | None = None
+    status: str | None = None
+    """Level of a vital alert: attention or urgent."""
+    updated_at: datetime | None = None
+    """Time of the last reading/notice that fed this alert (``created_at`` if never updated)."""
+
+    @property
+    def last_at(self) -> datetime:
+        return self.updated_at or self.created_at
+
+
+ALERT_STATUSES = ("attention", "urgent")
+"""Statuses that raise an alert, on every route (API, chat, simulated bracelets)."""
+_RANK = {"attention": 1, "urgent": 2}
 
 
 class AlertBoard:
@@ -90,21 +129,51 @@ class AlertBoard:
         return None
 
     # ------------------------------------------------------------------ creation
-    def create(self, measurement: Measurement, crew_name: str | None) -> Alert:
-        """Vital alert for an urgent measurement."""
-        return self._add(
-            Alert(
+    def raise_vital(self, measurement: Measurement, crew_name: str | None) -> Alert:
+        """Vital alert for an attention/urgent measurement.
+
+        Reuses the open alert of the same crew member and indicator: it gets the time of the last reading and,
+        if the severity rises (or stays), the new value and level. Unassigned readings (no crew) never merge.
+        """
+        now = now_utc()
+        with self._lock:
+            existing = None
+            if measurement.crew_id is not None:
+                existing = next(
+                    (
+                        a for a in self._alerts.values()
+                        if a.kind == "vital" and not a.resolved
+                        and a.crew_id == measurement.crew_id and a.indicator == measurement.indicator
+                    ),
+                    None,
+                )
+            if existing is not None:
+                if _RANK.get(measurement.status, 0) >= _RANK.get(existing.status or "urgent", 0):
+                    updated = replace(
+                        existing, updated_at=now, status=measurement.status, value=measurement.value,
+                        unit=measurement.unit, measurement_id=measurement.id,
+                    )
+                else:
+                    updated = replace(existing, updated_at=now)
+                self._alerts[existing.id] = updated
+                return updated
+            alert = Alert(
                 id=uuid.uuid4().hex,
                 kind="vital",
                 crew_id=measurement.crew_id,
                 crew_name=crew_name,
-                created_at=now_utc(),
+                created_at=now,
                 measurement_id=measurement.id,
                 indicator=measurement.indicator,
                 value=measurement.value,
                 unit=measurement.unit,
+                status=measurement.status,
+                updated_at=now,
             )
-        )
+            self._alerts[alert.id] = alert
+            return alert
+
+    create = raise_vital
 
     def report(self, crew_id: str | None, crew_name: str | None, protocol: str) -> Alert:
         """Emergency detected in the chat. Reuses the open alert for the same crew member and protocol."""
@@ -138,8 +207,21 @@ class AlertBoard:
             )
         )
 
-    def has_open_vital(self, crew_id: str | None, indicator: str) -> bool:
-        return self._open_matching(kind="vital", crew_id=crew_id, indicator=indicator) is not None
+    def support(self, crew_id: str | None, crew_name: str | None) -> Alert:
+        """Someone needs support (wellbeing flow). Reuses the open alert of the same crew member."""
+        existing = self._open_matching(kind="support", crew_id=crew_id)
+        if existing:
+            return existing
+        return self._add(
+            Alert(
+                id=uuid.uuid4().hex,
+                kind="support",
+                crew_id=crew_id,
+                crew_name=crew_name,
+                created_at=now_utc(),
+                protocol=SUPPORT_ESCALATION,
+            )
+        )
 
     # ------------------------------------------------------------------ queries and changes
     def list(self, include_acknowledged: bool = False, include_resolved: bool = False) -> list[Alert]:
@@ -201,7 +283,11 @@ class AlertBoard:
     def message(self, alert: Alert, lang: str) -> str:
         texts = _TEXTS.get(lang, _TEXTS["en"])
         who = alert.crew_name or texts["unknown"]
+        if alert.kind == "support":  # wellbeing flow: no chat text, no clinical label
+            return texts["support"].format(who=who)
         if alert.kind == "report":
+            if alert.protocol == SUPPORT_ESCALATION:  # legacy shape
+                return texts["support"].format(who=who)
             if alert.protocol == "general_emergency" or not self._manual.has_protocol(alert.protocol or ""):
                 what = texts["emergency"]
             else:
@@ -233,4 +319,6 @@ class AlertBoard:
             acknowledged_at=alert.acknowledged_at,
             resolved=alert.resolved,
             resolved_at=alert.resolved_at,
+            status=alert.status or "urgent",
+            updated_at=alert.last_at,
         )

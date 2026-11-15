@@ -10,7 +10,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, StringConstraints
 
-Language = Literal["en", "es"]
+Language = Literal["en", "es", "ru", "de"]
 IndicatorName = Literal[
     "heart_rate",
     "body_temperature",
@@ -27,7 +27,7 @@ Category = Literal["emergency", "health", "support", "ambiguous", "small_talk", 
 SupportMoment = Literal["stress", "frustration", "mistake", "conflict", "homesick", "lonely", "low_mood"]
 EarthLink = Literal["offline", "online"]
 ProtocolType = Literal["emergency", "guidance"]
-AlertKind = Literal["vital", "report", "maneuver"]
+AlertKind = Literal["vital", "report", "maneuver", "support"]
 
 INDICATORS: tuple[str, ...] = (
     "heart_rate",
@@ -40,7 +40,11 @@ INDICATORS: tuple[str, ...] = (
     "respiratory_rate",
     "radiation",
 )
+# Languages every shared JSON file must carry (required by the validators).
 LANGUAGES: tuple[str, ...] = ("en", "es")
+# Languages the backend accepts and reports in /status. ru/de texts are optional in the JSON files:
+# every lookup falls back to English when they are missing.
+SUPPORTED_LANGUAGES: tuple[str, ...] = ("es", "en", "ru", "de")
 
 SESSION_ID = Field(min_length=1, max_length=128, examples=["tablet-galley-1"])
 
@@ -60,6 +64,7 @@ class StatusResponse(BaseModel):
     voice: Literal["disabled", "loading", "ready", "unavailable"] = Field(
         "disabled", description="Moon-C's own voice (POST /tts). If not ready, use a local browser voice."
     )
+    languages: list[Language] = Field(default_factory=list, description="Languages the backend supports.")
     voice_languages: list[Language] = Field(default_factory=list, description="Languages Moon-C's voice speaks.")
     manual_version: str
     time: datetime
@@ -200,6 +205,12 @@ class ChatResponse(BaseModel):
     )
     source: str | None = Field(None, description="Manual source for health and emergency replies.")
     suggestions: list[str] = Field(default_factory=list, description="Optional quick replies for the UI.")
+    guide: Literal["breathing", "grounding"] | None = Field(
+        None, description="Guided wellbeing exercise the UI should open (slow breathing or 5-4-3-2-1 grounding)."
+    )
+    measurement_recorded: bool = Field(
+        False, description="True if this reply recorded a reading the crew member reported in the chat."
+    )
 
 
 class SessionResetRequest(BaseModel):
@@ -238,7 +249,8 @@ class AlertView(BaseModel):
     id: str
     kind: AlertKind = Field(
         "vital",
-        description="vital = urgent reading; report = emergency detected in the chat; maneuver = guided maneuver started.",
+        description="vital = attention/urgent reading; report = emergency detected in the chat; "
+        "maneuver = guided maneuver started; support = someone needs support (no conversation content).",
     )
     measurement_id: str | None = Field(None, description="Set for vital alerts.")
     crew_id: str | None
@@ -247,9 +259,12 @@ class AlertView(BaseModel):
     value: float | None = None
     unit: str | None = None
     protocol: str | None = Field(None, description="Report alerts: protocol name. Maneuver alerts: maneuver id.")
-    status: Literal["urgent"] = "urgent"
+    status: Literal["attention", "urgent"] = Field(
+        "urgent", description="Vital alerts: level of the latest reading. Other kinds: always urgent."
+    )
     message: str = Field(examples=["Alert: Moisés, body temperature 38.2 °C"])
     created_at: datetime
+    updated_at: datetime | None = Field(None, description="Time of the last reading that fed this alert.")
     acknowledged: bool
     acknowledged_at: datetime | None
     resolved: bool = False

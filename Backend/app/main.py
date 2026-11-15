@@ -35,6 +35,7 @@ from .bracelets import SimulatedBracelets, UnknownCrew, UnknownScenario
 from .chat import ChatService
 from .config import Settings, get_settings
 from .crew import CrewRegistry
+from .crewdata import CrewData, guidance_steps, record_reading
 from .evaluator import MeasurementValueError, describe, evaluate
 from .intent import KeywordRouter
 from .manual import Manual
@@ -52,6 +53,7 @@ from .schemas import (
     IdentifyResponse,
     IndicatorName,
     IndicatorView,
+    SUPPORTED_LANGUAGES,
     Language,
     ManualView,
     Measurement,
@@ -190,7 +192,23 @@ class Services:
             sessions=sessions,
             ai_client=ai_client,
             chat=ChatService(
-                manual, router, crew, sessions, SmallTalk(ai_client), alerts=alerts, support=support, profiles=profiles
+                manual,
+                router,
+                crew,
+                sessions,
+                SmallTalk(ai_client),
+                alerts=alerts,
+                support=support,
+                profiles=profiles,
+                crewdata=CrewData.from_file(
+                    settings.shared_dir / "keywords.json",
+                    manual,
+                    crew,
+                    store,
+                    alerts,
+                    support=support,
+                    profiles=profiles,
+                ),
             ),
             support=support,
             profiles=profiles,
@@ -228,6 +246,7 @@ async def get_status(services: ServicesDep) -> StatusResponse:
         model_available=available,
         earth_link=services.sync.link,
         voice=services.voice.state,
+        languages=list(SUPPORTED_LANGUAGES),
         voice_languages=list(services.voice.languages) if services.voice.state == "ready" else [],
         manual_version=services.manual.version,
         time=now_utc(),
@@ -301,10 +320,7 @@ def get_protocol(name: str, services: ServicesDep, language: LanguageQuery = "en
 # =========================================================================== measurements
 def _guidance(services: Services, indicator: str, status: str, lang: str, crew) -> list[str]:
     """Manual steps for a reading; a low mood also gets the lines of the crew member's support profile."""
-    steps = services.manual.what_to_do(indicator, status, lang)
-    if indicator == "mood" and status != "normal" and crew is not None:
-        steps = services.support.mood_guidance(services.profiles.get(crew.crew_id), lang) + steps
-    return steps
+    return guidance_steps(services.manual, services.support, services.profiles, indicator, status, lang, crew)
 
 
 @api.post(
@@ -326,22 +342,12 @@ def create_measurement(body: MeasurementIn, services: ServicesDep) -> Measuremen
         if crew is None:
             raise HTTPException(status_code=404, detail=f"Unknown crew_id '{body.crew_id}'.")
     try:
-        evaluation = evaluate(services.manual, body.indicator, body.value, body.unit)
+        recorded = record_reading(
+            services.manual, services.store, services.alerts, crew, body.indicator, body.value, body.unit, body.timestamp
+        )
     except MeasurementValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-
-    measurement = Measurement(
-        id=uuid.uuid4().hex,
-        crew_id=crew.crew_id if crew else None,
-        indicator=evaluation.indicator,
-        value=evaluation.value,
-        unit=evaluation.unit,
-        status=evaluation.status,
-        timestamp=to_utc(body.timestamp) if body.timestamp else now_utc(),
-        synced=False,
-    )
-    services.store.add(measurement)
-    alert = services.alerts.create(measurement, crew.name if crew else None) if evaluation.status == "urgent" else None
+    measurement, evaluation, alert = recorded.measurement, recorded.evaluation, recorded.alert
 
     lang = body.language or (crew.preferredLanguage if crew else None) or "en"
     needs_confirmation = crew is None
