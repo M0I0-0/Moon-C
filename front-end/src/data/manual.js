@@ -97,7 +97,7 @@ export function whatToDo(indicator, status) {
 export function protocolView(name, lang = 'es') {
   const p = protocols.protocols[name]
   if (!p) return null
-  const t = (texts) => texts?.[lang] ?? texts?.es
+  const t = (texts) => texts?.[String(lang).slice(0, 2)] ?? texts?.en ?? texts?.es
   return {
     name,
     type: p.type,

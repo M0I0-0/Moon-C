@@ -149,8 +149,15 @@ export function useSpeechOutput(lang, { moonVoice = false, onMouth } = {}) {
     settle()
   }, [player, settle])
 
+  // ¿Hay voz para ese idioma? Moon-C (Piper) solo habla español; ru, de, en… dependen de voces locales del navegador.
+  const hasVoiceFor = useCallback(
+    (forLang = lang) => (moonVoice && forLang.startsWith('es')) || Boolean(pickVoice(voices, forLang)),
+    [moonVoice, voices, lang],
+  )
+
   return {
     supported: moonVoice || Boolean(synth),
+    hasVoiceFor,
     // Hay voz para el idioma actual (la de Moon-C, solo español, o una local); si no, la app muestra subtítulos.
     hasVoices: (moonVoice && lang.startsWith('es')) || Boolean(pickVoice(voices, lang)),
     moonVoice,

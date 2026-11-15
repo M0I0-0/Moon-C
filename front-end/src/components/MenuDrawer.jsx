@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { CREW } from '../data/manual'
 import { EMERGENCY_TYPES } from '../hooks/useCrewSimulation'
 import { CloseIcon } from './Icons'
+import { tr } from '../lib/i18n'
 import { MANEUVER_LIST } from '../lib/maneuvers'
 import MeasurementEntry from './MeasurementEntry'
 import DataSection from './DataSection'
@@ -20,6 +21,7 @@ export default function MenuDrawer({
   onSimulate,
   onReset,
   onManeuver,
+  onWellbeing,
   online,
   language,
   sync,
@@ -58,6 +60,20 @@ export default function MenuDrawer({
               <span className="account-info">
                 <strong>{m.label}</strong>
                 <span>{m.hint}</span>
+              </span>
+            </button>
+          ))}
+        </section>
+
+        <section className="drawer-section">
+          <h3>{tr(language, 'wbMenuTitle')}</h3>
+          {[
+            ['breathing', 'wbBreathing'],
+            ['grounding', 'wbGrounding'],
+          ].map(([mode, key]) => (
+            <button key={mode} className="account" onClick={() => onWellbeing(mode)}>
+              <span className="account-info">
+                <strong>{tr(language, key)}</strong>
               </span>
             </button>
           ))}

@@ -382,3 +382,23 @@ ul, ol { list-style: none; }
 .maneuver-summary { font-family: var(--mono); font-size: 11px; white-space: pre-wrap; background: rgba(255,255,255,.05); border-radius: 6px; padding: 8px; margin-top: 8px; max-height: 180px; overflow: auto; }
 .maneuver-note { font-size: 11px; color: var(--faint); border-top: 1px solid var(--line); padding-top: 10px; margin-top: 14px; }
 .maneuver-open { margin-top: 8px; }
+
+/* Bienestar: respiración y anclaje */
+.wb-stage { display: grid; justify-items: center; gap: 6px; margin: 4px 0 12px; }
+.wb-circle-wrap { width: 150px; height: 150px; display: grid; place-items: center; }
+.wb-circle { width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff8, var(--accent)); box-shadow: 0 0 40px color-mix(in srgb, var(--accent) 45%, transparent); transition: transform .12s linear; }
+.wb-stage.is-paused .wb-circle { opacity: .5; }
+.wb-phase { font-size: 26px; font-weight: 700; line-height: 1.2; text-align: center; }
+.wb-count { font-family: var(--mono); font-size: 30px; font-weight: 700; color: var(--accent); min-height: 38px; }
+.wb-count--big { font-size: 64px; line-height: 1; text-align: center; }
+.wb-cycles { font-size: 12px; color: var(--muted); }
+.wb-bar { display: none; width: 100%; height: 8px; border-radius: 4px; background: var(--line-strong); overflow: hidden; }
+.wb-bar span { display: block; height: 100%; background: var(--accent); }
+.wb-feeling { display: grid; gap: 6px; margin-top: 10px; }
+.wb-ground { display: grid; justify-items: center; gap: 6px; margin: 8px 0 12px; }
+.wb-ground-text { font-size: 18px; line-height: 1.4; text-align: center; font-weight: 600; }
+@media (prefers-reduced-motion: reduce) {
+  .wb-circle-wrap { display: none; }
+  .wb-bar { display: block; }
+  .wb-circle { transition: none; }
+}

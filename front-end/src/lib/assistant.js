@@ -18,13 +18,21 @@ export async function askBackend({ message, crewId, sessionId, language }) {
 // palabras clave (shared/keywords.json), el mismo manual (shared/protocols.json)
 // y las mismas reglas que Backend/app/intent.py (frases claras, frases débiles y raíces,
 // negaciones y dolor sin frase exacta). Todo lo demás espera al enlace.
+// Idiomas: es, en, ru, de (los mismos que el backend).
 
-export function normalize(text) {
-  return text
+// Plegado idéntico al de Backend/app/intent.py: minúsculas (la ß alemana -> ss, como casefold de Python), NFKD y
+// sin marcas combinadas. Efecto: ä ö ü -> a o u; en ruso solo cambian ё -> е y й -> и. Las palabras clave pasan por
+// la misma función, así que se pueden escribir con acentos o sin ellos.
+const fold = (text) =>
+  text
     .toLowerCase()
+    .replace(/ß/g, 'ss')
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')
     .replace(/['’‘`´ʼ]/g, '')
+
+export function normalize(text) {
+  return fold(text)
     .replace(/[^\p{L}\p{N}\s]|_/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim()
@@ -64,8 +72,13 @@ const PAIN = Object.entries(keywords.pain_question)
   }))
 const SAFETY_HELP = phrases(keywords.safety_help)
 const SAFETY_PROTOCOL = keywords.safety_help.protocol ?? 'general_emergency'
+// Un número de emergencia solo ("112", "911") es una emergencia general; dentro de una frase ("mi pulso es 112") no.
+const EXACT = new Set(phrases(keywords.emergency_exact))
+const EXACT_PROTOCOL = keywords.emergency_exact?.protocol ?? 'general_emergency'
 const YES = new Set(phrases(keywords.followup.yes))
 const NO = new Set(phrases(keywords.followup.no))
+// "no sé", "не знaю", "weiß nicht": al inicio de una respuesta no es un "no".
+const UNSURE = phrases(keywords.followup.unsure).map((p) => p.split(' '))
 const HEAVY = phrases(keywords.followup.heavy)
 const LIGHT = phrases(keywords.followup.light)
 // Salud y apoyo: un mensaje así es un tema nuevo, no la respuesta a una pregunta (igual que el backend).
@@ -83,11 +96,7 @@ const BREAK = 'xbreakx'
 
 /** Igual que tokenize() del backend: palabras normalizadas y, por palabra, si una coma/punto va justo antes. */
 export function tokenize(message) {
-  const text = message
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/['’‘`´ʼ]/g, '')
+  const text = fold(message)
     .replace(/[,;.:!?¿¡()…\n\r]|\s[-–—]\s/g, ` ${BREAK} `)
     .replace(/[^\p{L}\p{N}\s]|_/gu, ' ')
   const tokens = []
@@ -187,6 +196,7 @@ function scanPain(tokens, breaks) {
 export function scanEmergency(message) {
   const { tokens, breaks } = tokenize(message)
   if (!tokens.length) return null
+  if (tokens.length === 1 && EXACT.has(tokens[0])) return { kind: 'direct', protocol: EXACT_PROTOCOL }
   const scan = scanEmergencyTokens(tokens, breaks)
   if (scan) return { kind: scan[0], protocol: scan[1] }
   const padded = ` ${tokens.join(' ')} `
@@ -214,7 +224,7 @@ export function answer(message, graded = true) {
     if (tokens.some((t) => LIGHT.some((stem) => t.startsWith(stem)))) return 'no'
   }
   if (YES.has(tokens[0])) return 'yes'
-  if (NO.has(tokens[0]) && tokens[1] !== 'se') return 'no'
+  if (NO.has(tokens[0]) && !UNSURE.some((u) => u.every((w, k) => tokens[k] === w))) return 'no'
   return null
 }
 
@@ -266,6 +276,55 @@ const OFFLINE = {
       safety: "I'm glad. I'm still here: if anything changes, tell me.",
       negated: "Good to hear. If anything changes, tell me and I'll guide you right away.",
       pain: "Understood. If it gets stronger or turns into pressure, tell me and I'll guide you. The on-board medical officer can also check you.",
+    },
+  },
+  // supuesto: traducción por validar con traductor médico (mismos textos que Backend/app/chat.py)
+  ru: {
+    intro: 'Это может быть экстренная ситуация. Сейчас же позови члена экипажа и бортового медицинского офицера.',
+    reply:
+      'Сейчас у меня нет связи с системой, поэтому я могу помочь только в экстренных ситуациях. Если это она, скажи, что происходит: боль в груди, не могу дышать, потеря сознания или кровотечение.',
+    suggestions: ['Боль в груди', 'Не могу дышать', 'Потерял сознание', 'Кровотечение'],
+    questions: {
+      safety: 'Хочу убедиться, что с тобой всё в порядке. Ты в опасности или тебе нужна помощь прямо сейчас?',
+      negated: 'Поняла. Всё точно в порядке?',
+      pain_chest_pain: 'Это сильная боль или давление?',
+      pain_breathing_difficulty: 'Тебе не хватает воздуха или дышать очень трудно?',
+    },
+    buttons: {
+      safety: ['Да, мне нужна помощь', 'Нет, я в порядке'],
+      negated: ['Да, всё хорошо', 'Нет, это происходит'],
+      pain_chest_pain: ['Да, сильная', 'Нет, слабая'],
+      pain_breathing_difficulty: ['Да, не хватает воздуха', 'Нет, слабо'],
+    },
+    retry: 'Хочу быть уверена. ',
+    reassure: {
+      safety: 'Рада слышать. Я рядом: если что-то изменится, скажи.',
+      negated: 'Хорошо. Если что-то изменится, скажи, и я сразу помогу.',
+      pain: 'Поняла. Если боль усилится или появится давление, скажи, и я помогу. Бортовой медицинский офицер тоже может тебя осмотреть.',
+    },
+  },
+  de: {
+    intro: 'Das könnte ein Notfall sein. Ruf jetzt sofort einen Kameraden und den medizinischen Offizier an Bord.',
+    reply:
+      'Ich habe gerade keine Verbindung zu meinem System und kann deshalb nur bei Notfällen helfen. Wenn es einer ist, sag mir, was passiert: Brustschmerzen, kann nicht atmen, Ohnmacht oder Blutung.',
+    suggestions: ['Brustschmerzen', 'Ich kann nicht atmen', 'Bewusstlos', 'Blutung'],
+    questions: {
+      safety: 'Ich möchte sichergehen, dass es dir gut geht. Bist du in Gefahr oder brauchst du jetzt Hilfe?',
+      negated: 'Verstanden. Bist du sicher, dass alles in Ordnung ist?',
+      pain_chest_pain: 'Ist es ein starker Schmerz oder Druck?',
+      pain_breathing_difficulty: 'Bekommst du schlecht Luft oder atmest du sehr mühsam?',
+    },
+    buttons: {
+      safety: ['Ja, ich brauche Hilfe', 'Nein, mir geht es gut'],
+      negated: ['Ja, alles gut', 'Nein, es passiert'],
+      pain_chest_pain: ['Ja, es ist stark', 'Nein, es ist leicht'],
+      pain_breathing_difficulty: ['Ja, ich bekomme keine Luft', 'Nein, es ist leicht'],
+    },
+    retry: 'Ich möchte sichergehen. ',
+    reassure: {
+      safety: 'Das freut mich. Ich bin weiter da: Wenn sich etwas ändert, sag es mir.',
+      negated: 'Gut zu hören. Wenn sich etwas ändert, sag es mir, dann helfe ich sofort.',
+      pain: 'Verstanden. Wenn es stärker wird oder zu Druck wird, sag es mir, dann führe ich dich. Der medizinische Offizier an Bord kann dich auch untersuchen.',
     },
   },
 }

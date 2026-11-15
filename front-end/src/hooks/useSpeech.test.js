@@ -7,6 +7,8 @@ const VOICES = [
   voice('Microsoft Sabina - Spanish (Mexico)', 'es-MX', true),
   voice('Microsoft Helena - Spanish (Spain)', 'es-ES', true),
   voice('Google US English', 'en-US', false),
+  voice('Microsoft Irina - Russian (Russia)', 'ru-RU', true),
+  voice('Google Deutsch', 'de-DE', false),
 ]
 
 describe('pickVoice: solo voces locales', () => {
@@ -21,5 +23,10 @@ describe('pickVoice: solo voces locales', () => {
   it('nunca una voz de red: sin voz local devuelve null (la app muestra subtítulos)', () => {
     expect(pickVoice(VOICES, 'en-US')).toBeNull()
     expect(pickVoice([voice('Google español', 'es-MX', false)], 'es-MX')).toBeNull()
+  })
+
+  it('ru: voz local; de: solo hay voz de red, así que null (subtítulos)', () => {
+    expect(pickVoice(VOICES, 'ru-RU').name).toBe('Microsoft Irina - Russian (Russia)')
+    expect(pickVoice(VOICES, 'de-DE')).toBeNull()
   })
 })

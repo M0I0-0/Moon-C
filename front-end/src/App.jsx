@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ManeuverPanel from './components/ManeuverPanel'
+import WellbeingGuide from './components/WellbeingGuide'
+import { afterSuggestions, afterText, guideFromResponse } from './lib/wellbeing'
 import { ENV_TO_MANEUVER, MANIOBRAS, autoOpenManeuver, explicitManeuver, replyIntro, suggestedManeuver, toReportSummary } from './lib/maneuvers'
-import { QUICK_GENERAL, baseLang, tr } from './lib/i18n'
+import { QUICK_CREW, QUICK_GENERAL, baseLang, tr } from './lib/i18n'
 import Scene from './components/Scene'
 import TopBar from './components/TopBar'
 import MenuDrawer from './components/MenuDrawer'
@@ -36,10 +38,6 @@ const DEVICE_ID = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}${Math.ran
 const sessionFor = (accountId) => `${DEVICE_ID}-${accountId}`
 // Igual que el backend (MOON_C_SESSION_TTL_S): la conversación se borra tras 10 min sin actividad.
 const CHAT_TTL_MS = 10 * 60 * 1000
-const QUICK_CREW = {
-  es: ['¿Cómo mido mi temperatura?', 'Me siento raro', 'Dormí muy poco'],
-  en: ['How do I measure my temperature?', 'I feel weird', 'I barely slept'],
-}
 
 export default function App() {
   const [storedAccount, setAccountId] = useLocalStorage('moonc.account', 'general')
@@ -58,7 +56,10 @@ export default function App() {
   const [maneuver, setManeuver] = useState(null) // { id, entorno, nonce }
   const [mstate, setMstate] = useState(null)
   const [autoGuide, setAutoGuide] = useState(null) // guía abierta sola por una emergencia: { nonce, reply, lang, slow }
+  const [wellbeing, setWellbeing] = useState(null) // guía de respiración/anclaje: { mode, nonce, lead }
   const autoGuideRef = useRef(null)
+  const convLangRef = useRef('es')
+  const ttsRef = useRef(null)
   const mstateRef = useRef(null)
   const maneuverLoaded = useRef(false)
   const resumeRef = useRef(null) // paso a restaurar tras cambiar de entorno
@@ -86,6 +87,7 @@ export default function App() {
   const [talkLang, setTalkLang] = useState({})
   const convLang = talkLang[accountId] ?? lang
   const speechLang = speechLangFor(convLang)
+  convLangRef.current = convLang
 
   const backend = useBackendStatus()
   // Voz propia de Moon-C (backend /tts, español) con la boca siguiendo el volumen real del audio.
@@ -115,7 +117,9 @@ export default function App() {
       const clear = () => setCaption((c) => (c?.id === id ? null : c))
       setCaption({ id, speaker, text })
       const readMs = Math.max(4000, text.split(/\s+/).length * 420)
-      if (audioAvailable) {
+      // Voz según el idioma de ESTA frase (puede ser ru/de sin voz local: entonces solo subtítulos).
+      const audible = voiceOn && tts.supported && tts.hasSpeakers !== false && tts.hasVoiceFor(spokenLang)
+      if (audible) {
         tts.speak(text, {
           lang: spokenLang,
           onEnd: () => setTimeout(clear, 1200),
@@ -126,11 +130,12 @@ export default function App() {
           },
         })
       }
-      setTimeout(clear, audioAvailable ? readMs * 2 : readMs)
+      setTimeout(clear, audible ? readMs * 2 : readMs)
     },
-    [audioAvailable, tts, convLang],
+    [voiceOn, tts, convLang],
   )
   sayRef.current = say
+  ttsRef.current = tts
 
   const startManeuver = useCallback(
     (id, entorno, { notify = true, resume = false, auto = null } = {}) => {
@@ -145,6 +150,7 @@ export default function App() {
         setMstate(null)
         setAutoGuide(auto ? { nonce: Date.now(), ...auto, slow: false } : null)
       }
+      setWellbeing(null) // una sola guía a la vez: la maniobra de emergencia manda
       setManeuver({ id, entorno: entorno ?? ENV_TO_MANEUVER[envId] ?? 'iss', nonce: Date.now() })
       setMenuOpen(false)
       setMobilePanel(null)
@@ -179,6 +185,20 @@ export default function App() {
     setMstate(null)
     setAutoGuide(null)
   }, [])
+
+  // Guía de bienestar: solo si no hay una maniobra 3D abierta (la emergencia manda).
+  const openWellbeing = useCallback((mode, lead = 1500) => {
+    if (maneuverRef.current) return
+    setWellbeing({ mode, nonce: Date.now(), lead })
+    setMenuOpen(false)
+    setMobilePanel(null)
+  }, [])
+  const closeWellbeing = useCallback(() => {
+    setWellbeing(null)
+    ttsRef.current?.cancel()
+  }, [])
+  const wbSpeak = useCallback((text) => sayRef.current?.(text, 'Moon-C', convLangRef.current), [])
+  const wbStopSpeak = useCallback(() => ttsRef.current?.cancel(), [])
 
   // Avance de la maniobra (lo reporta el modelo 3D): paso, conteo, tiempo. Moon-C lee cada paso una sola vez.
   const maneuverEvents = useRef({})
@@ -237,6 +257,7 @@ export default function App() {
       setCaption(null)
       setBusy(false)
       stopManeuver()
+      setWellbeing(null)
       setTalkLang((t) => {
         if (!(id in t)) return t
         const next = { ...t }
@@ -300,12 +321,18 @@ export default function App() {
         // Guía 3D solo con palabras inequívocas (ver autoOpenManeuver); si no, queda el botón en la bitácora.
         // Con una guía ya abierta no se reemplaza. El backend ya avisó a la tripulación cuando hay cuenta.
         const guide = autoOpenManeuver({ category: res.category, protocol: res.protocol, message })
+        // Una emergencia directa (protocolo) cierra la guía de bienestar; la guía 3D o el texto toman el relevo.
+        const emergency = res.category === 'emergency' || Boolean(res.protocol)
+        if (emergency) setWellbeing(null)
+        const wbGuide = emergency ? null : guideFromResponse(res)
+        if (res.measurement_recorded && backend.online) refreshCrew() // la alerta aparece al instante en todas las cuentas
         if (guide && !maneuverRef.current) {
           startManeuver(guide, undefined, { notify: !account, auto: { reply: res.reply, lang: replyLang } })
           say(replyIntro(res.reply, res.protocol), 'Moon-C', replyLang) // la frase de emergencia; luego habla la guía
         } else {
           say(res.reply, 'Moon-C', replyLang)
         }
+        if (wbGuide) openWellbeing(wbGuide, 5000) // deja hablar a Moon-C antes del primer aviso
         if (res.category === 'emergency' && account) {
           sim.reportFromChat(account.crew_id, res.protocol?.title?.split(':')[0] ?? 'una emergencia')
         }
@@ -315,10 +342,20 @@ export default function App() {
         if (!stale()) setBusy(false)
       }
     },
-    [accountId, account, lang, convLang, appendLog, backend, say, sim, startManeuver],
+    [accountId, account, lang, convLang, appendLog, backend, say, sim, startManeuver, openWellbeing, refreshCrew],
   )
 
   const mic = useSpeechInput(speechLang, send)
+
+  const wellbeingBetter = () => {
+    const text = afterText(convLang)
+    closeWellbeing()
+    appendLog(accountId, { who: 'assistant', name: 'Moon-C', text })
+    setSuggestions((s) => ({ ...s, [accountId]: afterSuggestions(convLang) }))
+    say(text, 'Moon-C', convLang)
+  }
+  // "Sigo mal": el backend cuenta las rondas y decide si escala; la guía queda en pausa hasta su respuesta.
+  const wellbeingWorse = () => send(tr(convLang, 'wbWorseMsg'))
 
   // Privacidad: tras 10 min sin actividad se borra la conversación aquí y en el backend.
   useEffect(() => {
@@ -472,7 +509,7 @@ export default function App() {
       ? []
       : isGeneral
         ? QUICK_GENERAL[baseLang(lang)]
-        : (QUICK_CREW[lang] ?? QUICK_CREW.es)
+        : QUICK_CREW[baseLang(lang)]
 
   return (
     <div className={`app env-${env.id}`}>
@@ -508,7 +545,7 @@ export default function App() {
 
       <AlertBanner alerts={visibleAlerts} isGeneral={isGeneral} onOpen={openEmergency} onAck={sim.acknowledge} />
 
-      <aside className={`panel panel-left ${maneuver || mobilePanel === 'left' ? 'mobile-open' : ''}`}>
+      <aside className={`panel panel-left ${maneuver || wellbeing || mobilePanel === 'left' ? 'mobile-open' : ''}`}>
         {maneuver ? (
           <ManeuverPanel
             id={maneuver.id}
@@ -527,6 +564,18 @@ export default function App() {
             onClose={stopManeuver}
             lang={lang}
             notice={autoGuide}
+          />
+        ) : wellbeing ? (
+          <WellbeingGuide
+            key={wellbeing.nonce}
+            mode={wellbeing.mode}
+            lang={convLang}
+            leadMs={wellbeing.lead}
+            onSpeak={wbSpeak}
+            onStopSpeak={wbStopSpeak}
+            onBetter={wellbeingBetter}
+            onWorse={wellbeingWorse}
+            onClose={closeWellbeing}
           />
         ) : (
           <Announcements items={board.items} canPost={isGeneral} onPost={postAnnouncement} limit={isGeneral ? undefined : 3} />
@@ -597,6 +646,7 @@ export default function App() {
         setSubtitleMode={setSubtitleMode}
         audio={tts}
         onManeuver={startManeuver}
+        onWellbeing={(mode) => openWellbeing(mode)}
         online={backend.online}
         language={lang}
         sync={earth.status}

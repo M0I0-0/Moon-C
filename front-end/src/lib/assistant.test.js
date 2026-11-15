@@ -118,7 +118,7 @@ describe('askLocal', () => {
     expect(es.protocol.steps.length).toBeGreaterThan(3)
   })
 
-  it.each(['es', 'en'])('sin emergencia avisa que no hay enlace (%s) y sugiere frases que sí son emergencias', (language) => {
+  it.each(['es', 'en', 'ru', 'de'])('sin emergencia avisa que no hay enlace (%s) y sugiere frases que sí son emergencias', (language) => {
     const res = askLocal({ message: 'hola, ¿qué tal?', language })
     expect(res.category).toBe('fallback')
     expect(res.language).toBe(language)
@@ -133,4 +133,78 @@ describe('askLocal', () => {
 
 it('normalize quita acentos, apóstrofos y puntuación', () => {
   expect(normalize("¡No puedo RESPIRAR! Can't breathe… SpO₂?")).toBe('no puedo respirar cant breathe spo2')
+})
+
+// Mismo plegado que Backend/app/intent.py (tests/test_intent_languages.py comprueba las mismas cadenas).
+it.each([
+  ['Ich kann nicht ATMEN, Brustschmerzen, Straße', 'ich kann nicht atmen brustschmerzen strasse'],
+  ['Müde Öl Übel', 'mude ol ubel'],
+  ['Мне больно, ёлка, дышать не могу', 'мне больно елка дышать не могу'],
+  ['Мой Й', 'мои и'],
+])('normalize pliega ru/de igual que el backend: %s', (text, expected) => {
+  expect(normalize(text)).toBe(expected)
+})
+
+describe('ru / de: emergencias directas, negaciones y respuestas', () => {
+  it.each([
+    ['У меня боль в груди', 'chest_pain'],
+    ['Я задыхаюсь', 'breathing_difficulty'],
+    ['Он потерял сознание', 'fainting_unresponsive'],
+    ['Хочу умереть', 'emotional_crisis'],
+    ['Ich kann nicht atmen', 'breathing_difficulty'],
+    ['Er ist bewusstlos', 'fainting_unresponsive'],
+    ['Ich will sterben', 'emotional_crisis'],
+    ['SOS', 'general_emergency'],
+    ['112', 'general_emergency'],
+    ['Call 911', 'general_emergency'],
+  ])('"%s" -> %s', (text, protocol) => {
+    expect(detectEmergency(text)).toBe(protocol)
+  })
+
+  it('un número de emergencia dentro de una frase no es una emergencia', () => {
+    expect(detectEmergency('Mi pulso es 112')).toBeNull()
+    expect(detectEmergency('Мой пульс 112')).toBeNull()
+  })
+
+  it('negación en ru/de pide confirmación', () => {
+    expect(scanEmergency('У меня нет боли в груди')).toEqual({ kind: 'negated', protocol: 'chest_pain' })
+    expect(scanEmergency('Ich habe keine Brustschmerzen')).toEqual({ kind: 'negated', protocol: 'chest_pain' })
+    expect(scanEmergency('Не знаю что делать, он потерял сознание').kind).toBe('direct')
+  })
+
+  it.each([
+    ['не знаю', true, null],
+    ['нет, я в порядке', false, 'no'],
+    ['Да, мне нужна помощь', false, 'yes'],
+    ['не сильно', true, 'no'],
+    ['очень сильно', true, 'yes'],
+    ['Nein weiß nicht', true, null],
+    ['Nein, mir geht es gut', false, 'no'],
+    ['Ja, ich brauche Hilfe', false, 'yes'],
+    ['nicht schlimm', true, 'no'],
+  ])('answer("%s", graded=%s) -> %s', (text, graded, expected) => {
+    expect(answer(text, graded)).toBe(expected)
+  })
+
+  it.each([
+    ['ru', 'Сердечный приступ', 'Да, мне нужна помощь', 'Нет, я в порядке'],
+    ['de', 'Herzinfarkt', 'Ja, ich brauche Hilfe', 'Nein, mir geht es gut'],
+  ])('(%s) frase débil -> pregunta; "sí" abre el protocolo, "no" no', (language, weak, yes, no) => {
+    resetLocal()
+    const ask = askLocal({ message: weak, language })
+    expect(ask).toMatchObject({ category: 'ambiguous', language })
+    expect(ask.suggestions).toEqual([yes, no])
+    const open = askLocal({ message: yes, language })
+    expect(open).toMatchObject({ category: 'emergency', language })
+    expect(open.protocol.title).toBeTruthy() // sin traducción del manual cae al inglés
+    askLocal({ message: weak, language })
+    expect(askLocal({ message: no, language }).category).toBe('ambiguous')
+  })
+
+  it('"Не могу дышать" abre el protocolo (en ruso si el manual ya está traducido, si no en inglés)', () => {
+    resetLocal()
+    const res = askLocal({ message: 'Не могу дышать', language: 'ru' })
+    expect(res).toMatchObject({ category: 'emergency', language: 'ru' })
+    expect(res.reply).toContain(res.protocol.title)
+  })
 })
