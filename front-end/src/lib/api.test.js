@@ -57,3 +57,23 @@ describe('api', () => {
     })
   })
 })
+
+describe('api (fase 3)', () => {
+  it('maniobras: alerta al abrir y reporte para Tierra', async () => {
+    const fetch = mockFetch({})
+    await api.startManeuver({ crewId: 'moises', maneuver: 'rcp', language: 'es' })
+    await api.sendManeuverReport({ crewId: null, maneuver: 'torniquete', summary: { title: 'Torniquete' } })
+    expect(fetch.mock.calls[0][0]).toBe('http://localhost:8000/maneuvers/start?language=es')
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ crew_id: 'moises', maneuver: 'rcp' })
+    expect(fetch.mock.calls[1][0]).toBe('http://localhost:8000/maneuvers/reports')
+    expect(JSON.parse(fetch.mock.calls[1][1].body)).toEqual({ crew_id: null, maneuver: 'torniquete', summary: { title: 'Torniquete' } })
+  })
+
+  it('anuncios y registro de accesos', async () => {
+    const fetch = mockFetch({})
+    await api.postAnnouncement({ text: 'Hola', priority: 'important', author: 'General' })
+    await api.logAccess({ crewId: 'ana', reason: 'a1' })
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toEqual({ text: 'Hola', priority: 'important', author: 'General' })
+    expect(JSON.parse(fetch.mock.calls[1][1].body)).toEqual({ crew_id: 'ana', viewer: 'general', reason: 'a1' })
+  })
+})

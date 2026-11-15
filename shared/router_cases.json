@@ -29,7 +29,13 @@
     {"text": "Hay sangrado en su brazo", "protocol": "bleeding"},
     {"text": "Sangrado", "protocol": "bleeding"},
     {"text": "¡Emergencia!", "protocol": "general_emergency"},
-    {"text": "Emergencia médica", "protocol": "general_emergency"}
+    {"text": "Emergencia médica", "protocol": "general_emergency"},
+    {"text": "Mi compañero se atragantó con comida", "protocol": "breathing_difficulty"},
+    {"text": "He choked on his food", "protocol": "breathing_difficulty"},
+    {"text": "Guíame con la RCP", "protocol": "fainting_unresponsive"},
+    {"text": "He needs CPR", "protocol": "fainting_unresponsive"},
+    {"text": "¿Dónde está el torniquete?", "protocol": "bleeding"},
+    {"text": "Apply a tourniquet", "protocol": "bleeding"}
   ],
   "not_emergency": [
     "Good morning, Moon-C",

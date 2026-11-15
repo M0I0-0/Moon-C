@@ -25,6 +25,7 @@ def test_sync_status_and_simulate(client):
         "earth_link": "offline",
         "pending": 2,
         "awaiting_assignment": 1,
+        "pending_reports": 0,
         "last_sync": None,
     }
     result = client.post("/sync/simulate").json()
@@ -101,7 +102,13 @@ def test_delete_data_requires_confirmation(client, storage_path):
     assert len(client.get("/measurements").json()) == 1
 
     res = client.delete("/data", params={"confirm": "true"})
-    assert res.json() == {"measurements_deleted": 1, "alerts_cleared": 1, "sessions_cleared": 1}
+    assert res.json() == {
+        "measurements_deleted": 1,
+        "alerts_cleared": 1,
+        "sessions_cleared": 1,
+        "reports_deleted": 0,
+        "access_log_deleted": 0,
+    }
     assert client.get("/measurements").json() == []
     assert client.get("/alerts").json() == []
     assert json.loads(storage_path.read_text(encoding="utf-8"))["measurements"] == []

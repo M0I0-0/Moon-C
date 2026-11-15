@@ -64,7 +64,15 @@ from .schemas import (
     StatusResponse,
     SyncResult,
     SyncStatus,
+    AccessEntry,
+    AccessLogIn,
+    Announcement,
+    AnnouncementIn,
+    ManeuverReport,
+    ManeuverReportIn,
+    ManeuverStartRequest,
 )
+from .records import RecordStore
 from .sessions import SessionStore
 from .storage import AlreadyAssigned, MeasurementNotFound, MeasurementStore, now_utc, to_utc
 from .sync import EarthSync
@@ -94,6 +102,9 @@ TAGS = [
     {"name": "alerts", "description": "On-board alerts: urgent readings, emergencies reported in the chat, maneuvers."},
     {"name": "vitals", "description": "Live vital signs from the simulated bracelets."},
     {"name": "simulation", "description": "Demo controls: simulated emergencies."},
+    {"name": "maneuvers", "description": "Guided emergency maneuvers: alert on start, report for Earth."},
+    {"name": "announcements", "description": "Messages from the General account to the crew."},
+    {"name": "access", "description": "Who opened a crew member's data during an emergency."},
     {"name": "sync", "description": "Simulated Earth sync queue."},
     {"name": "data", "description": "Export and privacy wipe."},
 ]
@@ -113,6 +124,9 @@ class Services:
     ai_client: OllamaClient
     chat: ChatService
     sync: EarthSync
+    reports: RecordStore[ManeuverReport]
+    access_log: RecordStore[AccessEntry]
+    announcements: RecordStore[Announcement]
     bracelets: SimulatedBracelets | None = None
     tasks: list[asyncio.Task] = field(default_factory=list)
 
@@ -123,6 +137,18 @@ class Services:
         crew = CrewRegistry.load(settings.shared_dir / "crew.json")
         store = MeasurementStore(settings.storage_path, settings.retention_days)
         store.load()
+        folder, days = settings.storage_path.parent, settings.retention_days
+        reports = RecordStore(
+            folder / "maneuver_reports.json", ManeuverReport, key="reports", time_field="created_at", retention_days=days
+        )
+        access_log = RecordStore(
+            folder / "access_log.json", AccessEntry, key="access_log", time_field="at", retention_days=days
+        )
+        announcements = RecordStore(
+            folder / "announcements.json", Announcement, key="announcements", time_field="at", retention_days=days
+        )
+        for record_store in (reports, access_log, announcements):
+            record_store.load()
         alerts = AlertBoard(manual)
         sessions = SessionStore(max_turns=settings.session_max_turns, ttl_s=settings.session_ttl_s)
         ai_client = OllamaClient(settings, transport=ollama_transport)
@@ -148,7 +174,10 @@ class Services:
             sessions=sessions,
             ai_client=ai_client,
             chat=ChatService(manual, router, crew, sessions, SmallTalk(ai_client), alerts=alerts),
-            sync=EarthSync(store, link=settings.earth_link),
+            sync=EarthSync(store, link=settings.earth_link, reports=reports),
+            reports=reports,
+            access_log=access_log,
+            announcements=announcements,
             bracelets=bracelets,
         )
 
@@ -447,6 +476,77 @@ def reset_simulation(body: SimulationResetRequest, services: ServicesDep) -> lis
     return bracelets.vitals()
 
 
+# =========================================================================== maneuvers
+@api.post(
+    "/maneuvers/start",
+    response_model=AlertView,
+    tags=["maneuvers"],
+    summary="A guided maneuver was opened: alert the crew and the medical officer",
+    description="Reuses the open alert if the same guide is reopened. An unknown crew_id never blocks the alert.",
+)
+def start_maneuver(body: ManeuverStartRequest, services: ServicesDep, language: LanguageQuery = "en") -> AlertView:
+    member = services.crew.get(body.crew_id)
+    alert = services.alerts.maneuver(member.crew_id if member else None, member.name if member else None, body.maneuver)
+    return services.alerts.view(alert, language)
+
+
+@api.post(
+    "/maneuvers/reports",
+    status_code=201,
+    response_model=ManeuverReport,
+    tags=["maneuvers"],
+    summary="Store a maneuver summary for Earth",
+    description="Stored on board and queued for Earth: it is marked as synced on the next contact window.",
+)
+def create_maneuver_report(body: ManeuverReportIn, services: ServicesDep) -> ManeuverReport:
+    member = services.crew.get(body.crew_id)
+    report = ManeuverReport(
+        **body.model_dump(exclude={"crew_id"}),
+        crew_id=member.crew_id if member else None,
+        id=uuid.uuid4().hex,
+        created_at=now_utc(),
+        synced=False,
+    )
+    return services.reports.add(report)
+
+
+@api.get("/maneuvers/reports", response_model=list[ManeuverReport], tags=["maneuvers"], summary="Maneuver reports")
+def list_maneuver_reports(services: ServicesDep, crew_id: str | None = None) -> list[ManeuverReport]:
+    return services.reports.list(lambda r: crew_id is None or r.crew_id == crew_id)
+
+
+# =========================================================================== announcements and access log
+@api.get("/announcements", response_model=list[Announcement], tags=["announcements"], summary="Announcements")
+def list_announcements(services: ServicesDep) -> list[Announcement]:
+    return services.announcements.list()
+
+
+@api.post(
+    "/announcements", status_code=201, response_model=Announcement, tags=["announcements"], summary="Post an announcement"
+)
+def create_announcement(body: AnnouncementIn, services: ServicesDep) -> Announcement:
+    return services.announcements.add(Announcement(**body.model_dump(), id=uuid.uuid4().hex, at=now_utc()))
+
+
+@api.post(
+    "/access-log",
+    status_code=201,
+    response_model=AccessEntry,
+    responses=NOT_FOUND,
+    tags=["access"],
+    summary="Record that a crew member's data was opened",
+)
+def record_access(body: AccessLogIn, services: ServicesDep) -> AccessEntry:
+    if services.crew.get(body.crew_id) is None:
+        raise HTTPException(status_code=404, detail=f"Unknown crew_id '{body.crew_id}'.")
+    return services.access_log.add(AccessEntry(**body.model_dump(), id=uuid.uuid4().hex, at=now_utc()))
+
+
+@api.get("/access-log", response_model=list[AccessEntry], tags=["access"], summary="Access history, newest first")
+def list_access(services: ServicesDep, crew_id: str | None = None) -> list[AccessEntry]:
+    return services.access_log.list(lambda e: crew_id is None or e.crew_id == crew_id)
+
+
 # =========================================================================== sync
 @api.post(
     "/sync/simulate",
@@ -512,18 +612,25 @@ def export_csv(services: ServicesDep, crew_id: str | None = None) -> Response:
     response_model=DeleteDataResponse,
     responses={400: {"model": ErrorResponse}},
     tags=["data"],
-    summary="Privacy wipe: delete all measurements",
-    description="Deletes every stored measurement and clears alerts and chat contexts. Requires confirm=true.",
+    summary="Privacy wipe: delete all crew health data",
+    description=(
+        "Deletes every stored measurement, maneuver report and access-log entry, and clears alerts and chat "
+        "contexts. Announcements are kept. Requires confirm=true."
+    ),
 )
 def delete_data(services: ServicesDep, confirm: bool = False) -> DeleteDataResponse:
     if not confirm:
         raise HTTPException(status_code=400, detail="Add ?confirm=true to delete all measurements.")
     deleted = services.store.wipe()
-    log.info("Privacy wipe: %d measurements deleted.", deleted)
+    reports = services.reports.wipe()
+    access = services.access_log.wipe()
+    log.info("Privacy wipe: %d measurements, %d reports, %d access entries deleted.", deleted, reports, access)
     return DeleteDataResponse(
         measurements_deleted=deleted,
         alerts_cleared=services.alerts.clear(),
         sessions_cleared=services.sessions.clear_all(),
+        reports_deleted=reports,
+        access_log_deleted=access,
     )
 
 

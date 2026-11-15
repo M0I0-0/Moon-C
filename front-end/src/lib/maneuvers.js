@@ -56,3 +56,29 @@ export function suggestedManeuver({ protocol, message }) {
   }
   return null
 }
+
+const toInt = (n) => (Number.isFinite(n) ? Math.max(0, Math.round(n)) : null)
+const clip = (text, max) => (typeof text === 'string' ? text.slice(0, max) : null)
+
+/**
+ * "Resumen para Tierra" de Model3D (paqueteTierra()) -> resumen que guarda el backend
+ * (POST /maneuvers/reports). Solo datos que genera la guía; nunca texto del chat.
+ */
+export function toReportSummary(pkg) {
+  return {
+    title: clip(pkg.maniobra, 200) ?? 'Maniobra',
+    environment: clip(pkg.entorno, 100) ?? '',
+    comm_delay: clip(pkg.retrasoComunicacion, 100),
+    evacuation: clip(pkg.evacuacion, 100),
+    started_at: pkg.inicio ?? null,
+    duration_s: toInt(pkg.duracionSeg) ?? 0,
+    compressions: toInt(pkg.compresiones),
+    cycles: toInt(pkg.ciclos),
+    tourniquet_time: clip(pkg.torniquete, 40),
+    events: (pkg.eventos ?? []).slice(-500).map((e) => ({
+      at: e.hora,
+      elapsed_s: toInt(e.seg) ?? 0,
+      event: clip(e.evento, 200) ?? '',
+    })),
+  }
+}

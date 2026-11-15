@@ -43,6 +43,42 @@ def to_utc(value: datetime) -> datetime:
     return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
 
 
+def write_json_atomic(path: Path, payload: dict) -> None:
+    """Write JSON atomically: a temp file in the same folder, fsync, then rename over the target."""
+    text = json.dumps(payload, ensure_ascii=False, indent=2)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(text)
+            fh.flush()
+            os.fsync(fh.fileno())
+        _replace_with_retry(tmp_name, path)
+    except BaseException:
+        if os.path.exists(tmp_name):
+            os.remove(tmp_name)
+        raise
+
+
+def _replace_with_retry(tmp_name: str, path: Path, attempts: int = 8) -> None:
+    # On Windows, antivirus or OneDrive can hold the target file for a moment.
+    for attempt in range(attempts):
+        try:
+            os.replace(tmp_name, path)
+            return
+        except PermissionError:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(0.05 * (attempt + 1))
+
+
+def set_aside_corrupt(path: Path, what: str) -> None:
+    """Move an unreadable file out of the way (never delete data) and log where it went."""
+    backup = path.with_name(f"{path.name}.corrupt-{now_utc():%Y%m%dT%H%M%SZ}")
+    os.replace(path, backup)
+    log.warning("%s file was unreadable; moved it to %s and started empty.", what, backup.name)
+
+
 class MeasurementStore:
     def __init__(self, path: Path, retention_days: int = 0):
         self.path = path
@@ -61,9 +97,7 @@ class MeasurementStore:
                 raw = json.loads(self.path.read_text(encoding="utf-8"))
                 items = [Measurement.model_validate(m) for m in raw["measurements"]]
             except (OSError, ValueError, KeyError, TypeError):
-                backup = self.path.with_name(f"{self.path.name}.corrupt-{now_utc():%Y%m%dT%H%M%SZ}")
-                os.replace(self.path, backup)
-                log.warning("Measurements file was unreadable; moved it to %s and started empty.", backup.name)
+                set_aside_corrupt(self.path, "Measurements")
                 items = []
             self._items = {m.id: m for m in items}
             if self._prune():
@@ -71,34 +105,13 @@ class MeasurementStore:
             log.info("Loaded %d measurements.", len(self._items))
 
     def _save(self) -> None:
-        payload = {
-            "schema_version": SCHEMA_VERSION,
-            "measurements": [m.model_dump(mode="json") for m in self._items.values()],
-        }
-        text = json.dumps(payload, ensure_ascii=False, indent=2)
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        fd, tmp_name = tempfile.mkstemp(dir=self.path.parent, prefix=f".{self.path.name}.", suffix=".tmp")
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as fh:
-                fh.write(text)
-                fh.flush()
-                os.fsync(fh.fileno())
-            self._replace_with_retry(tmp_name)
-        except BaseException:
-            if os.path.exists(tmp_name):
-                os.remove(tmp_name)
-            raise
-
-    def _replace_with_retry(self, tmp_name: str, attempts: int = 8) -> None:
-        # On Windows, antivirus or OneDrive can hold the target file for a moment.
-        for attempt in range(attempts):
-            try:
-                os.replace(tmp_name, self.path)
-                return
-            except PermissionError:
-                if attempt == attempts - 1:
-                    raise
-                time.sleep(0.05 * (attempt + 1))
+        write_json_atomic(
+            self.path,
+            {
+                "schema_version": SCHEMA_VERSION,
+                "measurements": [m.model_dump(mode="json") for m in self._items.values()],
+            },
+        )
 
     def _prune(self) -> bool:
         if self.retention_days <= 0:

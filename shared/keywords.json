@@ -9,16 +9,16 @@
       "es": ["dolor de pecho", "dolor en el pecho", "dolor toracico", "me duele el pecho", "le duele el pecho", "duele el pecho", "presion en el pecho", "opresion en el pecho", "pecho apretado"]
     },
     "breathing_difficulty": {
-      "en": ["cant breathe", "cannot breathe", "can not breathe", "unable to breathe", "hard to breathe", "difficulty breathing", "trouble breathing", "struggling to breathe", "short of breath", "shortness of breath", "not breathing", "isnt breathing", "stopped breathing", "choking", "suffocating", "cant get air"],
-      "es": ["no puedo respirar", "no puede respirar", "no respira", "me cuesta respirar", "le cuesta respirar", "dificultad para respirar", "falta de aire", "me falta el aire", "le falta el aire", "me ahogo", "se ahoga", "se esta ahogando", "asfixia", "me asfixio"]
+      "en": ["cant breathe", "cannot breathe", "can not breathe", "unable to breathe", "hard to breathe", "difficulty breathing", "trouble breathing", "struggling to breathe", "short of breath", "shortness of breath", "not breathing", "isnt breathing", "stopped breathing", "choking", "choked", "heimlich", "suffocating", "cant get air"],
+      "es": ["no puedo respirar", "no puede respirar", "no respira", "me cuesta respirar", "le cuesta respirar", "dificultad para respirar", "falta de aire", "me falta el aire", "le falta el aire", "me ahogo", "se ahoga", "se esta ahogando", "asfixia", "me asfixio", "se atraganto", "se atraganta", "se esta atragantando", "me atragante", "me estoy atragantando", "atragantado", "atragantada", "atragantamiento", "heimlich"]
     },
     "fainting_unresponsive": {
-      "en": ["passed out", "pass out", "fainted", "fainting", "about to faint", "going to faint", "unconscious", "unresponsive", "not responding", "wont wake up", "cant wake", "collapsed", "blacked out", "lost consciousness", "knocked out"],
-      "es": ["me desmaye", "me desmayo", "se desmayo", "desmayo", "desmayado", "desmayada", "desmayarse", "voy a desmayar", "inconsciente", "no responde", "no reacciona", "perdio el conocimiento", "perdi el conocimiento", "perdio la conciencia", "se desplomo", "no despierta"]
+      "en": ["passed out", "pass out", "fainted", "fainting", "about to faint", "going to faint", "unconscious", "unresponsive", "not responding", "wont wake up", "cant wake", "collapsed", "blacked out", "lost consciousness", "knocked out", "cpr", "needs cpr"],
+      "es": ["me desmaye", "me desmayo", "se desmayo", "desmayo", "desmayado", "desmayada", "desmayarse", "voy a desmayar", "inconsciente", "no responde", "no reacciona", "perdio el conocimiento", "perdi el conocimiento", "perdio la conciencia", "se desplomo", "no despierta", "rcp", "reanimacion", "reanimar", "masaje cardiaco"]
     },
     "bleeding": {
-      "en": ["bleeding", "bleed", "bleeds", "blood loss", "losing blood", "lot of blood", "lots of blood", "blood everywhere", "hemorrhage", "haemorrhage", "hemorrhaging"],
-      "es": ["sangrado", "sangrando", "sangra", "sangrar", "hemorragia", "pierdo sangre", "perdiendo sangre", "mucha sangre"]
+      "en": ["bleeding", "bleed", "bleeds", "blood loss", "losing blood", "lot of blood", "lots of blood", "blood everywhere", "hemorrhage", "haemorrhage", "hemorrhaging", "tourniquet"],
+      "es": ["sangrado", "sangrando", "sangra", "sangrar", "hemorragia", "pierdo sangre", "perdiendo sangre", "mucha sangre", "torniquete"]
     },
     "general_emergency": {
       "_comment": "Used only when no specific emergency protocol matches.",

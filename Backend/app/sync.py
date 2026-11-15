@@ -16,32 +16,47 @@ import logging
 import threading
 from datetime import datetime
 
-from .schemas import EarthLink, SyncResult, SyncStatus
+from .records import RecordStore
+from .schemas import EarthLink, ManeuverReport, SyncResult, SyncStatus
 from .storage import MeasurementStore, now_utc
 
 log = logging.getLogger("moon_c.sync")
 
 
 class EarthSync:
-    def __init__(self, store: MeasurementStore, link: EarthLink = "offline"):
+    def __init__(
+        self,
+        store: MeasurementStore,
+        link: EarthLink = "offline",
+        reports: RecordStore[ManeuverReport] | None = None,
+    ):
         self.store = store
+        self.reports = reports
         self.link: EarthLink = link
         self.last_sync: datetime | None = None
         self._lock = threading.Lock()
 
     def status(self) -> SyncStatus:
         pending, awaiting = self.store.sync_counts()
-        return SyncStatus(earth_link=self.link, pending=pending, awaiting_assignment=awaiting, last_sync=self.last_sync)
+        pending_reports = len(self.reports.list(lambda r: not r.synced)) if self.reports else 0
+        return SyncStatus(
+            earth_link=self.link,
+            pending=pending,
+            awaiting_assignment=awaiting,
+            pending_reports=pending_reports,
+            last_sync=self.last_sync,
+        )
 
     def flush(self) -> SyncResult:
-        """Simulate a contact window with Earth: every pending measurement is marked as synced."""
+        """Simulate a contact window with Earth: pending measurements and maneuver reports are marked as synced."""
         with self._lock:
             synced = self.store.mark_synced()
+            synced_reports = self.reports.update_where(lambda r: not r.synced, {"synced": True}) if self.reports else 0
             self.last_sync = now_utc()
         status = self.status()
-        if synced:
-            log.info("Earth sync: %d measurements marked as synced.", synced)
-        return SyncResult(**status.model_dump(), synced_count=synced)
+        if synced or synced_reports:
+            log.info("Earth sync: %d measurements and %d maneuver reports marked as synced.", synced, synced_reports)
+        return SyncResult(**status.model_dump(), synced_count=synced, synced_reports=synced_reports)
 
     async def run(self, interval_s: float) -> None:
         """Background loop: while the link is online, sync pending data. File I/O runs off the event loop."""

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import ManeuverPanel from './components/ManeuverPanel'
-import { ENV_TO_MANEUVER, MANIOBRAS, explicitManeuver, suggestedManeuver } from './lib/maneuvers'
+import { ENV_TO_MANEUVER, MANIOBRAS, explicitManeuver, suggestedManeuver, toReportSummary } from './lib/maneuvers'
 import Scene from './components/Scene'
 import TopBar from './components/TopBar'
 import MenuDrawer from './components/MenuDrawer'
@@ -13,7 +13,7 @@ import ChatDock from './components/ChatDock'
 import Subtitles from './components/Subtitles'
 import VitalDetail from './components/VitalDetail'
 import { ENVIRONMENTS } from './data/environments'
-import { SEED_ANNOUNCEMENTS } from './data/announcements'
+import { useAnnouncements } from './hooks/useAnnouncements'
 import { INDICATORS, STATUS_LABEL, classify, crewById, worstStatus } from './data/manual'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useCrewSimulation } from './hooks/useCrewSimulation'
@@ -45,7 +45,6 @@ export default function App() {
   const [subtitleMode, setSubtitleMode] = useLocalStorage('moonc.subtitles', 'auto')
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobilePanel, setMobilePanel] = useState(null)
-  const [announcements, setAnnouncements] = useState(SEED_ANNOUNCEMENTS)
   const [logs, setLogs] = useState({})
   const [suggestions, setSuggestions] = useState({})
   const [caption, setCaption] = useState(null)
@@ -74,6 +73,9 @@ export default function App() {
   const localCrew = useCrewSimulation()
   const remoteCrew = useRemoteCrew(backend.online, lang)
   const sim = backend.online && remoteCrew.ready ? remoteCrew : localCrew
+  const refreshCrew = remoteCrew.refresh
+  const board = useAnnouncements(backend.online)
+  const reportSent = useRef(false)
 
   const env = ENVIRONMENTS.home // la app usa siempre la sala (modo hogar)
   const envId = env.id
@@ -95,13 +97,36 @@ export default function App() {
   const startManeuver = useCallback(
     (id, entorno) => {
       spoken.current = new Set()
+      reportSent.current = false
       setMstate(null)
       setManeuver({ id, entorno: entorno ?? ENV_TO_MANEUVER[envId] ?? 'iss', nonce: Date.now() })
       setMenuOpen(false)
       setMobilePanel(null)
+      // Prioridad 2: abrir una guía de emergencia avisa a la tripulación y al oficial médico.
+      if (backend.online) {
+        api
+          .startManeuver({ crewId: account?.crew_id ?? null, maneuver: id, language: lang })
+          .then(() => refreshCrew())
+          .catch(() => {})
+      }
     },
-    [envId],
+    [envId, backend.online, account, lang, refreshCrew],
   )
+
+  // "Reporta a Tierra": el resumen de la guía se guarda en el backend y queda en cola para la Tierra.
+  const sendManeuverReport = () => {
+    const pkg = mctl.current?.paqueteTierra?.()
+    if (!pkg || !maneuver) return
+    if (!backend.online) {
+      setMstate((s) => ({ ...s, report: { status: 'offline' } }))
+      return
+    }
+    setMstate((s) => ({ ...s, report: { status: 'sending' } }))
+    api
+      .sendManeuverReport({ crewId: account?.crew_id ?? null, maneuver: maneuver.id, summary: toReportSummary(pkg) })
+      .then((r) => setMstate((s) => ({ ...s, report: { status: r.synced ? 'synced' : 'queued', id: r.id } })))
+      .catch(() => setMstate((s) => ({ ...s, report: { status: 'error' } })))
+  }
   const stopManeuver = useCallback(() => {
     setManeuver(null)
     setMstate(null)
@@ -115,6 +140,10 @@ export default function App() {
       if (!spoken.current.has(paso.id)) {
         spoken.current.add(paso.id)
         say(`${paso.titulo}. ${paso.texto}`)
+      }
+      if (paso.id === 'reporte' && !reportSent.current) {
+        reportSent.current = true
+        sendManeuverReport()
       }
     },
     onConteo: (conteo, total) => setMstate((s) => ({ ...s, conteo, total })),
@@ -247,7 +276,16 @@ export default function App() {
   const openEmergency = (crewId) => {
     setEmergencyView(crewId)
     setMobilePanel('right')
-    setAccessLog((l) => (l[crewId] ? l : { ...l, [crewId]: Date.now() }))
+    if (accessLog[crewId]) return
+    setAccessLog((l) => ({ ...l, [crewId]: Date.now() }))
+    // Queda constancia en el backend de quién abrió los datos del tripulante, cuándo y por qué alerta.
+    if (backend.online) {
+      const alert = sim.activeAlerts.find((a) => a.crewId === crewId)
+      api
+        .logAccess({ crewId, viewer: 'general', reason: alert?.id ?? null })
+        .then((entry) => setAccessLog((l) => ({ ...l, [crewId]: Date.parse(entry.at) })))
+        .catch(() => {})
+    }
   }
 
   const resolveEmergency = (crewId) => {
@@ -261,10 +299,7 @@ export default function App() {
   }
 
   const postAnnouncement = ({ text, priority, readAloud }) => {
-    setAnnouncements((list) => [
-      { id: uid(), author: 'General', priority, text, at: new Date().toISOString() },
-      ...list,
-    ])
+    board.post({ text, priority })
     if (readAloud) say(text, 'Anuncio')
   }
 
@@ -350,7 +385,7 @@ export default function App() {
             onClose={stopManeuver}
           />
         ) : (
-          <Announcements items={announcements} canPost={isGeneral} onPost={postAnnouncement} limit={isGeneral ? undefined : 3} />
+          <Announcements items={board.items} canPost={isGeneral} onPost={postAnnouncement} limit={isGeneral ? undefined : 3} />
         )}
       </aside>
 

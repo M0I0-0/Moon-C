@@ -64,4 +64,17 @@ export const api = {
   resolveAlert: (id, language = 'es') =>
     request(`/alerts/${encodeURIComponent(id)}/resolve?language=${language}`, { method: 'POST' }),
   resolveCrewAlerts: (crewId = null) => request('/alerts/resolve', { method: 'POST', body: { crew_id: crewId } }),
+
+  // Maniobras guiadas: alerta al abrir la guía y resumen para la Tierra al terminar.
+  startManeuver: ({ crewId, maneuver, language = 'es' }) =>
+    request(`/maneuvers/start?language=${language}`, { method: 'POST', body: { crew_id: crewId ?? null, maneuver } }),
+  sendManeuverReport: ({ crewId, maneuver, summary }) =>
+    request('/maneuvers/reports', { method: 'POST', body: { crew_id: crewId ?? null, maneuver, summary } }),
+
+  // Anuncios de la cuenta General y registro de accesos a datos de un tripulante.
+  announcements: () => request('/announcements'),
+  postAnnouncement: ({ text, priority, author }) =>
+    request('/announcements', { method: 'POST', body: { text, priority, author } }),
+  logAccess: ({ crewId, viewer = 'general', reason = null }) =>
+    request('/access-log', { method: 'POST', body: { crew_id: crewId, viewer, reason } }),
 }

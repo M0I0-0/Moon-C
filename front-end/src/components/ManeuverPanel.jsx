@@ -2,6 +2,15 @@ import { useState } from 'react'
 import { ENTORNOS, FUENTES, MANIOBRAS, MANEUVER_IMAGES } from '../lib/maneuvers'
 import { CloseIcon } from './Icons'
 
+// Estado del "Resumen para Tierra" que guarda el backend (lo pone App al llegar al paso "Reporta a Tierra").
+const REPORT_STATUS = {
+  sending: 'Guardando el resumen en Moon-C…',
+  queued: 'Resumen guardado en Moon-C. Se enviará a Tierra en la próxima ventana de comunicación.',
+  synced: 'Resumen guardado y enviado a Tierra.',
+  offline: 'Sin enlace con el backend: el resumen no se guardó. Anótalo a mano.',
+  error: 'No se pudo guardar el resumen. Anótalo a mano.',
+}
+
 /** Panel de una maniobra guiada: paso actual, conteo/tiempo, atajos y resumen para Tierra. */
 export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSoloManos, onClose }) {
   const [summary, setSummary] = useState(null)
@@ -122,6 +131,11 @@ export default function ManeuverPanel({ id, entorno, state, ctrlRef, onEnv, onSo
                 .filter((l) => l !== null)
                 .join('\n')}
             </pre>
+          )}
+          {state?.report && (
+            <p className="maneuver-note" role="status">
+              {REPORT_STATUS[state.report.status]}
+            </p>
           )}
         </>
       )}

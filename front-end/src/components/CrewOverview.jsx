@@ -20,7 +20,11 @@ export function EmergencyDetail({ crewId, member, alerts, accessAt, onBack, onRe
       <ul className="alert-reasons">
         {alerts.map((a) => (
           <li key={a.id}>
-            {a.kind === 'vital' ? `${SHORT_LABEL[a.indicator]} en rango urgente` : `Reporte por voz/texto: ${a.text}`}
+            {a.kind === 'vital'
+              ? `${SHORT_LABEL[a.indicator]} en rango urgente`
+              : a.kind === 'maneuver'
+                ? `Se abrió la ${a.text}`
+                : `Reporte por voz/texto: ${a.text}`}
             <span>{time(a.createdAt)}</span>
           </li>
         ))}
