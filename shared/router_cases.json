@@ -1,5 +1,5 @@
 {
-  "_comment": "Shared test cases. The backend router (Backend/app/intent.py) and the front-end offline emergency detector (front-end/src/lib/assistant.js) must agree on every case. Both test suites read this file.",
+  "_comment": "Shared test cases. The backend router (Backend/app/intent.py) and the front-end offline emergency detector (front-end/src/lib/assistant.js) must agree on every case. Both test suites read this file. emergency: opens the protocol directly. safety: weak phrase or bare call for help, a safety question first. negated: an emergency phrase with a negation, asks for confirmation. pain: chest or breathing trouble without an exact phrase, asks if it is strong. not_emergency: neither.",
   "emergency": [
     {"text": "chest pain", "protocol": "chest_pain"},
     {"text": "Chest pain", "protocol": "chest_pain"},
@@ -42,7 +42,57 @@
     {"text": "Ya no quiero vivir", "protocol": "emotional_crisis"},
     {"text": "Me quiero morir", "protocol": "emotional_crisis"},
     {"text": "Quiero hacerme daño", "protocol": "emotional_crisis"},
-    {"text": "Estoy muy triste y pienso en quitarme la vida", "protocol": "emotional_crisis"}
+    {"text": "Estoy muy triste y pienso en quitarme la vida", "protocol": "emotional_crisis"},
+    {"text": "me quiero matar", "protocol": "emotional_crisis"},
+    {"text": "Me voy a matar", "protocol": "emotional_crisis"},
+    {"text": "Me estoy ahogando", "protocol": "breathing_difficulty"},
+    {"text": "Me asfixio", "protocol": "breathing_difficulty"},
+    {"text": "Creo que me da un infarto", "protocol": "chest_pain"},
+    {"text": "I think I'm having a heart attack", "protocol": "chest_pain"},
+    {"text": "Siento el pecho oprimido", "protocol": "chest_pain"},
+    {"text": "Me duele mucho el pecho", "protocol": "chest_pain"},
+    {"text": "me duele el pexo", "protocol": "chest_pain"},
+    {"text": "No pude respirar", "protocol": "breathing_difficulty"},
+    {"text": "No pudo respirar", "protocol": "breathing_difficulty"},
+    {"text": "I could not breathe", "protocol": "breathing_difficulty"},
+    {"text": "no puedo respira", "protocol": "breathing_difficulty"},
+    {"text": "No, no puedo respirar", "protocol": "breathing_difficulty"},
+    {"text": "No no puedo respirar", "protocol": "breathing_difficulty"},
+    {"text": "Me estoy desangrando", "protocol": "bleeding"},
+    {"text": "No, sangra mucho", "protocol": "bleeding"},
+    {"text": "Vi todo negro y me caí", "protocol": "fainting_unresponsive"},
+    {"text": "No sé qué hacer, se desmayó", "protocol": "fainting_unresponsive"},
+    {"text": "I don't know what to do, he is bleeding", "protocol": "bleeding"},
+    {"text": "No sangra pero es una emergencia", "protocol": "general_emergency"}
+  ],
+  "safety": [
+    {"text": "Quiero acabar con todo", "protocol": "emotional_crisis"},
+    {"text": "Me siento morir", "protocol": "emotional_crisis"},
+    {"text": "Quiero desaparecer", "protocol": "emotional_crisis"},
+    {"text": "I want to disappear", "protocol": "emotional_crisis"},
+    {"text": "Me da un infarto", "protocol": "chest_pain"},
+    {"text": "Heart attack", "protocol": "chest_pain"},
+    {"text": "I'm drowning in work", "protocol": "breathing_difficulty"},
+    {"text": "Necesito ayuda", "protocol": "general_emergency"},
+    {"text": "Help me", "protocol": "general_emergency"}
+  ],
+  "negated": [
+    {"text": "No sangra", "protocol": "bleeding"},
+    {"text": "No sangra mucho", "protocol": "bleeding"},
+    {"text": "No hay sangrado", "protocol": "bleeding"},
+    {"text": "No tengo dolor de pecho", "protocol": "chest_pain"},
+    {"text": "I don't have chest pain", "protocol": "chest_pain"},
+    {"text": "No me desmayé", "protocol": "fainting_unresponsive"},
+    {"text": "He is not bleeding", "protocol": "bleeding"},
+    {"text": "No es una emergencia", "protocol": "general_emergency"}
+  ],
+  "pain": [
+    {"text": "Me molesta el pecho", "protocol": "chest_pain"},
+    {"text": "Tengo una molestia en el pecho", "protocol": "chest_pain"},
+    {"text": "My chest feels weird", "protocol": "chest_pain"},
+    {"text": "Respiro raro", "protocol": "breathing_difficulty"},
+    {"text": "Me duele al respirar", "protocol": "breathing_difficulty"},
+    {"text": "Breathing feels hard", "protocol": "breathing_difficulty"}
   ],
   "not_emergency": [
     "Good morning, Moon-C",
@@ -55,6 +105,18 @@
     "I miss my family",
     "Me equivoqué en la maniobra",
     "Me muero de risa",
+    "Fue un golpe de suerte",
+    "Me cae mal el desayuno",
+    "Estoy muerto de cansancio",
+    "Me quemé",
+    "I fell",
+    "Me torcí el tobillo",
+    "ok",
+    "How is my breathing?",
+    "¿Cuál es mi frecuencia respiratoria?",
+    "I'm burned out",
+    "Sí, todo bien",
+    "No, es leve",
     ""
   ]
 }

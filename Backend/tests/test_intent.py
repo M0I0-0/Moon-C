@@ -165,3 +165,47 @@ def test_malformed_keywords_fail_fast():
                 "small_talk": {},
             }
         )
+
+
+@pytest.mark.parametrize(
+    "text,kind",
+    [
+        ("me quemé", "burn"),
+        ("I burned my hand", "burn"),
+        ("me golpeé la cabeza", "head"),
+        ("I hit my head", "head"),
+        ("me caí", "fall"),
+        ("I fell", "fall"),
+        ("me torcí el tobillo", "twist"),
+        ("I twisted my ankle", "twist"),
+        ("me raspé la rodilla", "check"),
+        ("se hizo una cortada", "check"),
+        ("me caí y me corté la mano", "check"),  # a cut asks about bleeding even after a fall
+    ],
+)
+def test_injury_kinds(router, text, kind):
+    intent = router.classify(text)
+    assert (intent.category, intent.wound) == ("ambiguous", kind)
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["fue un golpe de suerte", "golpe de estado", "I'm burned out", "I fell asleep", "se cayo el sistema", "me cae mal el desayuno"],
+)
+def test_idioms_are_not_injuries_or_conflicts(router, text):
+    intent = router.classify(text)
+    assert intent.wound is None and intent.moment != "conflict" and intent.category != "emergency"
+
+
+@pytest.mark.parametrize(
+    "text,kind",
+    [("ok", "ack"), ("vale", "ack"), ("👍", "ack"), ("😀", "ack"), ("jajaja", "ack"), ("help", "help"), ("ayuda", "help"), ("dime algo", "help")],
+)
+def test_acknowledgements_and_help(router, text, kind):
+    intent = router.classify(text)
+    assert (intent.category, intent.small_talk_type) == ("small_talk", kind)
+
+
+def test_bare_ok_inside_a_real_question_is_not_an_acknowledgement(router):
+    assert router.classify("ok what time is the docking").small_talk_type != "ack"
+    assert router.classify("gracias, ok").small_talk_type == "thanks"

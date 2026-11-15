@@ -27,3 +27,11 @@ def test_shared_emergency_cases(router, case):
 @pytest.mark.parametrize("text", CASES["not_emergency"])
 def test_shared_non_emergency_cases(router, text):
     assert router.classify(text).category != "emergency"
+
+
+@pytest.mark.parametrize("group,confirm", [("safety", "safety"), ("negated", "negated"), ("pain", "pain")])
+def test_shared_confirmation_cases(router, group, confirm):
+    """Weak phrases, negations and pain without an exact phrase ask first: never a direct protocol."""
+    for case in CASES[group]:
+        intent = router.classify(case["text"])
+        assert (intent.category, intent.confirm, intent.protocol) == ("ambiguous", confirm, case["protocol"]), case

@@ -3,6 +3,7 @@
 Privacy rules:
 * Nothing here is ever written to disk or logged.
 * At most ``max_turns`` turns are kept per session.
+* A pending follow-up question (``Pending``: "is it bleeding heavily?") lives only a couple of minutes.
 * A session is cleared after ``ttl_s`` seconds of inactivity, when the crew
   member changes (crew switch or bracelet identification), and on
   POST /session/reset. A background sweeper also drops expired sessions from
@@ -26,17 +27,40 @@ class Turn:
 
 
 @dataclass
+class Pending:
+    """A question Moon-C just asked whose answer decides what happens next (never persisted)."""
+
+    kind: str
+    """safety, negated, pain or wound_<kind>."""
+    protocol: str | None
+    """Protocol a "yes" (or "no, it is happening") opens."""
+    expires_at: float
+    tries: int = 0
+    """Times the question was repeated because the answer was not understood."""
+
+
+@dataclass
 class Session:
     session_id: str
     crew_id: str | None
     last_active: float
     turns: deque[Turn] = field(default_factory=deque)
+    language: str | None = None
+    """Last language detected in the user's messages (kept for the session only)."""
+    pending: Pending | None = None
 
 
 class SessionStore:
-    def __init__(self, max_turns: int = 10, ttl_s: float = 600, clock: Callable[[], float] = time.monotonic):
+    def __init__(
+        self,
+        max_turns: int = 10,
+        ttl_s: float = 600,
+        clock: Callable[[], float] = time.monotonic,
+        pending_ttl_s: float = 120,
+    ):
         self.max_turns = max_turns
         self.ttl_s = ttl_s
+        self.pending_ttl_s = pending_ttl_s
         self._clock = clock
         self._lock = threading.Lock()
         self._sessions: dict[str, Session] = {}
@@ -63,6 +87,8 @@ class SessionStore:
             elif crew_id is not None and crew_id != session.crew_id:
                 session.turns.clear()
                 session.crew_id = crew_id
+                session.language = None
+                session.pending = None
             session.last_active = self._clock()
             return session
 
@@ -84,6 +110,35 @@ class SessionStore:
             if session is None or self._expired(session):
                 return []
             return list(session.turns)
+
+    def set_language(self, session_id: str, language: str) -> None:
+        with self._lock:
+            session = self._sessions.get(session_id)
+            if session is not None:
+                session.language = language
+
+    def set_pending(self, session_id: str, kind: str, protocol: str | None, tries: int = 0) -> None:
+        """Remember the question just asked (replaces any previous one); it expires after ``pending_ttl_s``."""
+        with self._lock:
+            session = self._sessions.get(session_id)
+            if session is not None:
+                session.pending = Pending(kind, protocol, self._clock() + self.pending_ttl_s, tries)
+
+    def pending(self, session_id: str) -> Pending | None:
+        with self._lock:
+            session = self._sessions.get(session_id)
+            if session is None or self._expired(session) or session.pending is None:
+                return None
+            if self._clock() > session.pending.expires_at:
+                session.pending = None
+                return None
+            return session.pending
+
+    def clear_pending(self, session_id: str) -> None:
+        with self._lock:
+            session = self._sessions.get(session_id)
+            if session is not None:
+                session.pending = None
 
     def crew_of(self, session_id: str) -> str | None:
         with self._lock:

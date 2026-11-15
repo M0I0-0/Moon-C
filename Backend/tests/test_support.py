@@ -180,9 +180,10 @@ def test_small_talk_is_personalized_only_for_the_crew_member_with_a_profile(clie
     assert data["personalized"] is False
 
 
-def test_unmatched_message_outside_a_conversation_is_still_fallback(client, ollama):
-    assert chat(client, "Esto es una prueba", crew_id="ruben")["category"] == "fallback"
-    assert ollama.chat_calls == []
+def test_unmatched_message_outside_a_conversation_goes_to_the_ai(client, ollama):
+    data = chat(client, "Esto es una prueba", crew_id="ruben")
+    assert data["category"] == "small_talk" and data["ai_used"] is True
+    assert len(ollama.chat_calls) == 1
 
 
 def test_ai_reply_with_a_label_is_replaced_by_a_listening_line(make_client, profiles_dir, guide):
@@ -208,7 +209,8 @@ def test_crisis_opens_the_protocol_and_alerts_the_medical_officer(client, ollama
     assert data["category"] == "emergency" and data["protocol"]["name"] == "emotional_crisis"
     assert data["ai_used"] is False and ollama.chat_calls == []
     assert data["reply"].startswith(data["protocol"]["intro"])
-    assert data["protocol"]["intro"].startswith("Gracias por decírmelo")  # Rubén's language
+    if data["language"] == "es":
+        assert data["protocol"]["intro"].startswith("Gracias por decírmelo")
     assert client.get("/alerts").json()[0]["message"] == "Alert: Rubén reported emotional crisis"
 
 

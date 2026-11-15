@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import cases from '@shared/router_cases.json'
-import { askLocal, detectEmergency, normalize } from './assistant'
+import { answer, askLocal, detectEmergency, normalize, resetLocal, scanEmergency } from './assistant'
 
 describe('detectEmergency (sin enlace) coincide con el router del backend', () => {
   it.each(cases.emergency)('"$text" -> $protocol', ({ text, protocol }) => {
@@ -9,6 +9,100 @@ describe('detectEmergency (sin enlace) coincide con el router del backend', () =
 
   it.each(cases.not_emergency)('"%s" no es emergencia', (text) => {
     expect(detectEmergency(text)).toBeNull()
+  })
+})
+
+describe('scanEmergency (sin enlace) coincide con el router del backend en las preguntas de seguridad', () => {
+  it.each(['safety', 'negated', 'pain'])('grupo %s: pregunta antes de abrir el protocolo', (kind) => {
+    for (const { text, protocol } of cases[kind]) {
+      expect(scanEmergency(text), text).toEqual({ kind, protocol })
+      expect(detectEmergency(text), text).toBeNull()
+    }
+  })
+
+  it('"no puedo respirar" no es una negación: es el síntoma', () => {
+    expect(scanEmergency('no, no puedo respirar')).toEqual({ kind: 'direct', protocol: 'breathing_difficulty' })
+    expect(scanEmergency('No, sangra mucho')).toEqual({ kind: 'direct', protocol: 'bleeding' })
+  })
+
+  it('la crisis emocional nunca se trata como negada', () => {
+    expect(scanEmergency('no me quiero matar').kind).toBe('direct')
+  })
+})
+
+describe('answer', () => {
+  it.each([
+    ['poco', true, 'no'],
+    ['no mucho', true, 'no'],
+    ['bastante', true, 'yes'],
+    ['No, es grave', true, 'yes'],
+    ['no es grave', true, 'no'],
+    ['Sí, necesito ayuda', false, 'yes'],
+    ['No, estoy bien', false, 'no'],
+    ['no sé', true, null],
+  ])('"%s" (graded=%s) -> %s', (text, graded, expected) => {
+    expect(answer(text, graded)).toBe(expected)
+  })
+})
+
+describe('askLocal con preguntas de seguridad', () => {
+  beforeEach(() => resetLocal())
+
+  it('una frase débil pregunta primero y solo un "sí" abre el protocolo', () => {
+    const ask = askLocal({ message: 'me da un infarto', language: 'es' })
+    expect(ask.category).toBe('ambiguous')
+    expect(ask.protocol).toBeUndefined()
+    expect(ask.suggestions).toEqual(['Sí, necesito ayuda', 'No, estoy bien'])
+    const yes = askLocal({ message: ask.suggestions[0], language: 'es' })
+    expect(yes).toMatchObject({ category: 'emergency' })
+    expect(yes.protocol.title).toBe('Dolor de pecho: cómo ayudar')
+  })
+
+  it('un "no" no abre el protocolo', () => {
+    askLocal({ message: 'quiero desaparecer', language: 'es' })
+    expect(askLocal({ message: 'No, estoy bien', language: 'es' }).category).toBe('ambiguous')
+  })
+
+  it('"quiero desaparecer" -> "sí" abre la crisis emocional con su introducción', () => {
+    askLocal({ message: 'quiero desaparecer', language: 'es' })
+    const res = askLocal({ message: 'Sí, necesito ayuda', language: 'es' })
+    expect(res.reply.startsWith('Gracias por decírmelo')).toBe(true)
+  })
+
+  it('una negación pide confirmación y "No, sí ocurre" abre el protocolo', () => {
+    const ask = askLocal({ message: 'no sangra', language: 'es' })
+    expect(ask.reply).toBe('Entendido. ¿Seguro que todo está bien?')
+    expect(ask.suggestions).toEqual(['Sí, todo bien', 'No, sí ocurre'])
+    expect(askLocal({ message: 'No, sí ocurre', language: 'es' }).protocol.title).toMatch(/Sangrado|sangrado|hemorragia/i)
+    askLocal({ message: 'no sangra', language: 'es' })
+    expect(askLocal({ message: 'Sí, todo bien', language: 'es' }).category).toBe('ambiguous')
+  })
+
+  it('dolor de pecho sin la frase exacta pregunta si es fuerte', () => {
+    const ask = askLocal({ message: 'me molesta el pecho', language: 'es' })
+    expect(ask.reply).toBe('¿Es un dolor fuerte u opresión?')
+    expect(askLocal({ message: 'Sí, es fuerte', language: 'es' }).category).toBe('emergency')
+    askLocal({ message: 'me molesta el pecho', language: 'es' })
+    expect(askLocal({ message: 'No, es leve', language: 'es' }).category).toBe('ambiguous')
+  })
+
+  it('la pregunta caduca y un tema nuevo la reemplaza', () => {
+    askLocal({ message: 'me da un infarto', language: 'es', now: 0 })
+    // 3 minutos después ya no es la respuesta a nada.
+    expect(askLocal({ message: 'Sí', language: 'es', now: 180_000 }).category).toBe('fallback')
+    askLocal({ message: 'me da un infarto', language: 'es', now: 0 })
+    expect(askLocal({ message: 'no me siento bien', language: 'es', now: 1000 }).category).toBe('fallback')
+  })
+
+  it('una emergencia directa siempre gana a la pregunta pendiente', () => {
+    askLocal({ message: 'no sangra', language: 'es' })
+    expect(askLocal({ message: 'no puedo respirar', language: 'es' }).protocol.title).toMatch(/respirar|Dificultad/i)
+  })
+
+  it('en inglés usa los textos en inglés', () => {
+    const ask = askLocal({ message: "I don't have chest pain", language: 'en' })
+    expect(ask.reply).toBe('Understood. Are you sure everything is okay?')
+    expect(askLocal({ message: 'No, it is happening', language: 'en' }).category).toBe('emergency')
   })
 })
 

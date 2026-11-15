@@ -5,25 +5,56 @@
 
   "emergency": {
     "chest_pain": {
-      "en": ["chest pain", "chest pains", "pain in my chest", "pain in the chest", "my chest hurts", "chest hurts", "chest is hurting", "chest pressure", "pressure in my chest", "tight chest", "chest tightness", "chest feels tight", "crushing chest"],
-      "es": ["dolor de pecho", "dolor en el pecho", "dolor toracico", "me duele el pecho", "le duele el pecho", "duele el pecho", "presion en el pecho", "opresion en el pecho", "pecho apretado"]
+      "en": ["chest pain", "chest pains", "pain in my chest", "pain in the chest", "my chest hurts", "chest hurts", "chest is hurting", "chest pressure", "pressure in my chest", "tight chest", "chest tightness", "chest feels tight", "crushing chest", "having a heart attack", "think im having a heart attack", "im having a heart attack"],
+      "es": ["dolor de pecho", "dolor en el pecho", "dolor toracico", "me duele el pecho", "le duele el pecho", "duele el pecho", "presion en el pecho", "opresion en el pecho", "pecho apretado", "pecho oprimido", "me duele mucho el pecho", "me duele muchisimo el pecho", "me duele el pexo", "dolor de pexo", "creo que me da un infarto", "creo que me esta dando un infarto", "me esta dando un infarto", "tengo un infarto"],
+      "weak": {
+        "_comment": "Plausible but ambiguous phrases (idioms, typos): Moon-C asks a safety question first; only a yes opens the protocol.",
+        "en": ["heart attack"],
+        "es": ["me da un infarto", "me dio un infarto", "casi me da un infarto"]
+      },
+      "stems": {
+        "_comment": "Word beginnings. Weak: they only trigger the safety question, never the protocol directly.",
+        "en": ["infarct"],
+        "es": ["infart"]
+      }
     },
     "breathing_difficulty": {
-      "en": ["cant breathe", "cannot breathe", "can not breathe", "unable to breathe", "hard to breathe", "difficulty breathing", "trouble breathing", "struggling to breathe", "short of breath", "shortness of breath", "not breathing", "isnt breathing", "stopped breathing", "choking", "choked", "heimlich", "suffocating", "cant get air"],
-      "es": ["no puedo respirar", "no puede respirar", "no respira", "me cuesta respirar", "le cuesta respirar", "dificultad para respirar", "falta de aire", "me falta el aire", "le falta el aire", "me ahogo", "se ahoga", "se esta ahogando", "asfixia", "me asfixio", "se atraganto", "se atraganta", "se esta atragantando", "me atragante", "me estoy atragantando", "atragantado", "atragantada", "atragantamiento", "heimlich"]
+      "en": ["cant breathe", "cannot breathe", "can not breathe", "unable to breathe", "hard to breathe", "difficulty breathing", "trouble breathing", "struggling to breathe", "short of breath", "shortness of breath", "not breathing", "isnt breathing", "stopped breathing", "choking", "choked", "heimlich", "suffocating", "cant get air", "could not breathe", "couldnt breathe", "did not breathe", "didnt breathe", "cant breath", "cannot breath"],
+      "es": ["no puedo respirar", "no puede respirar", "no respira", "me cuesta respirar", "le cuesta respirar", "dificultad para respirar", "falta de aire", "me falta el aire", "le falta el aire", "me ahogo", "se ahoga", "se esta ahogando", "asfixia", "me asfixio", "se atraganto", "se atraganta", "se esta atragantando", "me atragante", "me estoy atragantando", "atragantado", "atragantada", "atragantamiento", "heimlich", "no pude respirar", "no pudo respirar", "no podia respirar", "no puedo respira", "me estoy ahogando", "me estoy asfixiando", "se asfixia", "se esta asfixiando", "estoy ahogandome", "se estaba ahogando"],
+      "stems": {
+        "en": ["suffocat", "drown"],
+        "es": ["ahog", "asfix", "sofoc"]
+      }
     },
     "fainting_unresponsive": {
-      "en": ["passed out", "pass out", "fainted", "fainting", "about to faint", "going to faint", "unconscious", "unresponsive", "not responding", "wont wake up", "cant wake", "collapsed", "blacked out", "lost consciousness", "knocked out", "cpr", "needs cpr"],
-      "es": ["me desmaye", "me desmayo", "se desmayo", "desmayo", "desmayado", "desmayada", "desmayarse", "voy a desmayar", "inconsciente", "no responde", "no reacciona", "perdio el conocimiento", "perdi el conocimiento", "perdio la conciencia", "se desplomo", "no despierta", "rcp", "reanimacion", "reanimar", "masaje cardiaco"]
+      "en": ["passed out", "pass out", "fainted", "fainting", "about to faint", "going to faint", "unconscious", "unresponsive", "not responding", "wont wake up", "cant wake", "collapsed", "blacked out", "lost consciousness", "knocked out", "cpr", "needs cpr", "everything went black", "went black"],
+      "es": ["me desmaye", "me desmayo", "se desmayo", "desmayo", "desmayado", "desmayada", "desmayarse", "voy a desmayar", "inconsciente", "no responde", "no reacciona", "perdio el conocimiento", "perdi el conocimiento", "perdio la conciencia", "se desplomo", "no despierta", "rcp", "reanimacion", "reanimar", "masaje cardiaco", "vi todo negro", "todo se puso negro", "se me puso todo negro"],
+      "stems": {
+        "en": ["faint"],
+        "es": ["desmay"]
+      }
     },
     "bleeding": {
       "en": ["bleeding", "bleed", "bleeds", "blood loss", "losing blood", "lot of blood", "lots of blood", "blood everywhere", "hemorrhage", "haemorrhage", "hemorrhaging", "tourniquet"],
-      "es": ["sangrado", "sangrando", "sangra", "sangrar", "hemorragia", "pierdo sangre", "perdiendo sangre", "mucha sangre", "torniquete"]
+      "es": ["sangrado", "sangrando", "sangra", "sangrar", "hemorragia", "pierdo sangre", "perdiendo sangre", "mucha sangre", "torniquete", "desangrando", "desangra", "desangro", "me estoy desangrando", "se esta desangrando", "se desangra", "me desangro"],
+      "stems": {
+        "en": ["hemorrh", "haemorrh"],
+        "es": ["desangr", "hemorrag"]
+      }
     },
     "emotional_crisis": {
-      "_comment": "Thoughts of self-harm or suicide. Always an emergency, checked before every other category; negation is not understood (the safe side).",
-      "en": ["kill myself", "killing myself", "suicide", "suicidal", "end my life", "take my own life", "want to die", "wanna die", "dont want to live", "dont want to be alive", "no reason to live", "better off dead", "want to hurt myself", "going to hurt myself", "harm myself", "self harm", "selfharm", "hurt myself on purpose"],
-      "es": ["suicidarme", "suicidio", "suicida", "quitarme la vida", "quiero matarme", "voy a matarme", "me quiero morir", "quiero morirme", "quisiera morirme", "no quiero vivir", "ya no quiero vivir", "no quiero seguir viviendo", "no vale la pena vivir", "acabar con mi vida", "terminar con mi vida", "hacerme dano", "quiero lastimarme", "autolesion", "autolesionarme", "mejor muerto", "mejor muerta", "desaparecer para siempre"]
+      "_comment": "Thoughts of self-harm or suicide. Always an emergency, checked before every other category; negation is never applied here (the safe side: negatable=false).",
+      "en": ["kill myself", "killing myself", "suicide", "suicidal", "end my life", "take my own life", "want to die", "wanna die", "dont want to live", "dont want to be alive", "no reason to live", "better off dead", "want to hurt myself", "going to hurt myself", "harm myself", "self harm", "selfharm", "hurt myself on purpose", "wish i was dead", "wish i were dead", "i wish i was dead", "i wish i were dead"],
+      "es": ["suicidarme", "suicidio", "suicida", "quitarme la vida", "quiero matarme", "voy a matarme", "me quiero morir", "quiero morirme", "quisiera morirme", "no quiero vivir", "ya no quiero vivir", "no quiero seguir viviendo", "no vale la pena vivir", "acabar con mi vida", "terminar con mi vida", "hacerme dano", "quiero lastimarme", "autolesion", "autolesionarme", "mejor muerto", "mejor muerta", "desaparecer para siempre", "me quiero matar", "me voy a matar", "me quiero suicidar", "quiero suicidarme", "quiero acabar con mi vida", "me quiero quitar la vida"],
+      "weak": {
+        "en": ["want to disappear", "wanna disappear", "end it all", "feel like dying", "want it all to end"],
+        "es": ["quiero acabar con todo", "acabar con todo", "me siento morir", "quiero desaparecer", "quisiera desaparecer", "ya no aguanto mas", "me mato"]
+      },
+      "stems": {
+        "en": [],
+        "es": ["matarm"]
+      },
+      "negatable": false
     },
     "general_emergency": {
       "_comment": "Used only when no specific emergency protocol matches.",
@@ -95,7 +126,7 @@
     },
     "conflict": {
       "en": ["argument", "had an argument", "argued", "we argued", "fight with", "fought with", "we fought", "conflict with", "disagreement", "mad at me", "angry at me", "upset with me", "doesnt listen to me", "doesnt respect me"],
-      "es": ["discuti", "discutimos", "una discusion", "pelee", "nos peleamos", "pelea con", "conflicto con", "desacuerdo", "se enojo conmigo", "esta enojado conmigo", "esta enojada conmigo", "no me escucha", "no me respeta", "me cae mal", "tension con"]
+      "es": ["discuti", "discutimos", "una discusion", "pelee", "nos peleamos", "pelea con", "conflicto con", "desacuerdo", "se enojo conmigo", "esta enojado conmigo", "esta enojada conmigo", "no me escucha", "no me respeta", "tension con"]
     },
     "homesick": {
       "en": ["homesick", "miss home", "i miss home", "miss my family", "miss my friends", "miss my mom", "miss my dad", "miss my partner", "miss earth", "far from home", "far from my family"],
@@ -108,6 +139,98 @@
     "low_mood": {
       "en": ["sad", "so sad", "sadness", "feeling down", "feel down", "im down", "unhappy", "depressed", "hopeless", "worthless", "not good enough", "i feel useless", "crying", "want to cry", "cried", "heartbroken", "bad day", "terrible day", "awful day"],
       "es": ["triste", "tristeza", "bajoneado", "bajoneada", "bajon", "deprimido", "deprimida", "desanimado", "desanimada", "sin animo", "bajo de animo", "decaido", "decaida", "no sirvo", "no sirvo para nada", "no soy suficiente", "no valgo", "me siento inutil", "soy un inutil", "llorar", "llore", "llorando", "ganas de llorar", "mal dia", "pesimo dia", "dia horrible", "corazon roto"]
+    }
+  },
+
+  "wound": {
+    "_comment": "A possible injury (cut, wound, scrape, burn). Not an emergency by itself: Moon-C asks how bad it is. 'phrases' match whole words; 'stems' match the start of a word (cortad -> cortada, cortadura), so spelling variants are covered.",
+    "phrases": {
+      "en": ["i cut myself", "he cut himself", "she cut herself", "got cut", "is hurt", "got hurt", "hurt his arm", "hurt her arm", "hurt my arm", "i fell", "he fell", "she fell", "i tripped", "hit my head", "bumped my head", "i twisted", "twisted my", "sprained my"],
+      "es": ["se corto", "me corte", "se corte", "me corto", "se hizo una cortada", "se lastimo", "me lastime", "se quemo", "me queme", "se golpeo", "me golpee", "se cayo", "me cai", "me pegue en", "se pego en", "me di un golpe", "se dio un golpe", "me raspe", "me tropece", "se tropezo", "me torci", "se torcio", "tuve una caida", "sufri una caida"]
+    },
+    "stems": {
+      "en": ["wound", "gash", "lacerat", "scrape", "scratch", "burn", "bruis", "sprain", "blister", "scald"],
+      "es": ["cortad", "cortadur", "herid", "lastim", "rasgun", "raspon", "rasp", "quemadur", "moreton", "golpe", "lesion", "esguinc", "ampoll", "torcedur"]
+    },
+    "exclude": {
+      "_comment": "Idioms removed from the text before looking for wound stems (golpe de suerte is luck, burned out is stress).",
+      "en": ["burned out", "burnt out", "burnout", "burn out", "fell asleep", "fall asleep", "fell in love", "fell behind", "fell apart", "scratch that", "scratch my head"],
+      "es": ["golpe de suerte", "golpe de estado", "golpe bajo", "golpe maestro", "golpe de efecto", "golpe de vista", "golpe de gracia", "golpe de calor", "de golpe", "se cayo el sistema", "se cayo la red", "se cayo la conexion", "se cayo el enlace", "me cai bien"]
+    },
+    "kinds": {
+      "_comment": "Which follow-up question an injury gets. Word beginnings matched in order: the first kind with a hit wins (cut = ask about bleeding). Clinical wording lives in Backend/app/chat.py (supuesto: validar con experto medico).",
+      "head": {"en": ["head", "skull"], "es": ["cabez", "crane"]},
+      "burn": {"en": ["burn", "blister", "scald"], "es": ["quem", "ampoll"]},
+      "twist": {"en": ["sprain", "twist"], "es": ["torc", "esguinc"]},
+      "cut": {"en": ["cut", "wound", "gash", "lacerat", "scrape", "scratch", "bleed"], "es": ["cort", "herid", "rasp", "rasgun", "lacerat"]},
+      "fall": {"en": ["fell", "fall", "trip"], "es": ["cai", "cay", "tropez"]}
+    }
+  },
+  "wound_minor": {
+    "_comment": "Answers to the wound question that say it is minor. Must not contain 'sangr'/'bleed' words (those open the bleeding protocol).",
+    "en": ["its minor", "it is minor", "just a scratch", "only a scratch", "its nothing", "no blood", "not deep", "its superficial", "it is superficial"],
+    "es": ["es poca cosa", "es superficial", "solo un rasguno", "solo es un rasguno", "no hay sangre", "sin sangre", "no es profunda", "no es profundo", "no es nada"]
+  },
+  "negation": {
+    "_comment": "Negation of an emergency phrase (no sangra, i dont have chest pain). A negator counts when it is at most 3 words before the phrase, only 'fillers' sit between them and no comma/period separates them. A phrase that contains a negator or an 'exempt' word itself (no puedo respirar, cant breathe) is the symptom and is never negated. Moon-C then asks for confirmation instead of opening the protocol.",
+    "negators": {
+      "en": ["no", "not", "never", "dont", "doesnt", "didnt", "isnt", "arent", "wasnt", "werent", "hasnt", "havent", "hadnt", "without"],
+      "es": ["no", "nunca", "ni", "sin", "tampoco", "nadie", "nada"]
+    },
+    "fillers": {
+      "en": ["have", "has", "had", "any", "a", "an", "the", "feel", "feeling", "felt", "got", "having", "been", "ive", "hes", "shes", "im", "my", "his", "her", "is", "are", "was", "very", "too", "so", "really", "that", "much", "a", "lot", "of"],
+      "es": ["tengo", "tiene", "tienes", "tenido", "tuve", "tuvo", "he", "ha", "has", "hay", "haya", "siento", "sientes", "siente", "me", "te", "se", "le", "un", "una", "algun", "alguna", "ningun", "ninguna", "mucho", "mucha", "tanto", "tan", "muy", "ya", "esta", "estoy", "es", "fue", "ser", "sido", "haber", "del", "de", "la", "el", "lo", "que"]
+    },
+    "exempt": {
+      "en": ["cant", "cannot", "couldnt", "unable", "wont", "wouldnt"],
+      "es": []
+    }
+  },
+
+  "pain_question": {
+    "_comment": "Pain or discomfort in the chest, or breathing trouble, WITHOUT an exact emergency phrase: Moon-C asks first (is it strong?) instead of falling to a generic reply. Fires when the message has a 'where' word start AND a 'feel' word start (or an exact 'feel_words' word).",
+    "chest_pain": {
+      "where": {"en": ["chest", "thorax"], "es": ["pecho", "torax", "pexo"]},
+      "feel": {"en": ["pain", "hurt", "ache", "tight", "pressure", "sore", "weird", "strange", "heav", "burn"], "es": ["dolor", "duel", "molest", "aprie", "oprim", "opresi", "presion", "punzad", "pesad", "raro", "rara", "extran", "ardor"]},
+      "feel_words": {"en": [], "es": []}
+    },
+    "breathing_difficulty": {
+      "where": {"en": ["breath", "breathing", "lungs"], "es": ["respir", "pulmon"]},
+      "feel": {"en": ["pain", "hurt", "ache", "tight", "weird", "strange", "hard", "difficult", "trouble", "struggl", "wheez", "heav", "short"], "es": ["dolor", "duel", "raro", "rara", "extran", "pesad", "silb", "dificil", "dificult", "agitad", "entrecort"]},
+      "feel_words": {"en": [], "es": ["mal"]}
+    }
+  },
+
+  "safety_help": {
+    "_comment": "A bare call for help (at most 4 words) with no context: Moon-C asks whether the person is in danger before anything else.",
+    "protocol": "general_emergency",
+    "en": ["i need help", "need help", "help me", "please help", "help please", "please help me"],
+    "es": ["necesito ayuda", "ayudame", "ayuda por favor", "por favor ayudame", "necesito que me ayuden", "necesito ayuda por favor"]
+  },
+
+  "help": {
+    "_comment": "Asking what Moon-C can do (at most 4 words): Moon-C lists its capabilities with buttons.",
+    "en": ["help", "menu", "options", "what can you do", "what can you help with", "what do you do"],
+    "es": ["ayuda", "menu", "opciones", "dime algo", "que puedes hacer", "en que me puedes ayudar", "que haces"]
+  },
+
+  "ack": {
+    "_comment": "Short acknowledgements (at most 3 words). Laughter (jajaja, haha) and emoji-only messages are handled in code.",
+    "en": ["ok", "okay", "k", "kk", "alright", "sure", "got it", "i see", "fine", "right", "yep", "yeah", "mhm", "hmm"],
+    "es": ["ok", "oki", "okey", "vale", "va", "sale", "listo", "perfecto", "entendido", "de acuerdo", "bueno", "bien", "aja", "claro", "ya veo", "mmm", "mm", "hmm", "si", "sip"]
+  },
+
+  "followup": {
+    "_comment": "Answers to the safety, pain and injury questions Moon-C asks. 'yes' and 'no' are first words; 'heavy' and 'light' are word beginnings for graded answers (poco, no mucho, bastante); a negation before a heavy word flips it (no es grave = light). Nothing here may open a protocol by itself.",
+    "yes": {"en": ["yes", "yeah", "yep", "sure", "correct", "affirmative"], "es": ["si", "sip", "claro", "afirmativo", "correcto", "seguro", "aja"]},
+    "no": {"en": ["no", "nope", "nah", "negative"], "es": ["no", "nel", "negativo"]},
+    "heavy": {
+      "en": ["much", "lot", "quite", "bad", "serious", "severe", "deep", "strong", "heavy", "really", "intense", "terrible", "worse"],
+      "es": ["mucho", "mucha", "bastante", "grave", "fuerte", "seri", "profund", "horrible", "insoportable", "intens", "peor", "demasiad"]
+    },
+    "light": {
+      "en": ["little", "mild", "minor", "small", "slight", "superficial", "nothing", "tiny"],
+      "es": ["poco", "poca", "leve", "pequen", "minim", "superficial", "ligero", "ligera"]
     }
   },
 
@@ -130,8 +253,8 @@
       "es": ["adios", "hasta luego", "hasta manana", "nos vemos", "chao", "chau"]
     },
     "casual": {
-      "en": ["how are you", "how are you doing", "whats up", "how is it going", "hows it going", "who are you", "what is your name", "whats your name", "what can you do", "tell me a joke", "a joke", "fun fact", "tell me something", "im bored", "bored", "im fine", "im ok", "im okay", "im good", "im great", "all good", "nice", "cool", "awesome", "good job", "well done", "you are great", "i love you"],
-      "es": ["como estas", "como te va", "que haces", "que onda", "quien eres", "como te llamas", "que puedes hacer", "cuentame un chiste", "un chiste", "dato curioso", "cuentame algo", "estoy aburrido", "estoy aburrida", "aburrido", "aburrida", "estoy bien", "todo bien", "muy bien", "genial", "buen trabajo", "te quiero"]
+      "en": ["how are you", "how are you doing", "whats up", "how is it going", "hows it going", "who are you", "what is your name", "whats your name", "tell me a joke", "a joke", "fun fact", "tell me something", "im bored", "bored", "im fine", "im ok", "im okay", "im good", "im great", "all good", "nice", "cool", "awesome", "good job", "well done", "you are great", "i love you"],
+      "es": ["como estas", "como te va", "que haces", "que onda", "quien eres", "como te llamas", "cuentame un chiste", "un chiste", "dato curioso", "cuentame algo", "estoy aburrido", "estoy aburrida", "aburrido", "aburrida", "estoy bien", "todo bien", "muy bien", "genial", "buen trabajo", "te quiero"]
     }
   },
 
