@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { detectLanguage, isPriorityLanguage } from './language'
+import shared from '@shared/language_cases.json'
+
+// Mismos casos que Backend/tests/test_language.py: las dos copias de las listas de palabras deben coincidir.
+describe('detectLanguage coincide con Backend/app/language.py', () => {
+  it.each(shared.cases)('"$text" -> $language', ({ text, language }) => {
+    expect(detectLanguage(text)).toBe(language)
+  })
+})
 
 describe('detectLanguage', () => {
   it.each([

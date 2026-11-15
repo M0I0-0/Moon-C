@@ -1,9 +1,9 @@
 import { useState } from 'react'
+import { formatTime, tr } from '../lib/i18n'
 import { MegaphoneIcon } from './Icons'
 
-const time = (iso) => new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
-
-export default function Announcements({ items, canPost, onPost, limit }) {
+// Los anuncios se muestran tal como se escribieron; solo cambia el texto de la interfaz.
+export default function Announcements({ items, canPost, onPost, limit, lang = 'es' }) {
   const [text, setText] = useState('')
   const [important, setImportant] = useState(false)
   const [readAloud, setReadAloud] = useState(true)
@@ -20,40 +20,40 @@ export default function Announcements({ items, canPost, onPost, limit }) {
   return (
     <div className="announcements">
       <div className="panel-head">
-        <h2>Anuncios</h2>
-        <span className="panel-sub">{canPost ? 'Visibles para toda la tripulación' : 'De la cuenta General'}</span>
+        <h2>{tr(lang, 'announceTitle')}</h2>
+        <span className="panel-sub">{tr(lang, canPost ? 'announceCanPost' : 'announceFromGeneral')}</span>
       </div>
       {canPost && (
         <form className="announce-form" onSubmit={submit}>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Escribe un anuncio para la tripulación…"
+            placeholder={tr(lang, 'announcePlaceholder')}
             rows={3}
             maxLength={280}
           />
           <div className="announce-opts">
             <label className="check">
               <input type="checkbox" checked={important} onChange={(e) => setImportant(e.target.checked)} />
-              Importante
+              {tr(lang, 'announceImportant')}
             </label>
             <label className="check">
               <input type="checkbox" checked={readAloud} onChange={(e) => setReadAloud(e.target.checked)} />
-              Leer en voz alta
+              {tr(lang, 'announceReadAloud')}
             </label>
             <button className="btn btn-primary btn-sm" type="submit" disabled={!text.trim()}>
-              <MegaphoneIcon width={16} height={16} /> Publicar
+              <MegaphoneIcon width={16} height={16} /> {tr(lang, 'announcePost')}
             </button>
           </div>
         </form>
       )}
       <ul className="announce-list">
-        {shown.length === 0 && <li className="empty">Sin anuncios por ahora.</li>}
+        {shown.length === 0 && <li className="empty">{tr(lang, 'announceEmpty')}</li>}
         {shown.map((a) => (
           <li key={a.id} className={a.priority === 'important' ? 'announce announce--important' : 'announce'}>
             <div className="announce-meta">
               <span>{a.author}</span>
-              <span>{time(a.at)}</span>
+              <span>{formatTime(a.at, lang)}</span>
             </div>
             <p>{a.text}</p>
           </li>

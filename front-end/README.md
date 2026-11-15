@@ -41,7 +41,15 @@ La URL se cambia con `VITE_API_URL` en `.env.local` (ver `.env.example`).
   En inglés, o si el backend no tiene la voz instalada, usa una voz instalada en el equipo (`speechSynthesis`,
   nunca voces de red). En modo automático los subtítulos aparecen si no hay bocinas, no hay voz para el
   idioma o la voz está apagada.
-- **Idioma**: chat y voz en el idioma de cada tripulante (`preferredLanguage` de `shared/crew.json`).
+- **Idioma**: Moon-C contesta en el idioma en que le escribes o hablas, en cualquier cuenta, y la voz y el
+  dictado cambian con la conversación (`src/lib/language.js`, copia de `Backend/app/language.py`; casos
+  compartidos en `shared/language_cases.json`). La pantalla va en el idioma del perfil de cada tripulante
+  (`preferredLanguage` de `shared/crew.json`, por nacionalidad); la de la cuenta General sigue a su
+  conversación y tiene un botón ES/EN (arriba o en el menú). Los textos de la interfaz están en
+  `src/lib/i18n.js` (español e inglés; las pruebas revisan que no falte ni se cuele ninguno) y los de las
+  maniobras 3D en `Model3D/moonc/maniobras.js` (`EN`).
+- **Alertas**: en el idioma de la cuenta que las ve (`src/lib/alerts.js`). Si no hay voz para ese idioma, se
+  muestran como subtítulo.
 
 Todos los datos de signos vitales son simulados. Los rangos vienen de guías clínicas (NEWS2, AHA/ACC, OMS, AASM/SRS) y estándares de la NASA, ajustados al espacio (fuentes en `../shared/REFERENCES.md`), y siguen pendientes de validación médica.
 
@@ -55,6 +63,9 @@ src/
                         anuncios, enlace con la Tierra, voz, estado del backend
   lib/api.js            cliente del backend (todas las llamadas pasan por aquí)
   lib/assistant.js      chat: backend o, sin enlace, solo emergencias
+  lib/language.js       idioma de cada mensaje (copia de Backend/app/language.py)
+  lib/i18n.js           textos de la interfaz en español e inglés (tr)
+  lib/alerts.js         texto de las alertas, en el idioma de la cuenta
   lib/vitals.js         convierte /vitals y /alerts a la forma de los componentes
   data/                 manual (lee ../shared), ambientes, anuncios de ejemplo
 ```

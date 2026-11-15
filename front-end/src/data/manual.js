@@ -24,17 +24,31 @@ export const INDICATORS = [
 ]
 export const LIVE_INDICATORS = ['heart_rate', 'blood_pressure', 'spo2', 'respiratory_rate', 'body_temperature', 'radiation']
 
-export const SHORT_LABEL = {
-  heart_rate: 'Pulso',
-  blood_pressure: 'Presión',
-  spo2: 'SpO₂',
-  respiratory_rate: 'Respiración',
-  radiation: 'Radiación',
-  body_temperature: 'Temperatura',
-  sleep_hours: 'Sueño',
-  mood: 'Ánimo',
+const SHORT_LABELS = {
+  es: {
+    heart_rate: 'Pulso',
+    blood_pressure: 'Presión',
+    spo2: 'SpO₂',
+    respiratory_rate: 'Respiración',
+    radiation: 'Radiación',
+    body_temperature: 'Temperatura',
+    sleep_hours: 'Sueño',
+    mood: 'Ánimo',
+  },
+  en: {
+    heart_rate: 'Pulse',
+    blood_pressure: 'Pressure',
+    spo2: 'SpO₂',
+    respiratory_rate: 'Breathing',
+    radiation: 'Radiation',
+    body_temperature: 'Temperature',
+    sleep_hours: 'Sleep',
+    mood: 'Mood',
+  },
 }
+export const shortLabel = (indicator, lang = 'es') => (SHORT_LABELS[lang] ?? SHORT_LABELS.es)[indicator]
 
+// Unidad que se manda al backend (la acepta unit_aliases del manual) y la que se muestra en español.
 export const UNIT = {
   heart_rate: 'lpm',
   blood_pressure: 'mmHg',
@@ -46,18 +60,28 @@ export const UNIT = {
   mood: '/5',
 }
 
-export const STATUS_LABEL = { normal: 'Normal', attention: 'Atención', urgent: 'Urgente' }
+const UNIT_EN = { heart_rate: 'bpm', respiratory_rate: 'br/min' }
+/** Unidad para mostrar: lpm/rpm en español, bpm y br/min en inglés. */
+export const unitLabel = (indicator, lang = 'es') => (lang === 'en' && UNIT_EN[indicator]) || UNIT[indicator]
 
 const ROLES = {
-  flight_engineer: 'Ingeniería de vuelo',
-  medical_officer: 'Oficial médica',
-  commander: 'Comandante',
-  mission_specialist: 'Especialista de misión',
+  es: {
+    flight_engineer: 'Ingeniería de vuelo',
+    medical_officer: 'Oficial médica',
+    commander: 'Comandante',
+    mission_specialist: 'Especialista de misión',
+  },
+  en: {
+    flight_engineer: 'Flight engineer',
+    medical_officer: 'Medical officer',
+    commander: 'Commander',
+    mission_specialist: 'Mission specialist',
+  },
 }
+export const roleLabel = (role, lang = 'es') => (ROLES[lang] ?? ROLES.es)[role] ?? role
 
 export const CREW = crewFile.crew.map((c) => ({
   ...c,
-  roleLabel: ROLES[c.role] ?? c.role,
   initials: c.name.slice(0, 2).toUpperCase(),
 }))
 
@@ -81,17 +105,19 @@ export function classify(indicator, value) {
   return 'attention'
 }
 
-export function normalRange(indicator) {
+export function normalRange(indicator, lang = 'es') {
   const [band] = indicatorInfo(indicator).ranges.normal
-  return { min: band.min, max: band.max, text: `${band.min}–${band.max} ${UNIT[indicator]}` }
+  return { min: band.min, max: band.max, text: `${band.min}–${band.max} ${unitLabel(indicator, lang)}` }
 }
 
-export function indicatorName(indicator) {
-  return indicatorInfo(indicator).name.es
+export function indicatorName(indicator, lang = 'es') {
+  const name = indicatorInfo(indicator).name
+  return name[lang] ?? name.es
 }
 
-export function whatToDo(indicator, status) {
-  return indicatorInfo(indicator).what_to_do?.[status]?.es ?? []
+export function whatToDo(indicator, status, lang = 'es') {
+  const steps = indicatorInfo(indicator).what_to_do?.[status]
+  return steps?.[lang] ?? steps?.es ?? []
 }
 
 export function protocolView(name, lang = 'es') {

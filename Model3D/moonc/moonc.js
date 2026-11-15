@@ -8,6 +8,9 @@
 //
 // La cara usa una "calcomanía" frontal (moonc_cara.jpg) que el shader deforma:
 // párpados superior/inferior, cejas (manchas claras), mirada y boca.
+//
+// AI disclosure: the face texture (moonc_cara.jpg, moonc_cara_cerrada.png) was generated with AI. Its
+// "AI-generated" watermark sits in the top band of the image, which the shader never samples. See AI_DISCLOSURE.md.
 
 export const STATES = ['tranquila','atenta','alerta','escuchando','pensando','hablando','sin_enlace','saludo','rcp','rcp_manos','rcp_hombros','rcp_respira','llamar','senalar','tq_colocar','tq_jalar','tq_girar','tq_trabar','ah_sostener','ah_golpes','ah_abrazo','ah_empuje','rcp_er_pos','rcp_er','ah_cuenta'];
 

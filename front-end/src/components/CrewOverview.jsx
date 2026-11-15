@@ -1,35 +1,31 @@
-import { CREW, SHORT_LABEL, crewById, protocolView, PROTOCOL_FOR_INDICATOR } from '../data/manual'
+import { CREW, crewById, protocolView, PROTOCOL_FOR_INDICATOR, roleLabel } from '../data/manual'
+import { alertReason } from '../lib/alerts'
+import { formatTime, tr } from '../lib/i18n'
 import { BackIcon, LockIcon, AlertIcon } from './Icons'
 import VitalsPanel from './VitalsPanel'
 
-const time = (ms) => new Date(ms).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
-
-export function EmergencyDetail({ crewId, member, alerts, accessAt, onBack, onResolve, onSelectVital }) {
+export function EmergencyDetail({ crewId, member, alerts, accessAt, onBack, onResolve, onSelectVital, lang = 'es' }) {
   const crew = crewById(crewId)
   const vital = alerts.find((a) => a.kind === 'vital')
-  const p = protocolView(vital ? PROTOCOL_FOR_INDICATOR[vital.indicator] : 'general_emergency')
+  const p = protocolView(vital ? PROTOCOL_FOR_INDICATOR[vital.indicator] : 'general_emergency', lang)
   return (
     <div className="emergency-detail">
       <button className="link-btn" onClick={onBack}>
-        <BackIcon width={16} height={16} /> Tripulación
+        <BackIcon width={16} height={16} /> {tr(lang, 'crewTitle')}
       </button>
       <div className="access-note">
         <AlertIcon width={16} height={16} />
-        Acceso de emergencia a los datos de {crew.name} · registrado a las {time(accessAt)}
+        {tr(lang, 'crewAccess', { name: crew.name, time: formatTime(accessAt, lang) })}
       </div>
       <ul className="alert-reasons">
         {alerts.map((a) => (
           <li key={a.id}>
-            {a.kind === 'vital'
-              ? `${SHORT_LABEL[a.indicator]} en rango urgente`
-              : a.kind === 'maneuver'
-                ? `Se abrió la ${a.text}`
-                : `Reporte por voz/texto: ${a.text}`}
-            <span>{time(a.createdAt)}</span>
+            {alertReason(a, lang)}
+            <span>{formatTime(a.createdAt, lang)}</span>
           </li>
         ))}
       </ul>
-      <VitalsPanel member={member} title={crew.name} subtitle={crew.roleLabel} onSelect={onSelectVital} />
+      <VitalsPanel member={member} title={crew.name} subtitle={roleLabel(crew.role, lang)} onSelect={onSelectVital} lang={lang} />
       {p && (
         <div className="protocol">
           <h3>{p.title}</h3>
@@ -42,18 +38,18 @@ export function EmergencyDetail({ crewId, member, alerts, accessAt, onBack, onRe
         </div>
       )}
       <button className="btn btn-ghost btn-block" onClick={() => onResolve(crewId)}>
-        Marcar emergencia como atendida
+        {tr(lang, 'crewResolve')}
       </button>
     </div>
   )
 }
 
-export default function CrewOverview({ members, activeAlerts, onOpen }) {
+export default function CrewOverview({ members, activeAlerts, onOpen, lang = 'es' }) {
   return (
     <div className="crew">
       <div className="panel-head">
-        <h2>Tripulación</h2>
-        <span className="panel-sub">Los datos individuales son privados. Se abren solo en una emergencia.</span>
+        <h2>{tr(lang, 'crewTitle')}</h2>
+        <span className="panel-sub">{tr(lang, 'crewPrivate')}</span>
       </div>
       <ul className="crew-list">
         {CREW.map((c) => {
@@ -64,15 +60,15 @@ export default function CrewOverview({ members, activeAlerts, onOpen }) {
               <span className="avatar">{c.initials}</span>
               <div className="crew-info">
                 <span className="crew-name">{c.name}</span>
-                <span className="crew-role">{c.roleLabel}</span>
+                <span className="crew-role">{roleLabel(c.role, lang)}</span>
               </div>
               {emergency ? (
                 <button className="btn btn-danger btn-sm" onClick={() => onOpen(c.crew_id)}>
-                  Abrir datos
+                  {tr(lang, 'crewOpen')}
                 </button>
               ) : (
                 <span className="crew-ok">
-                  <LockIcon width={14} height={14} /> Sin alertas
+                  <LockIcon width={14} height={14} /> {tr(lang, 'crewNoAlerts')}
                 </span>
               )}
             </li>
@@ -80,7 +76,7 @@ export default function CrewOverview({ members, activeAlerts, onOpen }) {
         })}
       </ul>
       <p className="fineprint">
-        Última lectura de pulseras: {time(Math.max(...Object.values(members).map((m) => m.updatedAt)))}
+        {tr(lang, 'crewLastReading', { time: formatTime(Math.max(...Object.values(members).map((m) => m.updatedAt)), lang) })}
       </p>
     </div>
   )

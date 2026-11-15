@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { CREW } from '../data/manual'
+import { CREW, crewById, roleLabel } from '../data/manual'
 import { EMERGENCY_TYPES } from '../hooks/useCrewSimulation'
-import { CloseIcon } from './Icons'
 import { tr } from '../lib/i18n'
+import { CloseIcon } from './Icons'
 import { MANEUVER_LIST } from '../lib/maneuvers'
 import MeasurementEntry from './MeasurementEntry'
 import DataSection from './DataSection'
+import { LanguageSwitch } from './TopBar'
 
 export default function MenuDrawer({
   open,
@@ -23,12 +24,14 @@ export default function MenuDrawer({
   onManeuver,
   onWellbeing,
   online,
-  language,
+  lang = 'es',
+  onLanguage,
   sync,
   onDataChanged,
 }) {
   const [simCrew, setSimCrew] = useState(CREW[3]?.crew_id ?? CREW[0].crew_id)
   const [simKind, setSimKind] = useState(Object.keys(EMERGENCY_TYPES)[0])
+  const account = crewById(accountId)
 
   useEffect(() => {
     if (!open) return
@@ -42,53 +45,63 @@ export default function MenuDrawer({
     onClose()
   }
 
+  const audioNote = !audio.supported
+    ? 'menuNoVoice'
+    : audio.hasSpeakers === false
+      ? 'menuNoSpeakers'
+      : !audio.hasVoices
+        ? 'menuNoLocalVoice'
+        : audio.moonVoice && lang === 'es'
+          ? 'menuMoonVoice'
+          : 'menuLocalVoice'
+
   return (
     <>
       <div className={`drawer-overlay ${open ? 'visible' : ''}`} onClick={onClose} />
-      <aside className={`drawer ${open ? 'open' : ''}`} aria-hidden={!open} aria-label="Menú">
+      <aside className={`drawer ${open ? 'open' : ''}`} aria-hidden={!open} aria-label={tr(lang, 'menu')}>
         <div className="drawer-head">
           <span className="brand-name">Moon-C</span>
-          <button className="icon-btn" onClick={onClose} aria-label="Cerrar menú">
+          <button className="icon-btn" onClick={onClose} aria-label={tr(lang, 'menuClose')}>
             <CloseIcon />
           </button>
         </div>
 
         <section className="drawer-section">
-          <h3>Maniobras guiadas (3D)</h3>
-          {MANEUVER_LIST.map((m) => (
-            <button key={m.id} className="account" onClick={() => onManeuver(m.id)}>
+          <h3>{tr(lang, 'menuManeuvers')}</h3>
+          {MANEUVER_LIST.map((id) => (
+            <button key={id} className="account" onClick={() => onManeuver(id)}>
               <span className="account-info">
-                <strong>{m.label}</strong>
-                <span>{m.hint}</span>
+                <strong>{tr(lang, `maneuverLabel_${id}`)}</strong>
+                <span>{tr(lang, `maneuverHint_${id}`)}</span>
               </span>
             </button>
           ))}
         </section>
 
         <section className="drawer-section">
-          <h3>{tr(language, 'wbMenuTitle')}</h3>
+          <h3>{tr(lang, 'wbMenuTitle')}</h3>
           {[
             ['breathing', 'wbBreathing'],
             ['grounding', 'wbGrounding'],
           ].map(([mode, key]) => (
             <button key={mode} className="account" onClick={() => onWellbeing(mode)}>
               <span className="account-info">
-                <strong>{tr(language, key)}</strong>
+                <strong>{tr(lang, key)}</strong>
               </span>
             </button>
           ))}
         </section>
 
         <section className="drawer-section">
-          <h3>Cuenta</h3>
+          <h3>{tr(lang, 'menuAccount')}</h3>
           <button
             className={`account ${accountId === 'general' ? 'selected' : ''}`}
             onClick={() => pickAccount('general')}
           >
             <span className="avatar">GE</span>
             <span className="account-info">
-              <strong>General</strong>
-              <span>Anuncios y vista de toda la tripulación</span>
+              <strong>{tr(lang, 'accountGeneral')}</strong>
+              <span>{tr(lang, 'menuGeneralHint')}</span>
             </span>
           </button>
           {CREW.map((c) => (
@@ -100,43 +113,47 @@ export default function MenuDrawer({
               <span className="avatar">{c.initials}</span>
               <span className="account-info">
                 <strong>{c.name}</strong>
-                <span>
-                  {c.roleLabel} · pulsera {c.bracelet_id}
-                </span>
+                <span>{tr(lang, 'menuCrewLine', { role: roleLabel(c.role, lang), bracelet: c.bracelet_id })}</span>
               </span>
-              {inEmergency(c.crew_id) && <span className="dot dot-danger" title="Emergencia activa" />}
+              {inEmergency(c.crew_id) && <span className="dot dot-danger" title={tr(lang, 'menuActiveEmergency')} />}
             </button>
           ))}
         </section>
 
         <section className="drawer-section">
-          <h3>Registrar lectura</h3>
-          <MeasurementEntry key={accountId} accountId={accountId} online={online} language={language} />
+          <h3>{tr(lang, 'language')}</h3>
+          {account ? (
+            <p className="fineprint">
+              {tr(lang, 'menuLanguageCrew', { name: account.name, language: tr(lang, `langName_${account.preferredLanguage}`) })}
+            </p>
+          ) : (
+            <>
+              <LanguageSwitch lang={lang} onChange={onLanguage} className="segmented segmented--2" />
+              <p className="fineprint">{tr(lang, 'menuLanguageGeneral')}</p>
+            </>
+          )}
         </section>
 
         <section className="drawer-section">
-          <h3>Audio y subtítulos</h3>
+          <h3>{tr(lang, 'menuLogReading')}</h3>
+          <MeasurementEntry key={accountId} accountId={accountId} online={online} lang={lang} />
+        </section>
+
+        <section className="drawer-section">
+          <h3>{tr(lang, 'menuAudio')}</h3>
           <label className="row-toggle">
             <span>
-              Leer respuestas en voz alta
-              <small>
-                {!audio.supported
-                  ? 'Este navegador no tiene voz.'
-                  : audio.hasSpeakers === false
-                    ? 'No se detectaron bocinas.'
-                    : !audio.hasVoices
-                      ? 'No hay una voz instalada en el equipo para este idioma.'
-                      : 'Usa una voz instalada en el equipo (sin internet).'}
-              </small>
+              {tr(lang, 'menuReadAloud')}
+              <small>{tr(lang, audioNote)}</small>
             </span>
             <input type="checkbox" checked={voiceOn} onChange={(e) => setVoiceOn(e.target.checked)} />
           </label>
-          <div className="segmented" role="radiogroup" aria-label="Subtítulos">
+          <div className="segmented" role="radiogroup" aria-label={tr(lang, 'subtitles')}>
             {[
-              ['auto', 'Automático'],
-              ['on', 'Siempre'],
-              ['off', 'Apagados'],
-            ].map(([v, label]) => (
+              ['auto', 'menuSubsAuto'],
+              ['on', 'menuSubsOn'],
+              ['off', 'menuSubsOff'],
+            ].map(([v, key]) => (
               <button
                 key={v}
                 role="radio"
@@ -144,54 +161,53 @@ export default function MenuDrawer({
                 className={subtitleMode === v ? 'selected' : ''}
                 onClick={() => setSubtitleMode(v)}
               >
-                {label}
+                {tr(lang, key)}
               </button>
             ))}
           </div>
-          <p className="fineprint">Automático: aparecen cuando no hay bocinas o la voz está apagada.</p>
+          <p className="fineprint">{tr(lang, 'menuSubsHint')}</p>
           <p className="fineprint">
-            <strong>Micrófono:</strong> el dictado de Chrome y Edge usa un servicio en internet (Google o Microsoft), así
-            que el audio sale del equipo y sin conexión no funciona. Escribir siempre funciona sin internet.
+            <strong>{tr(lang, 'menuMicLabel')}</strong> {tr(lang, 'menuMicNote')}
           </p>
         </section>
 
         <section className="drawer-section">
-          <h3>Simulación (demo)</h3>
+          <h3>{tr(lang, 'menuSimulation')}</h3>
           <div className="sim-row">
-            <select value={simCrew} onChange={(e) => setSimCrew(e.target.value)} aria-label="Tripulante">
+            <select value={simCrew} onChange={(e) => setSimCrew(e.target.value)} aria-label={tr(lang, 'menuCrewMember')}>
               {CREW.map((c) => (
                 <option key={c.crew_id} value={c.crew_id}>
                   {c.name}
                 </option>
               ))}
             </select>
-            <select value={simKind} onChange={(e) => setSimKind(e.target.value)} aria-label="Tipo de emergencia">
-              {Object.entries(EMERGENCY_TYPES).map(([k, v]) => (
+            <select value={simKind} onChange={(e) => setSimKind(e.target.value)} aria-label={tr(lang, 'menuEmergencyType')}>
+              {Object.keys(EMERGENCY_TYPES).map((k) => (
                 <option key={k} value={k}>
-                  {v.label}
+                  {tr(lang, `scenario_${k}`)}
                 </option>
               ))}
             </select>
           </div>
           <div className="sim-row">
             <button className="btn btn-danger btn-sm" onClick={() => onSimulate(simCrew, simKind)}>
-              Simular emergencia
+              {tr(lang, 'menuSimulate')}
             </button>
             <button className="btn btn-ghost btn-sm" onClick={onReset}>
-              Restablecer
+              {tr(lang, 'menuReset')}
             </button>
           </div>
-          <p className="fineprint">Los signos tardan unos segundos en llegar al rango urgente, como en una pulsera real.</p>
+          <p className="fineprint">{tr(lang, 'menuSimHint')}</p>
         </section>
 
         {accountId === 'general' && (
           <section className="drawer-section">
-            <h3>Datos y enlace con la Tierra</h3>
-            <DataSection online={online} sync={sync} onChanged={onDataChanged} />
+            <h3>{tr(lang, 'menuData')}</h3>
+            <DataSection online={online} sync={sync} onChanged={onDataChanged} lang={lang} />
           </section>
         )}
 
-        <p className="drawer-foot">Datos simulados · rangos de guías clínicas y de la NASA, pendientes de validación médica.</p>
+        <p className="drawer-foot">{tr(lang, 'menuFoot')}</p>
       </aside>
     </>
   )

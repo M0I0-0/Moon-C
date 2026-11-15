@@ -2,6 +2,7 @@
   "name": "front-end",
   "private": true,
   "version": "0.0.0",
+  "description": "Moon-C front-end. Built with AI assistance (Claude Code); AI use is disclosed in ../AI_DISCLOSURE.md.",
   "type": "module",
   "scripts": {
     "dev": "vite",

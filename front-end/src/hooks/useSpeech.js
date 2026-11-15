@@ -155,12 +155,19 @@ export function useSpeechOutput(lang, { moonVoice = false, onMouth } = {}) {
     [moonVoice, voices, lang],
   )
 
+  /** Hay voz para ese idioma (la de Moon-C, solo español, o una local). Si no, la app muestra el subtítulo. */
+  const canSpeak = useCallback(
+    (forLang = lang) => (moonVoice && forLang.startsWith('es')) || (Boolean(synth) && Boolean(pickVoice(voices, forLang))),
+    [moonVoice, lang, voices],
+  )
+
   return {
     supported: moonVoice || Boolean(synth),
     hasVoiceFor,
     // Hay voz para el idioma actual (la de Moon-C, solo español, o una local); si no, la app muestra subtítulos.
     hasVoices: (moonVoice && lang.startsWith('es')) || Boolean(pickVoice(voices, lang)),
     moonVoice,
+    canSpeak,
     hasSpeakers,
     speaking,
     speak,

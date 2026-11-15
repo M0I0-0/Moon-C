@@ -1,14 +1,17 @@
 {
   "alerta_pulso": {
     "archivo": "alerta_pulso.mp3",
-    "texto": "Atención: tu pulso está alto. Siéntate y respira despacio conmigo."
+    "texto": "Atención: tu pulso está alto. Siéntate y respira despacio conmigo.",
+    "ia": "AI-generated audio: Piper neural text-to-speech (es_MX-claude-high) + Praat. Moon-C's voice."
   },
   "saludo": {
     "archivo": "saludo.mp3",
-    "texto": "Hola, soy Moon-C. Vamos a revisar tus signos vitales. Respira profundo y mantén la calma."
+    "texto": "Hola, soy Moon-C. Vamos a revisar tus signos vitales. Respira profundo y mantén la calma.",
+    "ia": "AI-generated audio: Piper neural text-to-speech (es_MX-claude-high) + Praat. Moon-C's voice."
   },
   "guia_rcp": {
     "archivo": "guia_rcp.mp3",
-    "texto": "Coloca las manos en el centro del pecho y empuja fuerte y rápido."
+    "texto": "Coloca las manos en el centro del pecho y empuja fuerte y rápido.",
+    "ia": "AI-generated audio: Piper neural text-to-speech (es_MX-claude-high) + Praat. Moon-C's voice."
   }
 }
