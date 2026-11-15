@@ -13,7 +13,7 @@ function Entry({ e, onManeuver }) {
       <div className="log-meta">
         <span className="log-name">{e.name}</span>
         <span>{time(e.at)}</span>
-        {e.via === 'local' && <span className="log-via">simulado</span>}
+        {e.via === 'local' && <span className="log-via">sin enlace</span>}
       </div>
       {steps ? (
         <div className="log-text">

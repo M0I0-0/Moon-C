@@ -20,12 +20,23 @@ import { useCrewSimulation } from './hooks/useCrewSimulation'
 import { useSpeechInput, useSpeechOutput } from './hooks/useSpeech'
 import { useBackendStatus } from './hooks/useBackendStatus'
 import { askBackend, askLocal } from './lib/assistant'
-import { SPEECH_LANG } from './config'
+import { api } from './lib/api'
+import { speechLangFor } from './config'
 
 let seq = 0
 const uid = () => `${Date.now()}-${++seq}`
+// Cada carga de la app es una sesión de chat propia: el contexto no se comparte entre tablets.
+const DEVICE_ID = (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}${Math.random()}`)
+  .replace(/[^a-z0-9]/gi, '')
+  .slice(0, 12)
+const sessionFor = (accountId) => `${DEVICE_ID}-${accountId}`
+// Igual que el backend (MOON_C_SESSION_TTL_S): la conversación se borra tras 10 min sin actividad.
+const CHAT_TTL_MS = 10 * 60 * 1000
 const QUICK_GENERAL = ['¿Cómo mido la saturación?', 'Emergencia médica', 'Hola, Moon-C']
-const QUICK_CREW = ['¿Cómo mido mi temperatura?', 'Me siento raro', 'Dormí muy poco']
+const QUICK_CREW = {
+  es: ['¿Cómo mido mi temperatura?', 'Me siento raro', 'Dormí muy poco'],
+  en: ['How do I measure my temperature?', 'I feel weird', 'I barely slept'],
+}
 
 export default function App() {
   const [accountId, setAccountId] = useLocalStorage('moonc.account', 'general')
@@ -47,14 +58,21 @@ export default function App() {
   const mctl = useRef(null)
   const spoken = useRef(new Set())
 
+  const lastActivity = useRef(Date.now())
+  const logsRef = useRef(logs)
+
+  const account = accountId === 'general' ? null : crewById(accountId)
+  const isGeneral = !account
+  // Chat y voz en el idioma del tripulante (la cuenta General usa español).
+  const lang = account?.preferredLanguage ?? 'es'
+  const speechLang = speechLangFor(lang)
+
   const sim = useCrewSimulation()
-  const tts = useSpeechOutput(SPEECH_LANG)
+  const tts = useSpeechOutput(speechLang)
   const backend = useBackendStatus()
 
   const env = ENVIRONMENTS.home // la app usa siempre la sala (modo hogar)
   const envId = env.id
-  const account = accountId === 'general' ? null : crewById(accountId)
-  const isGeneral = !account
   const audioAvailable = voiceOn && tts.supported && tts.hasVoices && tts.hasSpeakers !== false
   const showSubs = subtitleMode === 'on' || (subtitleMode === 'auto' && !audioAvailable)
 
@@ -111,11 +129,12 @@ export default function App() {
   const send = useCallback(
     async (message) => {
       const key = accountId
+      lastActivity.current = Date.now()
       appendLog(key, { who: 'user', name: account?.name ?? 'General', text: message })
       setSuggestions((s) => ({ ...s, [key]: [] }))
       const asked = explicitManeuver(message)
       if (asked) {
-        appendLog(key, { who: 'assistant', name: 'Moon-C', text: `Abro la guía 3D: ${MANIOBRAS[asked].titulo}.`, via: 'local' })
+        appendLog(key, { who: 'assistant', name: 'Moon-C', text: `Abro la guía 3D: ${MANIOBRAS[asked].titulo}.` })
         startManeuver(asked)
         return
       }
@@ -123,15 +142,21 @@ export default function App() {
       let res = null
       if (backend.online) {
         try {
-          res = await askBackend({ message, crewId: account?.crew_id ?? null, sessionId: `tablet-${key}` })
+          res = await askBackend({
+            message,
+            crewId: account?.crew_id ?? null,
+            sessionId: sessionFor(key),
+            language: lang,
+          })
         } catch {
           backend.markOffline()
         }
       }
       if (!res) {
         await new Promise((r) => setTimeout(r, 350))
-        res = askLocal({ message, crew: account })
+        res = askLocal({ message, language: lang })
       }
+      lastActivity.current = Date.now()
       appendLog(key, {
         who: 'assistant',
         name: 'Moon-C',
@@ -148,10 +173,28 @@ export default function App() {
         sim.reportFromChat(account.crew_id, res.protocol?.title?.split(':')[0] ?? 'una emergencia')
       }
     },
-    [accountId, account, appendLog, backend, say, sim, startManeuver],
+    [accountId, account, lang, appendLog, backend, say, sim, startManeuver],
   )
 
-  const mic = useSpeechInput(SPEECH_LANG, send)
+  const mic = useSpeechInput(speechLang, send)
+
+  // Privacidad: tras 10 min sin actividad se borra la conversación aquí y en el backend.
+  useEffect(() => {
+    logsRef.current = logs
+  }, [logs])
+  useEffect(() => {
+    const t = setInterval(() => {
+      const current = logsRef.current[accountId] ?? []
+      if (Date.now() - lastActivity.current < CHAT_TTL_MS || !current.some((e) => e.who !== 'system')) return
+      api.resetSession(sessionFor(accountId)).catch(() => {})
+      setLogs((l) => ({
+        ...l,
+        [accountId]: [{ id: uid(), at: Date.now(), who: 'system', text: 'Conversación borrada tras 10 min sin actividad.' }],
+      }))
+      setSuggestions((s) => ({ ...s, [accountId]: [] }))
+    }, 30000)
+    return () => clearInterval(t)
+  }, [accountId])
 
   // Anunciar alertas nuevas (voz y/o subtítulos) a la cuenta que corresponda.
   const announced = useRef(new Set())
@@ -173,14 +216,28 @@ export default function App() {
   // Al cambiar de cuenta se cierra cualquier vista de emergencia abierta.
   const switchAccount = useCallback(
     (id) => {
+      const prev = accountId
       setAccountId(id)
       setEmergencyView(null)
       setVitalDetail(null)
       setMobilePanel(null)
+      if (prev !== id) {
+        // Privacidad: la conversación de la cuenta anterior se borra aquí y en el backend.
+        setLogs((l) => {
+          const next = { ...l }
+          delete next[prev]
+          return next
+        })
+        setSuggestions((s) => ({ ...s, [prev]: [] }))
+        api.resetSession(sessionFor(prev)).catch(() => {})
+      }
       const crew = crewById(id)
+      // Pulsera simulada: identifica al tripulante y empieza un contexto limpio para esta sesión.
+      if (crew) api.identify({ braceletId: crew.bracelet_id, sessionId: sessionFor(id) }).catch(() => {})
+      lastActivity.current = Date.now()
       appendLog(id, { who: 'system', text: `Sesión iniciada · ${crew ? crew.name : 'General'}` })
     },
-    [setAccountId, appendLog],
+    [accountId, setAccountId, appendLog],
   )
 
   const openEmergency = (crewId) => {
@@ -214,6 +271,7 @@ export default function App() {
       ? 'urgent'
       : 'normal'
   const talking = tts.speaking || Boolean(caption && caption.speaker !== 'Anuncio')
+  const linkDown = backend.checked && !backend.online
   const assistantMood = mic.listening
     ? 'escuchando'
     : busy
@@ -222,9 +280,11 @@ export default function App() {
         ? 'hablando'
         : modelStatus === 'urgent'
           ? 'alerta'
-          : greeting
-            ? 'saludo'
-            : 'atenta'
+          : linkDown
+            ? 'sin_enlace'
+            : greeting
+              ? 'saludo'
+              : 'atenta'
   const visibleAlerts = sim.activeAlerts.filter((a) => isGeneral || a.crewId === accountId)
   const emergencyAlerts = emergencyView ? sim.activeAlerts.filter((a) => a.crewId === emergencyView) : []
   const detailAllowed =
@@ -232,7 +292,13 @@ export default function App() {
   const closeDetail = useCallback(() => setVitalDetail(null), [])
   const navDetail = useCallback((indicator) => setVitalDetail((d) => (d ? { ...d, indicator } : d)), [])
   const log = logs[accountId] ?? []
-  const chips = suggestions[accountId]?.length ? suggestions[accountId] : log.length ? [] : isGeneral ? QUICK_GENERAL : QUICK_CREW
+  const chips = suggestions[accountId]?.length
+    ? suggestions[accountId]
+    : log.length
+      ? []
+      : isGeneral
+        ? QUICK_GENERAL
+        : (QUICK_CREW[lang] ?? QUICK_CREW.es)
 
   return (
     <div className={`app env-${env.id}`}>

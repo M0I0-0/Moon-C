@@ -29,9 +29,12 @@ export default function TopBar({ env, account, backendOnline, audioAvailable, sh
           <span className="avatar avatar-xs">{account ? account.initials : 'GE'}</span>
           {account ? account.name : 'General'}
         </span>
-        <span className={`pill ${backendOnline ? 'pill-ok' : ''}`} title={backendOnline ? 'Conectado al backend de Moon-C' : 'Backend no disponible: respuestas simuladas'}>
+        <span
+          className={`pill ${backendOnline ? 'pill-ok' : ''}`}
+          title={backendOnline ? 'Conectado al backend de Moon-C' : 'Backend no disponible: el chat solo atiende emergencias'}
+        >
           <span className="dot" />
-          {backendOnline ? 'Backend' : 'Simulado'}
+          {backendOnline ? 'Backend' : 'Sin enlace'}
         </span>
         <span className="pill" title={audioAvailable ? 'Voz activa' : 'Sin audio: se muestran subtítulos'}>
           {audioAvailable ? <SpeakerIcon width={15} height={15} /> : <CaptionIcon width={15} height={15} />}

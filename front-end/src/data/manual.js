@@ -123,10 +123,11 @@ export function whatToDo(indicator, status) {
   return indicatorInfo(indicator).what_to_do?.[status]?.es ?? []
 }
 
-export function protocolView(name) {
+export function protocolView(name, lang = 'es') {
   const p = protocols.protocols[name]
   if (!p) return null
-  return { name, title: p.title.es, audience: p.audience?.es, steps: p.steps.es, source: p.source }
+  const t = (texts) => texts?.[lang] ?? texts?.es
+  return { name, type: p.type, title: t(p.title), audience: t(p.audience), steps: t(p.steps), source: p.source }
 }
 
 export const PROTOCOL_FOR_INDICATOR = {

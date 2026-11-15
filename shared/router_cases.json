@@ -1,0 +1,43 @@
+{
+  "_comment": "Shared test cases. The backend router (Backend/app/intent.py) and the front-end offline emergency detector (front-end/src/lib/assistant.js) must agree on every case. Both test suites read this file.",
+  "emergency": [
+    {"text": "chest pain", "protocol": "chest_pain"},
+    {"text": "Chest pain", "protocol": "chest_pain"},
+    {"text": "I have chest pain", "protocol": "chest_pain"},
+    {"text": "My chest hurts a lot", "protocol": "chest_pain"},
+    {"text": "I can't breathe!", "protocol": "breathing_difficulty"},
+    {"text": "Can't breathe", "protocol": "breathing_difficulty"},
+    {"text": "Shortness of breath after the run", "protocol": "breathing_difficulty"},
+    {"text": "He passed out in the node", "protocol": "fainting_unresponsive"},
+    {"text": "Passed out", "protocol": "fainting_unresponsive"},
+    {"text": "She is unresponsive", "protocol": "fainting_unresponsive"},
+    {"text": "There is a lot of bleeding from his hand", "protocol": "bleeding"},
+    {"text": "Bleeding", "protocol": "bleeding"},
+    {"text": "Emergency!", "protocol": "general_emergency"},
+    {"text": "Emergency, he is bleeding", "protocol": "bleeding"},
+    {"text": "I can't breathe and I have chest pain", "protocol": "breathing_difficulty"},
+    {"text": "dolor de pecho", "protocol": "chest_pain"},
+    {"text": "Dolor de pecho", "protocol": "chest_pain"},
+    {"text": "Tengo dolor de pecho", "protocol": "chest_pain"},
+    {"text": "Me duele el pecho", "protocol": "chest_pain"},
+    {"text": "¡No puedo respirar!", "protocol": "breathing_difficulty"},
+    {"text": "No puede respirar", "protocol": "breathing_difficulty"},
+    {"text": "Me falta el aire", "protocol": "breathing_difficulty"},
+    {"text": "Me desmayé hace un rato", "protocol": "fainting_unresponsive"},
+    {"text": "Se desmayó", "protocol": "fainting_unresponsive"},
+    {"text": "Moisés no responde", "protocol": "fainting_unresponsive"},
+    {"text": "Hay sangrado en su brazo", "protocol": "bleeding"},
+    {"text": "Sangrado", "protocol": "bleeding"},
+    {"text": "¡Emergencia!", "protocol": "general_emergency"},
+    {"text": "Emergencia médica", "protocol": "general_emergency"}
+  ],
+  "not_emergency": [
+    "Good morning, Moon-C",
+    "Buenos días, Moon-C",
+    "What is a normal pulse?",
+    "Me siento raro",
+    "This is a test",
+    "I'm going to Spain",
+    ""
+  ]
+}

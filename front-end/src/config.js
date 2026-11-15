@@ -8,4 +8,6 @@ export const ASSISTANT_MODEL_URL = env.VITE_ASSISTANT_MODEL_URL || env.VITE_DOCT
 export const ASSISTANT_MODEL_YAW = Number(env.VITE_ASSISTANT_MODEL_YAW || env.VITE_DOCTOR_MODEL_YAW || 0)
 // La mayoría de los STL vienen con Z hacia arriba; se rotan para que queden de pie.
 export const STL_Z_UP = env.VITE_STL_Z_UP !== 'false'
-export const SPEECH_LANG = 'es-MX'
+// Voz (dictado y lectura) según el idioma del tripulante: preferredLanguage de shared/crew.json.
+const SPEECH_LANGS = { es: 'es-MX', en: 'en-US' }
+export const speechLangFor = (lang) => SPEECH_LANGS[lang] ?? SPEECH_LANGS.es
