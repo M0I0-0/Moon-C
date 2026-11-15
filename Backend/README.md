@@ -242,3 +242,15 @@ Without it, `/status` reports `voice: "unavailable"` and the front-end uses a vo
 - **No authentication.** The backend assumes a trusted on-board network. CORS is limited to localhost by default.
 - **The bracelet is simulated** through `POST /identify` and `shared/crew.json`.
 - **JSON storage** rewrites the file on each write. That suits a mission's worth of readings, not high-frequency sensor streams.
+
+## Known limitations of the demo
+
+- **No authentication.** The `crew_id` is sent by the client and the backend trusts it. The rule "individual data only in an emergency" is enforced only in the UI. Decision: accepted for the demo; to be addressed before any real use.
+- **Browser speech-to-text sends audio to external services** (the browser's dictation engine) until a local STT exists.
+- **Data persists as plain JSON** in `Backend/storage/` (no encryption).
+- **Unknown `crew_id` in `/chat` is ignored** (the reply is generic, `personalized: false`): an emergency is never blocked by a bad id.
+- **Ollama down:** after a connection failure Moon-C skips the model for `MOON_C_OLLAMA_CIRCUIT_S` seconds (default 10) and answers with canned replies; `/status` caches the check for `MOON_C_OLLAMA_STATUS_TTL_S` (default 10). `/tts` allows `MOON_C_TTS_MAX_CONCURRENT` simultaneous syntheses (default 2) and answers 429 beyond that.
+
+### Licenses
+
+`piper-tts` and `praat-parselmouth` are **GPL-3.0**. The user decided the product will be open source; review with Legal before distributing it any other way.

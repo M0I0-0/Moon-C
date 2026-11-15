@@ -15,6 +15,7 @@ import csv
 import io
 import logging
 import random
+import threading
 import uuid
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
@@ -24,6 +25,7 @@ from typing import Annotated
 import httpx
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from . import __version__
@@ -135,6 +137,7 @@ class Services:
     access_log: RecordStore[AccessEntry]
     announcements: RecordStore[Announcement]
     voice: MoonCVoice
+    tts_slots: threading.BoundedSemaphore
     bracelets: SimulatedBracelets | None = None
     tasks: list[asyncio.Task] = field(default_factory=list)
 
@@ -196,6 +199,7 @@ class Services:
             access_log=access_log,
             announcements=announcements,
             voice=MoonCVoice(settings.voice_dir, enabled=settings.voice),
+            tts_slots=threading.BoundedSemaphore(settings.tts_max_concurrent),
             bracelets=bracelets,
         )
 
@@ -511,6 +515,7 @@ def reset_simulation(body: SimulationResetRequest, services: ServicesDep) -> lis
     responses={
         200: {"content": {"audio/wav": {}}, "description": "WAV, mono, 22 050 Hz."},
         422: {"model": ErrorResponse},
+        429: {"model": ErrorResponse},
         503: {"model": ErrorResponse},
     },
     tags=["voice"],
@@ -522,6 +527,19 @@ def reset_simulation(body: SimulationResetRequest, services: ServicesDep) -> lis
 )
 def text_to_speech(body: SpeechRequest, services: ServicesDep) -> Response:
     voice = services.voice
+    # Each synthesis holds a worker thread for 0.2-0.5 s (more for long text): cap them so /tts cannot starve
+    # the rest of the API. Non-blocking acquire: if all slots are busy, answer 429 at once and let the UI retry.
+    if not services.tts_slots.acquire(blocking=False):
+        raise HTTPException(
+            status_code=429, detail="Moon-C's voice is busy. Try again in a moment.", headers={"Retry-After": "1"}
+        )
+    try:
+        return _synthesize(body, voice)
+    finally:
+        services.tts_slots.release()
+
+
+def _synthesize(body: SpeechRequest, voice: MoonCVoice) -> Response:
     if body.language not in voice.languages:
         raise HTTPException(status_code=422, detail="Moon-C's voice only speaks Spanish for now.")
     try:
@@ -710,6 +728,20 @@ async def _sweep_sessions(services: Services) -> None:
         services.sessions.purge_expired()
 
 
+async def _validation_error_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    """422 with only ``type``, ``loc`` and ``msg`` of each error.
+
+    FastAPI's default also echoes ``input`` (the rejected value) and ``ctx``. We drop both, for every endpoint:
+    - privacy: an invalid /chat message is up to 2000 characters of health talk and must not come back in the
+      response (or end up in a client's error logs);
+    - robustness: ``input`` can be NaN/Infinity (valid for Python's JSON parser, not for JSON), and serializing
+      it made the default handler crash with a 500.
+    The ``detail`` list shape is unchanged, so clients keep working.
+    """
+    errors = [{"type": e.get("type"), "loc": list(e.get("loc", ())), "msg": e.get("msg")} for e in exc.errors()]
+    return JSONResponse(status_code=422, content={"detail": errors})
+
+
 def create_app(
     settings: Settings | None = None, *, ollama_transport: httpx.AsyncBaseTransport | None = None
 ) -> FastAPI:
@@ -755,6 +787,7 @@ def create_app(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_exception_handler(RequestValidationError, _validation_error_handler)
     app.include_router(api)
     return app
 

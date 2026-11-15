@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     ollama_warmup: bool = True
     ollama_warmup_timeout_s: float = Field(180.0, gt=0)
     ollama_status_timeout_s: float = Field(2.0, gt=0)
+    ollama_status_ttl_s: float = Field(10.0, ge=0, description="Cache of GET /status' Ollama check (0 = no cache)")
+    ollama_circuit_s: float = Field(
+        10.0, ge=0, description="After a connection failure, skip Ollama for this long and use canned replies (0 = off)"
+    )
 
     # Data.
     shared_dir: Path = REPO_DIR / "shared"
@@ -70,6 +74,7 @@ class Settings(BaseSettings):
     # Moon-C's own voice (offline text-to-speech, optional install: requirements-voice.txt).
     voice: bool = True
     voice_dir: Path = REPO_DIR / "moonc_voz"
+    tts_max_concurrent: int = Field(2, ge=1, description="Simultaneous /tts syntheses; more get 429")
 
     # CORS.
     cors_origins: str = DEFAULT_CORS_ORIGINS

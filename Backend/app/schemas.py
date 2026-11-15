@@ -6,9 +6,9 @@ These models define the API contract shown on the interactive ``/docs`` page.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 
 Language = Literal["en", "es"]
 IndicatorName = Literal[
@@ -178,7 +178,10 @@ class IdentifyResponse(CrewProfile):
 class ChatRequest(BaseModel):
     session_id: str = SESSION_ID
     crew_id: str | None = Field(None, max_length=64, examples=["moises"])
-    message: str = Field(min_length=1, max_length=2000, examples=["Good morning, Moon-C"])
+    # Stripped before validating: a message of only spaces is empty (422).
+    message: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=2000)] = Field(
+        examples=["Good morning, Moon-C"]
+    )
     language: Language | None = Field(
         None, description="Reply language. Falls back to the crew member's preferredLanguage, then English."
     )

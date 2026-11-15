@@ -18,6 +18,7 @@ import asyncio
 import logging
 import random
 import re
+import time
 
 import httpx
 
@@ -28,8 +29,12 @@ from .sessions import Turn
 log = logging.getLogger("moon_c.ai")
 
 SYSTEM_PROMPT = (
-    "You are Moon-C, a warm companion on board a space mission. "
+    "You are Moon-C, a warm, curious and playful companion on board a space mission, a friendly presence "
+    "in a small crew far from home. You are not a menu or a form: talk like a person would. "
     "Reply in the same language the crew member uses. "
+    "Messages may have typos or come from voice transcription (\"ola\" means \"hola\"): understand the intent "
+    "and never answer \"I don't understand\" to a greeting. If something is truly unclear, ask one short, "
+    "natural question instead of listing options. "
     "Keep every reply to 1–2 short sentences, warm and natural; never write lists. "
     "You may greet, encourage and chat, and you can listen when someone is having a hard time: "
     "acknowledge their feelings, never judge, and if things feel very heavy, encourage them to talk "
@@ -125,6 +130,27 @@ def build_system_prompt(lang: str, crew_name: str | None, notes: str | None = No
     return f"{prompt}\n\n{notes}" if notes else prompt
 
 
+WOUND_PROMPTS = {
+    "check": (
+        "Someone on the crew (the user or a crewmate) may be hurt: a cut, wound, burn or knock. "
+        "Reply in 1-2 short, calm sentences: show concern for the person and ask whether it is bleeding heavily. "
+        "Say you can guide them step by step if it is serious. "
+        "Do NOT give medical advice, do NOT name conditions, do NOT diagnose, no lists, no numbers."
+    ),
+    "minor": (
+        "The user said an injury is minor. Reply in 1-2 short, calm sentences: say you are glad, and that if "
+        "it starts bleeding heavily, hurts more or looks deep, they should tell you and you will guide them, and "
+        "that the on-board medical officer can take a look. "
+        "Do NOT give medical advice, do NOT diagnose, no lists, no numbers."
+    ),
+}
+
+
+def is_valid_wound_reply(text: str) -> bool:
+    """The AI may word the question, but must stay short and plain (no lists, digits or long advice)."""
+    return 0 < len(text) <= 280 and "\n" not in text and not any(c.isdigit() for c in text) and "•" not in text
+
+
 def is_safe_small_talk(reply: str, router: KeywordRouter) -> bool:
     """Post-filter: False if an AI reply touches health or emergency topics."""
     return not router.mentions_health_or_emergency(reply)
@@ -138,12 +164,37 @@ class OllamaClient:
         self._http = httpx.AsyncClient(
             base_url=settings.ollama_url, transport=transport, timeout=settings.ollama_timeout_s
         )
+        self._clock = time.monotonic
+        self._status_cache: tuple[float, tuple[bool, bool]] | None = None
+        # Circuit breaker: after a connection failure Ollama is skipped until this instant. A refused
+        # connection takes ~2 s on Windows, so without it every chat message would pay that again.
+        self._down_until = 0.0
+
+    @property
+    def circuit_open(self) -> bool:
+        return self._clock() < self._down_until
+
+    def _trip(self) -> None:
+        self._down_until = self._clock() + self.settings.ollama_circuit_s
 
     async def aclose(self) -> None:
         await self._http.aclose()
 
     async def status(self) -> tuple[bool, bool]:
-        """(reachable, model_available)."""
+        """(reachable, model_available). Cached for ``ollama_status_ttl_s``."""
+        now = self._clock()
+        ttl = self.settings.ollama_status_ttl_s
+        if self._status_cache and now - self._status_cache[0] < ttl:
+            return self._status_cache[1]
+        result = await self._probe()
+        self._status_cache = (self._clock(), result)
+        if result[0]:
+            self._down_until = 0.0
+        else:
+            self._trip()
+        return result
+
+    async def _probe(self) -> tuple[bool, bool]:
         try:
             res = await self._http.get("/api/tags", timeout=self.settings.ollama_status_timeout_s)
             res.raise_for_status()
@@ -184,11 +235,18 @@ class OllamaClient:
                 "temperature": self.settings.ollama_temperature,
             },
         }
+        if self.circuit_open:
+            return None
         try:
             async with asyncio.timeout(self.settings.ollama_timeout_s):
                 res = await self._http.post("/api/chat", json=payload)
                 res.raise_for_status()
                 data = res.json()
+        except (httpx.ConnectError, httpx.ConnectTimeout) as exc:
+            self._trip()
+            self._status_cache = (self._clock(), (False, False))
+            log.info("Ollama unreachable (%s); canned replies for %.0f s.", type(exc).__name__, self.settings.ollama_circuit_s)
+            return None
         except (httpx.HTTPError, TimeoutError, ValueError) as exc:
             log.info("Ollama unavailable for small talk (%s); using a canned reply.", type(exc).__name__)
             return None
@@ -229,3 +287,16 @@ class SmallTalk:
         if text:
             return text, True
         return self.canned(lang, kind), False
+
+    async def wound_reply(self, message: str, history: list[Turn], lang: str, crew_name: str | None, kind: str) -> str | None:
+        """Dynamic wording for the injury question; None if the AI is down or its reply is not plain enough."""
+        system = " ".join([WOUND_PROMPTS[kind], _LANGUAGE_LINE.get(lang, _LANGUAGE_LINE["en"])])
+        if crew_name:
+            system += f" The crew member's name is {crew_name}."
+        messages = [{"role": "system", "content": system}]
+        for turn in history[-4:]:
+            messages.append({"role": "user", "content": turn.user})
+            messages.append({"role": "assistant", "content": turn.assistant})
+        messages.append({"role": "user", "content": message})
+        text = await self.client.chat(messages)
+        return text if text and is_valid_wound_reply(text) else None
